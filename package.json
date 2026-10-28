@@ -48,6 +48,10 @@
       "unrs-resolver",
       "@parcel/watcher",
       "sharp"
-    ]
+    ],
+    "overrides": {
+      "postcss": ">=8.5.23",
+      "esbuild": ">=0.25.0"
+    }
   }
 }

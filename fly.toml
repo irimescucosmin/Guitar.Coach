@@ -1,0 +1,32 @@
+# Guitar.Coach on Fly.io. Frankfurt, next to the database.
+app = "guitar-coach"
+primary_region = "fra"
+
+[deploy]
+  # Migrations run once per release, before new machines take traffic.
+  release_command = "node src/db/migrate.mjs"
+
+[env]
+  NODE_ENV = "production"
+  BETTER_AUTH_URL = "https://guitar-coach.fly.dev"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # A personal practice app: a cold start of a few seconds is fine, an idle
+  # machine paid all night is not. Turn this off when people depend on it.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    timeout = "5s"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
