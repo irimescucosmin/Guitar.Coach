@@ -34,6 +34,7 @@ export function chromaFromSpectrum(spectrumDb: ArrayLike<number>, sampleRate: nu
   const chroma = new Float32Array(12);
   if (!Number.isFinite(maxDb)) return chroma;
 
+  const peaks: { hz: number; amplitude: number }[] = [];
   for (let i = lo; i <= hi; i++) {
     const a = spectrumDb[i - 1]!;
     const b = spectrumDb[i]!;
@@ -42,15 +43,35 @@ export function chromaFromSpectrum(spectrumDb: ArrayLike<number>, sampleRate: nu
     // A parabola through the three bins finds the peak between them.
     const denominator = a - 2 * b + c;
     const offset = denominator === 0 ? 0 : (0.5 * (a - c)) / denominator;
-    const midi = midiFromFrequency((i + offset) * binHz);
+    peaks.push({ hz: (i + offset) * binHz, amplitude: 10 ** ((b - maxDb) / 20) });
+  }
+
+  for (const peak of peaks) {
+    const midi = midiFromFrequency(peak.hz);
     const pitchClass = ((Math.round(midi) % 12) + 12) % 12;
-    chroma[pitchClass]! += 10 ** ((b - maxDb) / 20);
+    chroma[pitchClass]! += peak.amplitude * harmonicWeight(peak, peaks);
   }
 
   let max = 0;
   for (const v of chroma) max = Math.max(max, v);
   if (max > 0) for (let i = 0; i < 12; i++) chroma[i]! /= max;
   return chroma;
+}
+
+/**
+ * The 5th and 7th harmonics of a string land on pitch classes that are not its
+ * own: the 5th of a low E is a G#, which turns an Em into an E. When a peak sits
+ * where a lower peak puts its 5th or 7th harmonic, it counts for little: on a
+ * steel string the low fundamentals are often quieter than their harmonics.
+ * Octaves (2, 4) and fifths (3, 6) belong to the chord anyway and are kept.
+ */
+function harmonicWeight(peak: { hz: number; amplitude: number }, peaks: readonly { hz: number; amplitude: number }[]): number {
+  for (const k of [5, 7]) {
+    const root = peak.hz / k;
+    const tolerance = root * 0.02;
+    if (peaks.some((p) => Math.abs(p.hz - root) < tolerance)) return 0.1;
+  }
+  return 1;
 }
 
 export interface ChordMatch {
@@ -66,7 +87,7 @@ export interface ChordMatch {
   clean: boolean;
 }
 
-const MISSING_BELOW = 0.22;
+const MISSING_BELOW = 0.12;
 const EXTRA_ABOVE = 0.5;
 const CLEAN_SCORE = 0.72;
 

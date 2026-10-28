@@ -25,8 +25,12 @@ function spectrumOf(notes: number[], quietNotes: number[] = []): Float32Array {
   for (const n of notes) {
     const f = frequencyFromMidi(n);
     add(f, -20);
-    add(2 * f, -28);
-    add(3 * f, -34);
+    add(2 * f, -26);
+    add(3 * f, -30);
+    add(4 * f, -32);
+    // The 5th harmonic is a major third: the one that turns a minor chord major.
+    add(5 * f, -30);
+    add(6 * f, -36);
   }
   for (const n of quietNotes) add(frequencyFromMidi(n), -60);
   return bins;
@@ -64,6 +68,93 @@ describe("chord recognition", () => {
   it("returns silence as an empty chroma", () => {
     const chroma = chromaFromSpectrum(new Float32Array(FFT / 2).fill(-Infinity), SAMPLE_RATE, FFT);
     expect([...chroma].every((v) => v === 0)).toBe(true);
+  });
+});
+
+/* A real strum: Karplus-Strong strings, a Blackman window and an FFT, like the browser's analyser. */
+
+function seeded(seed: number) {
+  let s = seed;
+  return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32) * 2 - 1;
+}
+
+function strum(id: ChordId, rate: number, length: number, skip: number, muted?: number): Float32Array {
+  const out = new Float32Array(length);
+  const random = seeded(7);
+  CHORDS[id].notes.forEach((midi, string) => {
+    if (midi === null || string === muted) return;
+    const period = Math.round(rate / frequencyFromMidi(midi));
+    const ring = Float32Array.from({ length: period }, random);
+    let index = 0;
+    const offset = string * 500;
+    for (let i = 0; i < skip + length; i++) {
+      const a = ring[index]!;
+      const b = ring[(index + 1) % period]!;
+      const at = i + offset - skip;
+      if (at >= 0 && at < length) out[at]! += 0.25 * a;
+      ring[index] = 0.996 * 0.5 * (a + b);
+      index = (index + 1) % period;
+    }
+  });
+  return out;
+}
+
+function spectrumDb(samples: Float32Array): Float32Array {
+  const n = samples.length;
+  const re = new Float64Array(n);
+  const im = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const w = 0.42 - 0.5 * Math.cos((2 * Math.PI * i) / n) + 0.08 * Math.cos((4 * Math.PI * i) / n);
+    re[i] = samples[i]! * w;
+  }
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      [re[i], re[j]] = [re[j]!, re[i]!];
+      [im[i], im[j]] = [im[j]!, im[i]!];
+    }
+  }
+  for (let size = 2; size <= n; size <<= 1) {
+    const angle = (-2 * Math.PI) / size;
+    for (let start = 0; start < n; start += size) {
+      for (let k = 0; k < size / 2; k++) {
+        const cos = Math.cos(angle * k);
+        const sin = Math.sin(angle * k);
+        const a = start + k;
+        const b = a + size / 2;
+        const tr = re[b]! * cos - im[b]! * sin;
+        const ti = re[b]! * sin + im[b]! * cos;
+        re[b] = re[a]! - tr;
+        im[b] = im[a]! - ti;
+        re[a]! += tr;
+        im[a]! += ti;
+      }
+    }
+  }
+  return Float32Array.from({ length: n / 2 }, (_, i) => 20 * Math.log10(Math.hypot(re[i]!, im[i]!) / n + 1e-12));
+}
+
+const heard = (id: ChordId, muted?: number) =>
+  chromaFromSpectrum(spectrumDb(strum(id, SAMPLE_RATE, FFT, 12_000, muted)), SAMPLE_RATE, FFT);
+
+describe("chord recognition on a plucked strum", () => {
+  it.each([
+    ["Em", 3, 7],
+    ["Am", 4, 0],
+    ["D", 5, 6],
+    ["C", 4, null],
+  ] as const)("on %s with string %i muted reports pitch class %s missing", (id, string, pc) => {
+    const match = matchChord(heard(id, string), id);
+    expect(match.missing).toEqual(pc === null ? [] : [pc]);
+  });
+
+  it.each(CHORD_IDS)("hears %s as itself, not its major or minor twin", (id) => {
+    const chroma = chromaFromSpectrum(spectrumDb(strum(id, SAMPLE_RATE, FFT, 12_000)), SAMPLE_RATE, FFT);
+    const match = matchChord(chroma, id);
+    expect(match.best).toBe(id);
+    expect(match.clean).toBe(true);
   });
 });
 

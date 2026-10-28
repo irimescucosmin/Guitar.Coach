@@ -4,12 +4,14 @@
  * Tokens. One name, two themes through light-dark(); components use these
  * names only, never a raw colour or an invented radius.
  * Chord colours are the same in both themes: each is dark enough for white text.
+ * `static` keeps every token in the CSS even when no class uses it: the lane
+ * canvas and inline styles read them by name.
  */
 :root {
   color-scheme: light dark;
 }
 
-@theme {
+@theme static {
   --color-page: light-dark(#eef2ef, #0f1512);
   --color-surface: light-dark(#ffffff, #17201b);
   --color-sunken: light-dark(#e3e9e5, #0b100d);

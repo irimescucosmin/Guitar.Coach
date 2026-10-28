@@ -19,19 +19,27 @@ export function ChordDiagram({
   leftHanded = false,
   flagged = [],
   title,
+  className,
 }: {
   chord: ChordId;
   width?: number;
   leftHanded?: boolean;
   flagged?: readonly number[];
   title: string;
+  /** Size it with CSS instead of `width`, for layouts that change with the screen. */
+  className?: string;
 }) {
   const shape = CHORDS[chord];
   const x = (string: number) => X0 + (leftHanded ? 5 - string : string) * DX;
   const isFlagged = (s: number) => flagged.includes(s);
 
   return (
-    <svg viewBox="0 0 132 168" width={width} height={(width * 168) / 132} role="img" aria-label={title}>
+    <svg
+      viewBox="0 0 132 168"
+      {...(className ? { className } : { width, height: (width * 168) / 132 })}
+      role="img"
+      aria-label={title}
+    >
       <title>{title}</title>
       <rect x={X0 - 1} y={Y0 - 4} width={5 * DX + 2} height={4} className="dg-nut" />
       {Array.from({ length: FRETS }, (_, f) => (

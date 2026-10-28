@@ -131,7 +131,7 @@ export function Player({ songId, initialMode }: { songId: string; initialMode: P
         <p className="text-sm text-muted">{t(`modeHelp.${mode}`)}</p>
       </section>
 
-      <section className="flex flex-wrap items-center gap-x-5 gap-y-3">
+      <section className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => (playing ? session.stop() : void session.start())}
@@ -146,6 +146,44 @@ export function Player({ songId, initialMode }: { songId: string; initialMode: P
             {t("skip")} <span className="text-xs text-muted">{t("skipKey")}</span>
           </button>
         )}
+      </section>
+      <section className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 sm:gap-4">
+        <div className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-3 sm:flex-row sm:items-center sm:gap-5 sm:p-4">
+          <ChordDiagram chord={view.current} className="h-auto w-[120px] sm:w-[170px]" leftHanded={settings.leftHanded} flagged={view.flagged} title={chordLabel(view.current)} />
+          <div className="flex min-w-0 flex-col gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
+              {view.countIn !== null ? t("getReady") : t("now")}
+            </span>
+            <span className="font-mono text-5xl font-bold leading-none sm:text-6xl" style={{ color: `var(--color-chord-${view.current})` }}>
+              {view.current}
+            </span>
+            <span className="text-sm text-muted">{tc(`chord.${view.current}`)}</span>
+            {view.section && (
+              <span className="text-xs text-muted">
+                {view.section.pass ? t("pass", { name: t(`section.${view.section.name}`), pass: view.section.pass }) : t(`section.${view.section.name}`)}
+              </span>
+            )}
+            {song.beatsPerBar && mode !== "step" && (
+              <div className="mt-1 flex gap-1.5" aria-hidden>
+                {symbols.map((s, i) => (
+                  <span key={i} className={`flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-field)] border font-mono text-sm ${
+                    view.beat === i ? "border-accent bg-accent text-on-accent" : "border-line text-muted"
+                  }`}>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <NextCard view={view} mode={mode} leftHanded={settings.leftHanded} chordLabel={chordLabel} />
+      </section>
+
+      <FeedbackLine feedback={view.feedback} countIn={view.countIn} />
+
+      <canvas ref={canvas} className="h-24 w-full rounded-[var(--radius-card)] border border-line bg-sunken sm:h-28" aria-hidden />
+
+      <section className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-[var(--radius-card)] border border-line bg-surface px-4 py-3">
         {mode !== "step" && (
           <div className="flex items-center gap-2">
             <label htmlFor="bpm" className="text-sm text-muted">
@@ -175,41 +213,6 @@ export function Player({ songId, initialMode }: { songId: string; initialMode: P
       </section>
       {mode === "timed" && guide && <p className="text-sm font-medium text-warn">{t("headphones")}</p>}
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
-        <div className="flex flex-wrap items-center gap-5 rounded-[var(--radius-card)] border border-line bg-surface p-4">
-          <ChordDiagram chord={view.current} width={170} leftHanded={settings.leftHanded} flagged={view.flagged} title={chordLabel(view.current)} />
-          <div className="flex min-w-0 flex-col gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-              {view.countIn !== null ? t("getReady") : t("now")}
-            </span>
-            <span className="font-mono text-6xl font-bold leading-none" style={{ color: `var(--color-chord-${view.current})` }}>
-              {view.current}
-            </span>
-            <span className="text-sm text-muted">{tc(`chord.${view.current}`)}</span>
-            {view.section && (
-              <span className="text-xs text-muted">
-                {view.section.pass ? t("pass", { name: t(`section.${view.section.name}`), pass: view.section.pass }) : t(`section.${view.section.name}`)}
-              </span>
-            )}
-            {song.beatsPerBar && mode !== "step" && (
-              <div className="mt-1 flex gap-2" aria-hidden>
-                {symbols.map((s, i) => (
-                  <span key={i} className={`flex h-9 min-w-9 items-center justify-center rounded-[var(--radius-field)] border font-mono text-sm ${
-                    view.beat === i ? "border-accent bg-accent text-on-accent" : "border-line text-muted"
-                  }`}>
-                    {s}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <NextCard view={view} mode={mode} leftHanded={settings.leftHanded} chordLabel={chordLabel} />
-      </section>
-
-      <FeedbackLine feedback={view.feedback} countIn={view.countIn} />
-
-      <canvas ref={canvas} className="h-28 w-full rounded-[var(--radius-card)] border border-line bg-sunken" aria-hidden />
 
       <section className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
         <Stat label={t("statRight")} value={`${view.right}/${view.total}`} />
@@ -257,10 +260,10 @@ function NextCard({ view, mode, leftHanded, chordLabel }: {
     else if (mode !== "step" && view.next) when = t("later");
   }
   return (
-    <div className={`flex items-center gap-3 rounded-[var(--radius-card)] border bg-surface p-4 ${soon ? "soon border-accent" : "border-line"}`}>
+    <div className={`flex w-[118px] flex-col items-start gap-2 rounded-[var(--radius-card)] border bg-surface p-3 sm:w-auto sm:flex-row sm:items-center sm:gap-3 sm:p-4 ${soon ? "soon border-accent" : "border-line"}`}>
       {view.next ? (
         <>
-          <ChordDiagram chord={view.next} width={100} leftHanded={leftHanded} title={chordLabel(view.next)} />
+          <ChordDiagram chord={view.next} className="h-auto w-[90px] sm:w-[100px]" leftHanded={leftHanded} title={chordLabel(view.next)} />
           <div className="flex flex-col gap-1">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted">{t("upNext")}</span>
             <span className="font-mono text-3xl font-bold" style={{ color: `var(--color-chord-${view.next})` }}>{view.next}</span>
@@ -268,7 +271,7 @@ function NextCard({ view, mode, leftHanded, chordLabel }: {
           </div>
         </>
       ) : (
-        <span className="px-6 font-semibold text-muted">{t("end")}</span>
+        <span className="self-center px-2 py-6 font-semibold text-muted sm:px-6">{t("end")}</span>
       )}
     </div>
   );
