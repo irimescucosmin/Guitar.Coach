@@ -1,5 +1,6 @@
 import type { ChordId } from "./chords";
 import { NOTE_DRILL_ID } from "./fretboard";
+import { skipsDrillsFor, type Profile } from "./profile";
 import { chordsOf, type Song } from "./songs";
 
 /**
@@ -42,6 +43,8 @@ export interface Progress {
   learned: Partial<Record<ChordId, true>>;
   /** Best result per song and mode. Step: average ms per change, lower is better. Timed: share of bars right. */
   best: Partial<Record<string, { step?: number; timed?: number }>>;
+  /** Answers to the first-run questionnaire, absent until given. */
+  profile?: Profile;
 }
 
 export const EMPTY_PROGRESS: Progress = { learned: {}, best: {} };
@@ -61,17 +64,35 @@ export function coreTasks(lesson: Lesson): Task[] {
   ];
 }
 
+/**
+ * A task is done when the player did it, or when the questionnaire placed them
+ * past it: lesson 0 for whoever can name the open strings, a lesson's drills for
+ * whoever has played before and already has its chords.
+ */
 export function isDone(task: Task, progress: Progress): boolean {
+  const profile = progress.profile;
   switch (task.kind) {
     case "notes":
-      return progress.best[NOTE_DRILL_ID]?.step !== undefined;
+      return progress.best[NOTE_DRILL_ID]?.step !== undefined || profile?.knowsOpenStrings === true;
     case "learn":
       return progress.learned[task.chord] === true;
     case "step":
-      return progress.best[task.song]?.step !== undefined;
+      return progress.best[task.song]?.step !== undefined || placedPast(task.lesson, profile);
     case "timed":
-      return (progress.best[task.song]?.timed ?? 0) >= PASS_SCORE;
+      return (progress.best[task.song]?.timed ?? 0) >= PASS_SCORE || placedPast(task.lesson, profile);
   }
+}
+
+function placedPast(lesson: LessonId, profile: Profile | undefined): boolean {
+  if (!profile) return false;
+  const chords = LESSONS.find((l) => l.id === lesson)?.newChords ?? [];
+  return skipsDrillsFor(profile, chords);
+}
+
+/** Index of the lesson the next task belongs to; the length of LESSONS once everything is done. */
+export function currentLessonIndex(progress: Progress): number {
+  const task = nextTask(progress);
+  return task ? LESSONS.findIndex((l) => l.id === task.lesson) : LESSONS.length;
 }
 
 export interface LessonState {

@@ -43,6 +43,7 @@ Due eccezioni note:
 | `/songs` | Brani: filtri, ricerca, prossimo modo | `components/songs/songs-table.tsx` |
 | `/play/[songId]?mode=` | Il brano a schermo pieno, senza barra laterale | `components/play/player.tsx` |
 | `/tools` | Accordatore e test dei cambi | `components/tools/*` |
+| `/start` | Questionario: una domanda per schermata, prova al microfono, riepilogo | `components/start/*` |
 | `/account` | Accesso a due colonne, fuori dalla barra laterale | `components/account/account-form.tsx` |
 
 Le schermate con la barra laterale stanno nel gruppo `src/app/(app)/`, il cui `layout.tsx` mette barra e contenuto (largo al massimo 1120 px).

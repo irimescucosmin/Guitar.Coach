@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/client";
 import { currentUser } from "@/lib/auth";
-import { importGuestProgress, loadProgress, markLearned, saveRun } from "@/lib/progress/repository";
-import { chordInput, guestProgress, runInput } from "@/lib/progress/validation";
+import { importGuestProgress, loadProgress, markLearned, saveProfile, saveRun } from "@/lib/progress/repository";
+import { chordInput, guestProgress, profileInput, runInput } from "@/lib/progress/validation";
 import type { Progress } from "@/lib/music/path";
 
 /**
@@ -37,6 +37,15 @@ export async function importGuest(progress: unknown): Promise<Saved> {
   const parsed = guestProgress.safeParse(progress);
   if (!me || !parsed.success) return { saved: false };
   await importGuestProgress(db, me.id, parsed.data);
+  revalidatePath("/");
+  return { saved: true, progress: await loadProgress(db, me.id) };
+}
+
+export async function saveAnswers(profile: unknown): Promise<Saved> {
+  const me = await currentUser();
+  const parsed = profileInput.safeParse(profile);
+  if (!me || !parsed.success) return { saved: false };
+  await saveProfile(db, me.id, parsed.data);
   revalidatePath("/");
   return { saved: true, progress: await loadProgress(db, me.id) };
 }

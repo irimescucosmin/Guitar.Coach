@@ -19,7 +19,18 @@ Un principiante con la chitarra acustica: non conosce ancora gli accordi né le 
 
 Ogni nuovo accordo condivide qualcosa con uno già imparato. Un test in `music.test.ts` pretende che nessun brano di una lezione usi accordi non ancora insegnati.
 
-## 3. I compiti di una lezione
+## 3. Il questionario
+
+Al primo avvio il percorso propone `/start`: nove domande (esperienza, corde a vuoto, accordi conosciuti, tablature, mano, chitarra, tempo al giorno, stile, obiettivo) e una prova al microfono sugli accordi dichiarati. Le risposte stanno in `Progress.profile`.
+
+- Un accordo dichiarato diventa imparato solo se il microfono lo sente pulito. Chi salta la prova si fida della propria dichiarazione (`placedChords`).
+- Chi sa le corde a vuoto salta la lezione 0.
+- Chi ha già suonato (non *Mai*) e ha tutti gli accordi di una lezione ne salta anche gli esercizi *Passo passo* e *A tempo* (`skipsDrillsFor`). Un principiante assoluto li fa sempre: i cambi si costruiscono lì.
+- Dopo 14 giorni il percorso propone di rispondere di nuovo (`needsRecheck`).
+
+Tempo, stile e obiettivo sono salvati per la routine giornaliera e per l'ordine dei brani, che arrivano dopo (vedi `ANALISI.md`).
+
+## 4. I compiti di una lezione
 
 Sempre questi, in quest'ordine, perché ognuno prepara il successivo:
 
@@ -29,9 +40,9 @@ Sempre questi, in quest'ordine, perché ognuno prepara il successivo:
 
 La lezione 0 ha un compito solo: completare l'esercizio delle note.
 
-In alto nel percorso c'è sempre un solo prossimo passo, il primo compito non fatto (`nextTask`).
+In alto nel percorso c'è sempre un solo prossimo passo, il primo compito non fatto (`nextTask`). Un compito è fatto quando lo hai fatto tu, o quando il questionario ti ha messo oltre (`isDone`).
 
-## 4. I tre modi di suonare un brano
+## 5. I tre modi di suonare un brano
 
 | Modo | Cosa fa | Cosa si salva |
 |---|---|---|
@@ -43,7 +54,7 @@ Dopo *Passo passo* l'app dice se sei pronto per *A tempo*: lo sei quando il camb
 
 Dopo un *A tempo* superato, il prossimo modo di quel brano diventa *Più veloce*: 5 bpm in più.
 
-## 5. Cosa dice il microfono
+## 6. Cosa dice il microfono
 
 - **Giusto**: tre fotogrammi puliti di fila (`CLEAN_FRAMES`).
 - **Sento un altro accordo**: quando un altro accordo somiglia molto di più.
@@ -53,7 +64,7 @@ Dopo un *A tempo* superato, il prossimo modo di quel brano diventa *Più veloce*
 
 Nell'esercizio delle note il microfono confronta l'altezza, non la corda: la stessa nota su un'altra corda vale. Dice *più su*, *più giù* o *un'ottava sopra/sotto*.
 
-## 6. Il consiglio sul cambio
+## 7. Il consiglio sul cambio
 
 Sotto *Dopo* e nella pagina dell'accordo c'è una frase su come passare da un accordo all'altro, calcolata dalle due forme (`transitions.ts`):
 
@@ -62,7 +73,7 @@ Sotto *Dopo* e nella pagina dell'accordo c'è una frase su come passare da un ac
 - le altre, che **vanno al loro posto**;
 - se nessun dito resta fermo, quale **muovere per primo**: quello che scivola, altrimenti quello sulla corda più grave.
 
-## 7. I brani
+## 8. I brani
 
 Solo due tipi, mai testi o melodie di opere protette:
 

@@ -1,4 +1,4 @@
-import { index, integer, pgTable, primaryKey, real, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, integer, jsonb, pgTable, primaryKey, real, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 /** A chord counts as learned once it rang clean three strums in a row. */
@@ -36,3 +36,16 @@ export const practiceRuns = pgTable(
   },
   (t) => [index("practice_runs_user_song_idx").on(t.userId, t.songId)],
 );
+
+/**
+ * The first-run questionnaire, one row per player, replaced when answered
+ * again. Stored whole as JSON and validated on every read: the questions will
+ * change more often than the schema should.
+ */
+export const playerProfile = pgTable("player_profile", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  answers: jsonb("answers").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

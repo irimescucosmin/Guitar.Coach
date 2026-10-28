@@ -1,9 +1,10 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { importGuest, saveLearnedChord, savePracticeRun } from "@/app/actions";
+import { importGuest, saveAnswers, saveLearnedChord, savePracticeRun } from "@/app/actions";
 import type { ChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, recordResult, type Progress } from "@/lib/music/path";
+import { placedChords, type Profile } from "@/lib/music/profile";
 import { guestProgress, toProgress, type RunInput } from "@/lib/progress/validation";
 
 /* ---------- local storage, always behind try/catch: private windows refuse it ---------- */
@@ -56,6 +57,8 @@ interface ProgressApi {
   learn: (chord: ChordId) => void;
   /** Stores a finished run; resolves with whether it beat the previous best. */
   record: (run: RunInput) => boolean;
+  /** Stores the questionnaire's answers and learns the chords they place. */
+  answer: (profile: Profile) => void;
 }
 
 const ProgressContext = createContext<ProgressApi>({
@@ -63,6 +66,7 @@ const ProgressContext = createContext<ProgressApi>({
   signedIn: false,
   learn: () => {},
   record: () => false,
+  answer: () => {},
 });
 
 export function useProgress() {
@@ -142,7 +146,24 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
     [progress, signedIn, persistGuest],
   );
 
-  const progressApi = useMemo(() => ({ progress, signedIn, learn, record }), [progress, signedIn, learn, record]);
+  const answer = useCallback(
+    (profile: Profile) => {
+      setProgress((p) => {
+        const learned = { ...p.learned };
+        for (const chord of placedChords(profile)) learned[chord] = true;
+        const next = { ...p, learned, profile };
+        persistGuest(next);
+        return next;
+      });
+      if (signedIn) void saveAnswers(profile).then((r) => r.saved && setProgress(r.progress));
+    },
+    [signedIn, persistGuest],
+  );
+
+  const progressApi = useMemo(
+    () => ({ progress, signedIn, learn, record, answer }),
+    [progress, signedIn, learn, record, answer],
+  );
   const settingsApi = useMemo(() => ({ settings, update }), [settings, update]);
 
   return (

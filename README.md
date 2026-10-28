@@ -4,6 +4,7 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
 
 ## Cosa fa
 
+- **Questionario** al primo avvio: qualche domanda e una prova al microfono sugli accordi che dici di sapere; il percorso parte da dove sei davvero.
 - **Percorso** a lezioni, dalla 0 (le note sulla tastiera) alla 5 (E e A). In alto c'è sempre un solo prossimo passo.
 - **Tastiera**: le quattro regole per trovare le note, la mappa fino al 12° tasto, e un esercizio col microfono che dice se la nota è giusta, più su o più giù.
 - **Impara un accordo**: diagramma, dita una alla volta, ascolto, tre pennate pulite. Se manca una nota, indica il dito e la corda.
@@ -59,3 +60,4 @@ Apri Claude Code nella cartella del progetto: legge `CLAUDE.md` da solo. In `.cl
 - [`docs/SVILUPPO.md`](docs/SVILUPPO.md): avvio, microfono, prove, rilascio, problemi noti.
 - [`docs/PERCORSO.md`](docs/PERCORSO.md): cosa insegna l'app e quando un compito è fatto.
 - [`docs/DESIGN.md`](docs/DESIGN.md): token, schermate, pezzi riusabili.
+- [`docs/ANALISI.md`](docs/ANALISI.md): cosa deve avere l'app, cosa c'è, cosa viene dopo.

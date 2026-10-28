@@ -100,3 +100,27 @@ test("the path starts from the notes, and the fretboard page teaches them", asyn
   await page.getByRole("button", { name: /^Sol/ }).click();
   await expect(page.getByText(/Il Sol \(G\) sta in \d+ punti/)).toBeVisible();
 });
+
+test("the questionnaire hears the declared chords and starts the path past them", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Rispondi alle domande" }).click();
+  const next = page.getByRole("button", { name: "Avanti", exact: true });
+  await page.getByText("Qualche mese").click();
+  await next.click();
+  await page.getByText("Sì", { exact: true }).click();
+  await next.click();
+  // The chord grid: Em and Am, the two the fake microphone plays.
+  await page.getByRole("checkbox", { name: /^Em/ }).check({ force: true });
+  await page.getByRole("checkbox", { name: /^Am/ }).check({ force: true });
+  await next.click();
+  for (const answer of ["Un po'", "Destra", "Acustica", "20 minuti", "Folk e country", "Per piacere mio"]) {
+    await page.getByText(answer, { exact: true }).click();
+    await next.click();
+  }
+  await page.getByRole("button", { name: "Attiva microfono" }).click();
+  await expect(page.getByRole("heading", { name: "Ecco da dove parti" })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("Lezione 2: G e D")).toBeVisible();
+  await page.getByRole("button", { name: "Inizia il percorso" }).click();
+  await expect(page.getByRole("heading", { name: "Impara G" })).toBeVisible();
+  await expect(page.getByText("Il percorso parte dalle tue risposte.")).toBeVisible();
+});

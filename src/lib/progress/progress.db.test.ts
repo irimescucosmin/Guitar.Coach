@@ -3,8 +3,23 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@/db/schema";
 import { user } from "@/db/schema";
-import { importGuestProgress, loadProgress, markLearned, saveRun, type Database } from "./repository";
-import { guestProgress, runInput } from "./validation";
+import type { Profile } from "@/lib/music/profile";
+import { importGuestProgress, loadProgress, markLearned, saveProfile, saveRun, type Database } from "./repository";
+import { guestProgress, profileInput, runInput } from "./validation";
+
+const answers: Profile = {
+  experience: "months",
+  knowsOpenStrings: true,
+  knownChords: ["G", "D", "C"],
+  verifiedChords: ["G", "D"],
+  checked: true,
+  readsTab: "some",
+  guitar: "acoustic",
+  minutes: 20,
+  style: "folkCountry",
+  goal: "withOthers",
+  takenAt: "2026-10-29T00:00:00.000Z",
+};
 
 /** Real Postgres. Skips itself without DATABASE_URL_TEST, so a local green is not proof the schema ran. */
 const url = process.env.DATABASE_URL_TEST;
@@ -50,6 +65,19 @@ describe.skipIf(!url)("progress in Postgres", () => {
     expect(progress.best["drill-em-am"]!.step).toBe(2600);
     expect(progress.best["drill-em-am"]!.timed).toBeCloseTo(0.9, 5);
   });
+
+  it("saves the answers and learns only the chords the microphone heard", async () => {
+    await saveProfile(db, userId, answers);
+    const progress = await loadProgress(db, userId);
+    expect(progress.profile).toEqual(answers);
+    expect(progress.learned).toEqual({ Em: true, Am: true, G: true, D: true });
+  });
+
+  it("replaces the answers when given again, and keeps them over a guest's", async () => {
+    await saveProfile(db, userId, { ...answers, minutes: 30 });
+    await importGuestProgress(db, userId, { learned: {}, best: {}, profile: { ...answers, minutes: 10 } });
+    expect((await loadProgress(db, userId)).profile?.minutes).toBe(30);
+  });
 });
 
 describe("input validation", () => {
@@ -69,6 +97,16 @@ describe("input validation", () => {
   it("drops unknown chords and songs from guest progress and keeps the rest", () => {
     const parsed = guestProgress.parse({ learned: { Fmaj7: true, Em: true }, best: { "old-song": { step: 1 }, jolene: { timed: 0.5 } } });
     expect(parsed).toEqual({ learned: { Em: true }, best: { jolene: { timed: 0.5 } } });
+  });
+
+  it("drops a broken profile from guest progress and keeps the rest", () => {
+    const parsed = guestProgress.parse({ learned: { Em: true }, best: {}, profile: { experience: "forever" } });
+    expect(parsed).toEqual({ learned: { Em: true }, best: {} });
+  });
+
+  it("keeps only known chords in the answers", () => {
+    const parsed = profileInput.parse({ ...answers, knownChords: ["G", "Bb7", "G"] });
+    expect(parsed.knownChords).toEqual(["G"]);
   });
 
   it("still refuses values out of range", () => {

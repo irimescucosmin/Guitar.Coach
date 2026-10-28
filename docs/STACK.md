@@ -12,10 +12,12 @@ src/
     (app)/      le schermate con la barra laterale: percorso, tastiera, accordi, brani, accordatore
     play/       il brano a schermo pieno, senza barra laterale
     account/    accesso, a due colonne, fuori dalla barra laterale
+    start/      il questionario del primo avvio, a schermo pieno
   components/   per area: path, fretboard, songs, play, chords, tools, account, chrome, ui
   lib/
     music/      il dominio, puro: accordi, brani, ritmi, percorso, consigli,
-                note sulla tastiera (lezione 0), passaggi tra accordi
+                note sulla tastiera (lezione 0), passaggi tra accordi,
+                profilo dal questionario e punto di partenza
     audio/      detect.ts puro (croma, confronto accordi, accordatore),
                 synth.ts e engine.ts lato browser (Web Audio)
     progress/   validazione, repository Postgres, caricamento per pagina
@@ -46,7 +48,7 @@ Il riconoscimento ascolta tra 75 Hz e 1,1 kHz. Il basso suona un'ottava sotto la
 ### Ospite e account
 
 - Ospite: i progressi in `localStorage`, validati a ogni lettura.
-- Account: `chord_mastery` e `practice_runs` su Postgres. Ogni prova è una riga, mai sovrascritta: il record è una query (`min` per *Passo passo*, `max` per *A tempo*).
+- Account: `chord_mastery`, `practice_runs` e `player_profile` (le risposte al questionario, in JSON validato a ogni lettura) su Postgres. Ogni prova è una riga, mai sovrascritta: il record è una query (`min` per *Passo passo*, `max` per *A tempo*).
 - Al primo accesso i progressi da ospite diventano righe dell'account e il `localStorage` si svuota.
 
 ## 2. Le tecnologie
