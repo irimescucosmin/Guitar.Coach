@@ -1,18 +1,19 @@
 # Guitar.Coach
 
-Allenatore di chitarra acustica: impari gli accordi uno alla volta, li suoni sopra un accompagnamento e il microfono ti dice se suonano puliti e quale corda sistemare.
+Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li suoni sopra un accompagnamento e il microfono ti dice se suonano puliti e quale corda sistemare.
 
 ## Cosa fa
 
-- **Percorso** a lezioni: ogni lezione aggiunge gli accordi che servono a un gruppo di canzoni. In alto c'è sempre un solo prossimo passo.
-- **Impara un accordo**: diagramma con le dita, posizionamento un dito alla volta, ascolto dell'accordo, e il microfono che conta tre pennate pulite. Se manca una nota, indica la corda e il dito da sistemare.
-- **Suona** in tre modi, sempre con l'accordo attuale e quello dopo in vista:
-  - *Ascolta*: accompagnamento completo (chitarra guida, basso, batteria) e gli accordi che scorrono;
-  - *Passo passo*: il brano aspetta finché il microfono non sente l'accordo giusto;
-  - *A tempo*: suoni con basso e batteria, ogni battuta viene giudicata, il risultato si salva.
-- **Strumenti**: accordatore e test dei cambi in un minuto.
+- **Percorso** a lezioni, dalla 0 (le note sulla tastiera) alla 5 (E e A). In alto c'è sempre un solo prossimo passo.
+- **Tastiera**: le quattro regole per trovare le note, la mappa fino al 12° tasto, e un esercizio col microfono che dice se la nota è giusta, più su o più giù.
+- **Impara un accordo**: diagramma, dita una alla volta, ascolto, tre pennate pulite. Se manca una nota, indica il dito e la corda.
+- **Brani** in tre modi, con l'accordo attuale e il prossimo sempre in vista, e una frase su come fare il cambio:
+  - *Ascolta*: chitarra guida, basso e batteria;
+  - *Passo passo*: il brano aspetta l'accordo giusto;
+  - *A tempo*: ogni battuta viene giudicata, il risultato si salva.
+- **Accordatore** e test dei cambi in un minuto.
 - **Mancino**: i diagrammi si specchiano.
-- Come ospite i progressi restano nel browser; con un account si salvano su Postgres e quelli da ospite entrano nell'account al primo accesso.
+- Da ospite i progressi restano nel browser; con un account vanno su Postgres, e quelli da ospite entrano nell'account al primo accesso.
 
 Brani: tradizionali di pubblico dominio e giri di accordi di canzoni note, mai testi o melodie.
 
@@ -20,26 +21,41 @@ Brani: tradizionali di pubblico dominio e giri di accordi di canzoni note, mai t
 
 ```bash
 pnpm install
-cp .env.example .env.local   # poi riempi BETTER_AUTH_SECRET
-createdb guitar_coach && createdb guitar_coach_test
+cp .env.example .env.local     # poi BETTER_AUTH_SECRET=$(openssl rand -hex 32)
+docker compose up -d           # Postgres 16 con i due database, oppure vedi docs/SVILUPPO.md
 pnpm db:migrate
-pnpm dev
+pnpm dev                       # http://localhost:3000
 ```
 
-Il microfono richiede `localhost` o HTTPS: un indirizzo `http://192.168…` non lo ottiene mai.
-Per provare dal telefono sulla stessa rete: `pnpm dev:https`, poi `https://IP-DEL-MAC:3000` dal telefono, accettando il certificato locale. Per accedere con un account da lì, aggiungi quell'indirizzo a `BETTER_AUTH_TRUSTED_ORIGINS`.
+Il microfono richiede `localhost` o HTTPS. Dal telefono: `pnpm dev:https`, dettagli in [`docs/SVILUPPO.md`](docs/SVILUPPO.md).
 
-Le cuffie servono solo se accendi la chitarra guida in *A tempo*.
-
-## Controlli prima di consegnare
+## Controlli
 
 ```bash
-pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm e2e
+pnpm check     # typecheck, lint, test, build
+pnpm e2e       # Playwright con il microfono finto di Chromium
+pnpm shots     # screenshot di tutte le schermate in screenshots/, a server avviato
 ```
 
-`pnpm test` salta i test su Postgres se manca `DATABASE_URL_TEST`. `pnpm e2e` usa il microfono finto di Chromium che suona un WAV generato, vedi `tests/e2e/`.
+## Con Claude Code
+
+Apri Claude Code nella cartella del progetto: legge `CLAUDE.md` da solo. In `.claude/` ci sono:
+
+| Comando | Cosa fa |
+|---|---|
+| `/verifica [e2e]` | tutti i controlli, corregge quello che fallisce |
+| `/brano <titolo>` | aggiunge un brano nella lezione giusta, solo accordi per le opere protette |
+| `/accordo <nome>` | forma, colore, nome, lezione, riconoscimento provato |
+| `/schermata <cosa>` | modifica l'interfaccia seguendo il design e la confronta con gli screenshot |
+| `/revisione <scopo>` | revisione indipendente con l'agente `revisore` |
+| `/rilascio [fly]` | controlli completi, commit, push, e Fly.io se richiesto |
+
+`.claude/settings.json` permette senza chiedere i comandi di prova e di lettura git, e nega la lettura di `.env.local`. Le impostazioni personali vanno in `.claude/settings.local.json`, che non entra nella repo.
 
 ## Documenti
 
-- [`docs/STACK.md`](docs/STACK.md): com'è fatta, com'è divisa, con cosa.
 - [`CLAUDE.md`](CLAUDE.md): le convenzioni, per chi scrive e per gli agenti.
+- [`docs/STACK.md`](docs/STACK.md): com'è fatta, com'è divisa, con cosa.
+- [`docs/SVILUPPO.md`](docs/SVILUPPO.md): avvio, microfono, prove, rilascio, problemi noti.
+- [`docs/PERCORSO.md`](docs/PERCORSO.md): cosa insegna l'app e quando un compito è fatto.
+- [`docs/DESIGN.md`](docs/DESIGN.md): token, schermate, pezzi riusabili.

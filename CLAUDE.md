@@ -1,6 +1,13 @@
 # Convenzioni
 
-Per chi scrive codice qui, persone e agenti. L'architettura sta in `docs/STACK.md`.
+Per chi scrive codice qui, persone e agenti.
+
+- `docs/STACK.md`: architettura e tecnologie.
+- `docs/SVILUPPO.md`: avvio in locale, microfono, prove, rilascio, problemi noti.
+- `docs/PERCORSO.md`: cosa insegna l'app, in che ordine, quando un compito è fatto.
+- `docs/DESIGN.md`: token, schermate, pezzi riusabili.
+
+In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`, `/revisione`, `/rilascio` (in `.claude/commands/`) e l'agente `revisore`.
 
 ## Regole
 
@@ -17,9 +24,10 @@ Per chi scrive codice qui, persone e agenti. L'architettura sta in `docs/STACK.m
 
 | Cosa | Dove |
 |---|---|
-| Un accordo | `SHAPES` in `src/lib/music/chords.ts`, un token colore in `globals.css`, il nome in `common.chord` |
+| Un accordo | `ChordId` e `SHAPES` in `src/lib/music/chords.ts`, un token colore in `globals.css`, il nome in `common.chord` |
 | Un brano | `SONGS` in `src/lib/music/songs.ts` e in una lezione di `src/lib/music/path.ts` (un test pretende che ogni brano stia in una lezione e non usi accordi non ancora insegnati) |
 | Un ritmo | `StrumPattern` e `guitarEvents` in `src/lib/music/patterns.ts` |
+| Una schermata | `src/app/(app)/` con la voce in `NAV` di `components/chrome/sidebar.tsx`, testi in `messages` |
 | Una tabella | `src/db/schema/`, poi `pnpm db:generate` |
 
 ## Insidie già pagate

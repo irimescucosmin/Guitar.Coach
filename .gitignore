@@ -9,3 +9,7 @@ coverage
 test-results
 playwright-report
 tests/e2e/fixtures/*.wav
+
+# Local Claude Code settings and screenshots stay on the machine
+.claude/settings.local.json
+screenshots

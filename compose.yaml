@@ -1,0 +1,20 @@
+# Postgres for local development, the same version as CI and Fly.
+# docker compose up -d   then   pnpm db:migrate
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: coach
+      POSTGRES_PASSWORD: coach
+      POSTGRES_DB: guitar_coach
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs once, on an empty volume: the database the *.db.test.ts files use.
+      - ./docker/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "coach"]
+      interval: 5s
+      retries: 10
+volumes:
+  pgdata:
