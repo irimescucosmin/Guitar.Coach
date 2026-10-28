@@ -8,7 +8,7 @@ import { ChordDiagram } from "@/components/chord-diagram";
 import { useProgress, useSettings } from "@/components/providers";
 import { ChordChip } from "@/components/ui/chord-chip";
 import { AppMark, IconBack, IconCheck } from "@/components/ui/icons";
-import { button } from "@/components/ui/links";
+import { PATH_HREF, button } from "@/components/ui/links";
 import { CHORD_IDS, type ChordId } from "@/lib/music/chords";
 import { LESSONS, currentLessonIndex, nextTask, type Progress } from "@/lib/music/path";
 import {
@@ -83,11 +83,13 @@ export function Questionnaire() {
       : null;
   const profile = answers && retake(progress.profile, answers);
 
-  const finish = () => {
-    if (!profile) return;
+  const [saving, setSaving] = useState(false);
+  const finish = async () => {
+    if (!profile || saving) return;
+    setSaving(true);
     if (draft.leftHanded !== undefined) update({ leftHanded: draft.leftHanded });
-    answer(profile);
-    router.push("/");
+    await answer(profile);
+    router.push(PATH_HREF);
   };
 
   const answered: Record<Step, boolean> = {
@@ -187,7 +189,7 @@ export function Questionnaire() {
         <div className="mx-auto hidden h-2 w-[320px] max-w-[40vw] overflow-hidden rounded-full bg-sunken sm:block" aria-hidden>
           <div className="h-full rounded-full bg-brass transition-[width]" style={{ width: `${(qIndex / steps.length) * 100}%` }} />
         </div>
-        <Link href="/" className="ml-auto text-sm font-semibold text-muted hover:text-ink sm:ml-0">{t("later")}</Link>
+        <Link href={PATH_HREF} className="ml-auto text-sm font-semibold text-muted hover:text-ink sm:ml-0">{t("later")}</Link>
       </header>
 
       <main className="flex flex-1 justify-center px-5 pb-12 pt-10">
@@ -211,7 +213,7 @@ export function Questionnaire() {
                 </button>
               )}
               {step === "summary" ? (
-                <button type="button" onClick={finish} disabled={!profile} className={`${button.brass} ml-auto h-[52px] text-[17px]`}>
+                <button type="button" onClick={() => void finish()} disabled={!profile || saving} className={`${button.brass} ml-auto h-[52px] text-[17px]`}>
                   {t("summary.go")}
                 </button>
               ) : (

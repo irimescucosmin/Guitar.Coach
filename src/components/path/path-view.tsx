@@ -37,7 +37,7 @@ export function PathView() {
   const t = useTranslations("path");
   const tc = useTranslations("common");
   const tp = useTranslations("play");
-  const { progress, signedIn } = useProgress();
+  const { progress } = useProgress();
   const { settings } = useSettings();
   const [changes, setChanges] = useState<number | null>(null);
   useEffect(() => setChanges(bestChangeTest()), []);
@@ -94,12 +94,6 @@ export function PathView() {
         <Link href="/songs" className={`${button.outline} h-11`}>{t("allSongs")}</Link>
       </header>
 
-      {!signedIn && (
-        <p className="m-0 flex flex-wrap items-center gap-x-2 text-sm text-muted">
-          {tc("guest")}
-          <Link href="/account" className="font-bold text-brass-ink underline-offset-2 hover:underline">{tc("guestAction")}</Link>
-        </p>
-      )}
 
       {!progress.profile && (
         <section aria-labelledby="first-run" className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-[var(--radius-card)] border-[3px] border-brass bg-surface px-6 py-5">

@@ -25,14 +25,21 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
     permissions: ["microphone"],
   },
-  // Chromium keeps one fake microphone per browser, still playing from wherever
-  // the previous test left it. The timed test scores bars against the clock,
-  // so it gets a browser of its own, where the recording starts with the run.
+  // Chromium's fake microphone keeps playing from wherever earlier tests left
+  // it. The timed test scores bars against the clock, so it gets a browser of
+  // its own and runs first, before anything else has moved the recording on.
   projects: [
-    { name: "em-am", grepInvert: /@own-browser/, use: { launchOptions: { args: fakeMic } } },
     { name: "em-am-timed", grep: /@own-browser/, use: { launchOptions: { args: fakeMic } } },
+    { name: "em-am", grepInvert: /@own-browser/, dependencies: ["em-am-timed"], use: { launchOptions: { args: fakeMic } } },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : { command: "pnpm start -p 3000", url: "http://localhost:3000", reuseExistingServer: true, timeout: 60_000 },
+    : {
+        command: "pnpm start -p 3000",
+        url: "http://localhost:3000",
+        reuseExistingServer: true,
+        timeout: 60_000,
+        // One new account per test: the sign-up rate limit would refuse the third.
+        env: { AUTH_RATE_LIMIT: "off" },
+      },
 });

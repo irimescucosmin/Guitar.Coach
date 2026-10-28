@@ -14,7 +14,8 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
   - *A tempo*: ogni battuta viene giudicata, il risultato si salva.
 - **Accordatore** e test dei cambi in un minuto.
 - **Mancino**: i diagrammi si specchiano.
-- Da ospite i progressi restano nel browser; con un account vanno su Postgres, e quelli da ospite entrano nell'account al primo accesso.
+- **Gratis, con account**: l'account serve solo a tenere traccia dei progressi su ogni dispositivo. Email e password, oppure Google o Apple se configurati.
+- **Presentazione** pubblica su `/`, con l'elenco dei brani liberi da suonare.
 
 Brani: tradizionali di pubblico dominio e giri di accordi di canzoni note, mai testi o melodie.
 
@@ -25,7 +26,7 @@ pnpm install
 cp .env.example .env.local     # poi BETTER_AUTH_SECRET=$(openssl rand -hex 32)
 docker compose up -d           # Postgres 16 con i due database, oppure vedi docs/SVILUPPO.md
 pnpm db:migrate
-pnpm dev                       # http://localhost:3000
+pnpm dev                       # http://localhost:3000, poi "Crea un account"
 ```
 
 Il microfono richiede `localhost` o HTTPS. Dal telefono: `pnpm dev:https`, dettagli in [`docs/SVILUPPO.md`](docs/SVILUPPO.md).

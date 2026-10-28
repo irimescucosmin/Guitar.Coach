@@ -9,11 +9,12 @@ Com'è fatta, com'è divisa, con cosa. Lo stesso telaio di Verso Loyalty, più p
 ```
 src/
   app/          rotte e server action, sottili
-    (app)/      le schermate con la barra laterale: percorso, tastiera, accordi, brani, accordatore
+    page.tsx    la presentazione, per chi non ha fatto l'accesso
+    (app)/      le schermate con la barra laterale: percorso (/path), tastiera, accordi, brani, accordatore
     play/       il brano a schermo pieno, senza barra laterale
     account/    accesso, a due colonne, fuori dalla barra laterale
     start/      il questionario del primo avvio, a schermo pieno
-  components/   per area: path, fretboard, songs, play, chords, tools, account, chrome, ui
+  components/   per area: landing, start, path, fretboard, songs, play, chords, tools, account, chrome, ui
   lib/
     music/      il dominio, puro: accordi, brani, ritmi, percorso, consigli,
                 note sulla tastiera (lezione 0), passaggi tra accordi,
@@ -45,11 +46,12 @@ tests/e2e/      Playwright con microfono finto
 
 Il riconoscimento ascolta tra 75 Hz e 1,1 kHz. Il basso suona un'ottava sotto la corda più grave, clic e campanello stanno sopra 1,9 kHz, i piatti sono filtrati sopra 7 kHz. Solo la chitarra guida cade nella banda: per questo lo schermo chiede le cuffie quando è accesa.
 
-### Ospite e account
+### Account
 
-- Ospite: i progressi in `localStorage`, validati a ogni lettura.
-- Account: `chord_mastery`, `practice_runs` e `player_profile` (le risposte al questionario, in JSON validato a ogni lettura) su Postgres. Ogni prova è una riga, mai sovrascritta: il record è una query (`min` per *Passo passo*, `max` per *A tempo*).
-- Al primo accesso i progressi da ospite diventano righe dell'account e il `localStorage` si svuota.
+- L'app è gratuita ma si usa solo con un account: serve a tenere traccia dei progressi. `/` è la presentazione pubblica; `(app)/layout.tsx`, `/play` e `/start` chiamano `requireUser()` e senza sessione mandano a `/account`.
+- Accesso con email e password, e con Google o Apple quando le loro credenziali sono impostate (`socialProviders()` in `lib/auth.ts`).
+- Su Postgres: `chord_mastery`, `practice_runs` e `player_profile` (le risposte al questionario, in JSON validato a ogni lettura). Ogni prova è una riga, mai sovrascritta: il record è una query (`min` per *Passo passo*, `max` per *A tempo*).
+- Prima che l'account diventasse obbligatorio i progressi stavano nel `localStorage`: al primo accesso entrano nell'account una volta, poi il browser li dimentica.
 
 ## 2. Le tecnologie
 
@@ -70,7 +72,7 @@ Il riconoscimento ascolta tra 75 Hz e 1,1 kHz. Il basso suona un'ottava sotto la
 - `src/lib/audio/detect.test.ts`: tutti gli accordi riconosciuti su spettro sintetico e su pennata Karplus-Strong vera (finestra di Blackman, FFT), corde mute riconosciute, accordatore.
 - `src/lib/progress/progress.db.test.ts`: Postgres vero.
 - `src/messages/keys.test.ts`: parità delle lingue, niente trattino lungo.
-- `tests/e2e/practice.spec.ts`: *Passo passo*, *A tempo*, imparare un accordo e il passaggio da ospite ad account, con il microfono finto di Chromium.
+- `tests/e2e/practice.spec.ts`: presentazione e accesso obbligatorio, *Passo passo*, *A tempo*, imparare un accordo, progressi che seguono l'account, uscita, tastiera, questionario con prova al microfono. Microfono finto di Chromium, un account nuovo per test.
 
 ## 4. Il rilascio
 

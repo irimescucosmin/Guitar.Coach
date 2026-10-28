@@ -3,6 +3,8 @@ import type { PracticeMode, Task } from "@/lib/music/path";
 export const playHref = (song: string, mode: PracticeMode) => `/play/${song}?mode=${mode}`;
 export const learnHref = (chord: string) => `/chords/${chord}`;
 export const FRETBOARD_HREF = "/fretboard";
+/** The path: home for a signed-in player. "/" is the presentation page. */
+export const PATH_HREF = "/path";
 
 export function taskHref(task: Task): string {
   switch (task.kind) {

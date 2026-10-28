@@ -19,7 +19,7 @@ export async function saveLearnedChord(chord: unknown): Promise<Saved> {
   const parsed = chordInput.safeParse(chord);
   if (!me || !parsed.success) return { saved: false };
   await markLearned(db, me.id, parsed.data);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { saved: true, progress: await loadProgress(db, me.id) };
 }
 
@@ -28,7 +28,7 @@ export async function savePracticeRun(run: unknown): Promise<Saved> {
   const parsed = runInput.safeParse(run);
   if (!me || !parsed.success) return { saved: false };
   await saveRun(db, me.id, parsed.data);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { saved: true, progress: await loadProgress(db, me.id) };
 }
 
@@ -37,7 +37,7 @@ export async function importGuest(progress: unknown): Promise<Saved> {
   const parsed = guestProgress.safeParse(progress);
   if (!me || !parsed.success) return { saved: false };
   await importGuestProgress(db, me.id, parsed.data);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { saved: true, progress: await loadProgress(db, me.id) };
 }
 
@@ -46,6 +46,6 @@ export async function saveAnswers(profile: unknown): Promise<Saved> {
   const parsed = profileInput.safeParse(profile);
   if (!me || !parsed.success) return { saved: false };
   await saveProfile(db, me.id, parsed.data);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { saved: true, progress: await loadProgress(db, me.id) };
 }

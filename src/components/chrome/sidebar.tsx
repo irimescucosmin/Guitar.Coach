@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useSettings } from "@/components/providers";
 import { AppMark, IconChords, IconFretboard, IconPath, IconSongs, IconTuner } from "@/components/ui/icons";
+import { PATH_HREF } from "@/components/ui/links";
 import { MicStatus } from "./mic-button";
 
 const NAV = [
-  { href: "/", key: "path", Icon: IconPath },
+  { href: PATH_HREF, key: "path", Icon: IconPath },
   { href: "/fretboard", key: "fretboard", Icon: IconFretboard },
   { href: "/chords", key: "chords", Icon: IconChords },
   { href: "/songs", key: "songs", Icon: IconSongs },
@@ -20,11 +21,11 @@ export function Sidebar({ userName }: { userName: string | null }) {
   const t = useTranslations("common");
   const pathname = usePathname();
   const { settings, update } = useSettings();
-  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const active = (href: string) => pathname.startsWith(href);
 
   return (
     <aside className="flex shrink-0 flex-col gap-5 bg-navy px-[max(16px,env(safe-area-inset-left))] pb-3 pt-[max(16px,env(safe-area-inset-top))] text-on-navy md:sticky md:top-0 md:h-dvh md:w-[248px] md:gap-7 md:px-[18px] md:py-7">
-      <Link href="/" className="flex items-center gap-2.5">
+      <Link href={PATH_HREF} className="flex items-center gap-2.5">
         <AppMark />
         <span className="display text-[19px] font-extrabold">{t("appName")}</span>
       </Link>

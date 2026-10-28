@@ -69,10 +69,3 @@ export const guestProgress = z
     ...(g.profile ? { profile: g.profile } : {}),
   }));
 export type GuestProgress = z.infer<typeof guestProgress>;
-
-/** The validated shape, with chord keys narrowed back to chord ids. */
-export function toProgress(guest: GuestProgress): Progress {
-  const learned: Progress["learned"] = {};
-  for (const key of Object.keys(guest.learned)) if (isChordId(key)) learned[key] = true;
-  return guest.profile ? { learned, best: guest.best, profile: guest.profile } : { learned, best: guest.best };
-}

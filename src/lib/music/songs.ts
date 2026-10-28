@@ -21,7 +21,7 @@ export interface Song {
   id: string;
   title: string;
   /** Who wrote it or where it comes from; shown under the title. */
-  origin: "exercise" | "traditional" | "hymn" | "foster" | "shanty" | "chordsOnly";
+  origin: "exercise" | "traditional" | "hymn" | "spiritual" | "foster" | "shanty" | "chordsOnly";
   group: SongGroup;
   beatsPerBar: 3 | 4;
   pattern: StrumPattern;
@@ -65,6 +65,22 @@ export const SONGS: readonly Song[] = [
     sections: [twice("verse", ["G", "G", "C", "G", "G", "G", "D", "D", "G", "G", "C", "G", "G", "D", "G", "G"])] },
   { id: "drunken-sailor", title: "Drunken Sailor", origin: "shanty", group: "traditional", beatsPerBar: 4, pattern: "down",
     sections: [twice("verse", ["Dm", "Dm", "C", "C", "Dm", "Dm", "C", "Dm"]), twice("chorus", ["Dm", "Dm", "C", "C", "Dm", "Dm", "C", "Dm"])] },
+  { id: "camptown-races", title: "Camptown Races", origin: "foster", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
+    sections: [twice("verse", ["G", "G", "D", "G", "G", "G", "D", "G"]), twice("chorus", ["G", "C", "G", "D", "G", "C", "D", "G"])] },
+  { id: "clementine", title: "Oh My Darling, Clementine", origin: "traditional", group: "traditional", beatsPerBar: 3, pattern: "waltz",
+    sections: [twice("verse", ["G", "G", "G", "D", "D", "G", "D", "G"]), twice("chorus", ["G", "G", "G", "D", "D", "G", "D", "G"])] },
+  { id: "coming-round-the-mountain", title: "She'll Be Coming 'Round the Mountain", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
+    sections: [twice("verse", ["G", "G", "G", "G", "G", "G", "D", "D", "G", "G", "C", "C", "G", "D", "G", "G"])] },
+  { id: "when-the-saints", title: "When the Saints Go Marching In", origin: "spiritual", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
+    sections: [twice("verse", ["G", "G", "G", "G", "G", "G", "D", "D", "G", "G", "C", "C", "G", "D", "G", "G"])] },
+  { id: "swing-low", title: "Swing Low, Sweet Chariot", origin: "spiritual", group: "traditional", beatsPerBar: 4, pattern: "folk",
+    sections: [twice("chorus", ["G", "C", "G", "D", "G", "C", "D", "G"]), twice("verse", ["G", "C", "G", "D", "G", "C", "D", "G"])] },
+  { id: "michael-row", title: "Michael, Row the Boat Ashore", origin: "spiritual", group: "traditional", beatsPerBar: 4, pattern: "folk",
+    sections: [{ name: "verse", bars: ["G", "C", "G", "G", "Em", "Am", "D", "G"], repeat: 4 }] },
+  { id: "auld-lang-syne", title: "Auld Lang Syne", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "folk",
+    sections: [twice("verse", ["G", "D", "G", "C", "G", "Em", "D", "G"]), twice("chorus", ["G", "D", "G", "C", "G", "Em", "D", "G"])] },
+  { id: "scarborough-fair", title: "Scarborough Fair", origin: "traditional", group: "traditional", beatsPerBar: 3, pattern: "waltz",
+    sections: [{ name: "verse", bars: ["Am", "Am", "G", "Am", "C", "Am", "D", "Am", "Am", "C", "G", "Am", "G", "Am", "G", "Am"], repeat: 3 }] },
   { id: "tom-dooley-in-a", title: "Tom Dooley (La)", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
     sections: [twice("chorus", ["A", "A", "E", "E", "E", "E", "A", "A"]), twice("verse", ["A", "A", "E", "E", "E", "E", "A", "A"])] },
 

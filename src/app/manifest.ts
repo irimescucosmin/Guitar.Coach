@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Guitar Coach",
     short_name: "Allenatore",
     description: "Chitarra acustica, un accordo alla volta",
-    start_url: "/",
+    start_url: "/path",
     display: "standalone",
     background_color: "#eef2ef",
     theme_color: "#1f6b57",

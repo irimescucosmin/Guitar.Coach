@@ -2,6 +2,8 @@
 
 Punto di partenza: un principiante assoluto con la chitarra acustica, che vuole migliorare con la costanza, senza scorciatoie. Riferimenti: JustinGuitar, Fender Play, Yousician, Chitarra Facile.
 
+JustinGuitar, per esempio, chiude ogni modulo con una routine fatta di brani già noti come riscaldamento, pochi minuti per ogni tecnica del modulo (tra cui i *one minute changes*) e una decina di minuti sui brani nuovi ([fonte](https://community.justinguitar.com/t/what-is-the-overall-practice-routine-suppose-to-be/207530)). La routine qui sotto segue la stessa idea.
+
 Ogni sezione dice cosa c'è già nell'app e cosa manca. L'ordine in cui farlo è in fondo.
 
 ## 1. Le basi che si danno per scontate
@@ -40,7 +42,7 @@ Da qui l'app sceglie la lezione di partenza, saltando quelle già padroneggiate,
 - chi sa le corde a vuoto salta la lezione 0;
 - chi ha già suonato e ha tutti gli accordi di una lezione ne salta anche gli esercizi; un principiante assoluto li fa sempre;
 - dopo 14 giorni il percorso propone di rispondere di nuovo;
-- risposte salvate nel browser da ospite, su Postgres con un account (`player_profile`), e quelle da ospite entrano nell'account se non ne ha.
+- risposte salvate nell'account (`player_profile`).
 
 Da fare: usare tempo, stile e obiettivo per la routine e per l'ordine dei brani; ricalibrazione automatica sui risultati, non solo su invito.
 
@@ -89,14 +91,68 @@ Note sulla tastiera (c'è: lezione 0), cosa sono tasto e semitono (c'è), cosa r
 
 Ritmi di pennata in giù e in su (in parte: `folk`), boom-chick (c'è), accenti, palm mute, arpeggi semplici, primo fingerpicking, capotasto, power chord, primo barré con F semplificato.
 
-## 8. Ordine di sviluppo
+## 8. Account e presentazione
+
+L'app è gratuita, ma si usa solo con un account: serve a tenere traccia dei progressi, non a far pagare.
+
+**Fatto**: presentazione pubblica su `/` (perché esiste, come funziona, cosa c'è, i brani liberi con accordi, ritmo e lezione da cui si suonano, gratis), tutto il resto dietro accesso, registrazione che porta al questionario, accesso con Google e Apple attivato dalle credenziali.
+
+Brani di pubblico dominio nel catalogo: 18 tradizionali (canti, spiritual, inni, Stephen Foster, canti marinareschi) più 4 giri di accordi di canzoni protette. Per un tradizionale sono liberi testo e melodia; restano protetti i singoli arrangiamenti e le registrazioni, per questo l'app genera da sé accompagnamento e diagrammi ([fonte](https://legalclarity.org/is-when-the-saints-go-marching-in-in-the-public-domain/)).
+
+## 9. Community: brani pubblicati dagli utenti
+
+L'idea: chi ha imparato un brano lo pubblica per gli altri, con una procedura guidata, e ci si aiuta a vicenda.
+
+**Procedura guidata**, una domanda per schermata come il questionario:
+
+1. Titolo e provenienza: tradizionale (pubblico dominio) o canzone protetta. Per una canzone protetta si pubblica **solo il giro di accordi**, mai testo o melodia, come nel catalogo.
+2. Tempo (3 o 4) e ritmo, scelti tra quelli che l'app sa suonare.
+3. Le sezioni, battuta per battuta, scegliendo tra gli accordi che l'app conosce. L'anteprima suona subito con basso e batteria.
+4. Il controllo: l'autore lo suona una volta *A tempo* e deve passare. Così ogni brano pubblicato è suonabile davvero.
+5. Pubblicazione: il brano entra nella lezione giusta da solo, perché si sa quali accordi usa.
+
+**Aiutarsi**: segnare "l'ho suonato", proporre una correzione a un accordo (l'autore accetta o no), domande sotto il brano, segnalare un brano.
+
+**Obblighi** (Digital Services Act, valgono anche per piattaforme piccole che ospitano contenuti degli utenti): un modo per chiunque di segnalare contenuti illeciti, termini d'uso pubblici con le regole di moderazione, un punto di contatto, una motivazione a chi si vede rimuovere un brano e un modo interno per contestarla ([fonte](https://ntplusdiritto.ilsole24ore.com/art/digital-services-act-obblighi-carico-servizi-meno-45-milioni-destinatari-attivi-AEDvlV5C)). Da far verificare a un legale prima di aprire la pubblicazione.
+
+Dati: `community_song` (autore, stato: bozza, pubblicato, nascosto; stessa forma di `Song`, validata col catalogo degli accordi), `community_play`, `community_fix`, `community_report`.
+
+## 10. Punti per chi aiuta
+
+Punti per quello che serve agli altri, non per il volume:
+
+- brano pubblicato e superato *A tempo* dall'autore;
+- altri che lo suonano e lo superano (il punto va all'autore, una volta per persona);
+- correzione accettata dall'autore del brano;
+- risposta segnata come utile.
+
+Niente punti per la sola quantità di brani o di commenti: spingerebbero a pubblicare doppioni. I punti si vedono nel profilo pubblico con dei livelli (per esempio *Primo brano*, *Ha aiutato 10 persone*), senza classifiche globali all'inizio. Una segnalazione accolta toglie i punti di quel brano.
+
+## 11. Assistente AI
+
+Con l'API di Claude, solo lato server, solo dove aggiunge qualcosa che le regole fisse non danno. Il riconoscimento degli accordi resta deterministico e provato: l'AI non giudica le pennate.
+
+| Dove | Cosa fa | Perché AI |
+|---|---|---|
+| Chiedi all'insegnante | domande libere ("perché il Si mi ronza?", "come tengo il plettro?") con il contesto del profilo e degli ultimi risultati | le domande di un principiante non stanno in un elenco |
+| Riepilogo della settimana | due righe su cosa è migliorato e cosa ripassare, dai numeri veri di `practice_runs` | i numeri da soli non dicono cosa fare |
+| Procedura guidata dei brani | da una sequenza di accordi incollata, la struttura in battute e sezioni; scarta qualunque testo | lavoro noioso e soggetto a errori |
+| Moderazione | controllo prima della pubblicazione: niente testo di canzoni, titoli offensivi, accordi incoerenti | primo filtro, poi la segnalazione umana |
+
+Modello: Claude Haiku 5.5 (`claude-haiku-5-5`), 0,10 $ per milione di token in ingresso e 0,50 $ in uscita ([fonte](https://www.llmreference.com/provider/anthropic-api/claude-haiku-5-5)): una risposta dell'insegnante costa una frazione di centesimo. Limite di domande al giorno per account, chiave `ANTHROPIC_API_KEY` solo sul server, risposte in italiano con le stesse regole di tono dei testi dell'app.
+
+## 12. Ordine di sviluppo
 
 | # | Cosa | Stato |
 |---|---|---|
 | 1 | Questionario e test di livello | fatto |
-| 2 | Routine giornaliera | da fare |
-| 3 | Orecchio musicale, livelli 1-5 | da fare |
-| 4 | Ripasso mirato e grafico dei progressi | da fare |
-| 5 | Lezione su postura e mani | da fare |
-| 6 | Registrazione settimanale | da fare |
-| 7 | Tecniche e teoria | da fare |
+| 2 | Account obbligatorio, presentazione, accesso con Google e Apple | fatto |
+| 3 | Routine giornaliera | da fare |
+| 4 | Orecchio musicale, livelli 1-5 | da fare |
+| 5 | Ripasso mirato e grafico dei progressi | da fare |
+| 6 | Assistente AI: insegnante e riepilogo settimanale | da fare |
+| 7 | Lezione su postura e mani | da fare |
+| 8 | Community: procedura guidata, segnalazioni, termini | da fare |
+| 9 | Punti per chi aiuta | da fare, dopo la community |
+| 10 | Registrazione settimanale | da fare |
+| 11 | Tecniche e teoria | da fare |

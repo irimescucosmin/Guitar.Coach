@@ -27,9 +27,9 @@ export interface Lesson {
 export const LESSONS: readonly Lesson[] = [
   { id: "notes", newChords: [], drill: NOTE_DRILL_ID, songs: [] },
   { id: "emAm", newChords: ["Em", "Am"], drill: "drill-em-am", songs: [] },
-  { id: "gD", newChords: ["G", "D"], drill: "drill-g-d", songs: ["skip-to-my-lou", "tom-dooley", "down-in-the-valley"] },
+  { id: "gD", newChords: ["G", "D"], drill: "drill-g-d", songs: ["skip-to-my-lou", "tom-dooley", "down-in-the-valley", "clementine"] },
   { id: "c", newChords: ["C"], drill: "drill-g-c-d",
-    songs: ["will-the-circle", "oh-susanna", "red-river-valley", "home-on-the-range", "amazing-grace", "ring-of-fire", "wagon-wheel", "country-roads", "jolene"] },
+    songs: ["will-the-circle", "oh-susanna", "camptown-races", "coming-round-the-mountain", "when-the-saints", "swing-low", "michael-row", "auld-lang-syne", "scarborough-fair", "red-river-valley", "home-on-the-range", "amazing-grace", "ring-of-fire", "wagon-wheel", "country-roads", "jolene"] },
   { id: "dm", newChords: ["Dm"], drill: "drill-dm-c", songs: ["drunken-sailor"] },
   { id: "eA", newChords: ["E", "A"], drill: "drill-e-a", songs: ["tom-dooley-in-a"] },
 ];

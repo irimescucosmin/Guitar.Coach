@@ -1,6 +1,47 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+const PASSWORD = "una-password-lunga";
+
+/** Every screen needs an account: a fresh one per test, so tests never share progress. */
+async function signUp(page: Page, name = "Prova"): Promise<string> {
+  const email = `e2e-${name.toLowerCase()}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.test`;
+  await page.goto("/account?mode=signup");
+  await page.getByLabel("Nome").fill(name);
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByRole("button", { name: "Crea account" }).click();
+  // A new account starts from the questions.
+  await expect(page).toHaveURL(/\/start$/);
+  return email;
+}
+
+/**
+ * The same, through the API: no screens, so the time from the browser's start
+ * to the first click stays short. The timed test needs that, see its comment.
+ */
+async function signUpQuickly(page: Page): Promise<void> {
+  const base = test.info().project.use.baseURL ?? "http://localhost:3000";
+  const email = `e2e-quick-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.test`;
+  const response = await page.request.post(`${base}/api/auth/sign-up/email`, {
+    data: { email, password: PASSWORD, name: "Prova" },
+    headers: { origin: base },
+  });
+  expect(response.ok()).toBe(true);
+}
+
+test("a visitor sees the presentation, and the app asks for an account", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("un accordo alla volta");
+  await expect(page.getByRole("heading", { name: /brani liberi da suonare/ })).toBeVisible();
+  await expect(page.getByRole("cell", { name: /When the Saints Go Marching In/ })).toBeVisible();
+  await page.goto("/path");
+  await expect(page).toHaveURL(/\/account$/);
+  await page.goto("/play/drill-em-am?mode=step");
+  await expect(page).toHaveURL(/\/account$/);
+});
 
 test("step mode moves on each time the microphone hears the expected chord", async ({ page }) => {
+  await signUp(page);
   await page.goto("/play/drill-em-am?mode=step");
   await page.getByRole("button", { name: "Avvia" }).click();
   await expect(page.getByText(/8\/8 cambi giusti/)).toBeVisible({ timeout: 60_000 });
@@ -8,6 +49,9 @@ test("step mode moves on each time the microphone hears the expected chord", asy
 });
 
 test("timed mode scores the bars and saves a record", { tag: "@own-browser" }, async ({ page }) => {
+  // The fake microphone starts with the browser, not with the run: the bars line
+  // up with the recording only if the run starts soon after launch.
+  await signUpQuickly(page);
   await page.goto("/play/drill-em-am?mode=timed");
   await page.getByRole("button", { name: "Avvia" }).click();
   const result = page.getByText(/% delle battute con l'accordo giusto/);
@@ -20,37 +64,33 @@ test("timed mode scores the bars and saves a record", { tag: "@own-browser" }, a
 });
 
 test("learning a chord counts three clean strums", async ({ page }) => {
+  await signUp(page);
   await page.goto("/chords/Em");
   await page.getByRole("button", { name: "Attiva microfono" }).first().click();
   await expect(page.getByText("Imparato: il microfono l'ha sentito pulito 3 volte.")).toBeVisible({ timeout: 60_000 });
 });
 
-test("an account keeps what was learned as a guest and syncs to the database", async ({ page }) => {
-  const email = `e2e-${Date.now()}@example.test`;
+test("progress belongs to the account and follows it to another browser", async ({ page }) => {
+  const email = await signUp(page);
   await page.goto("/chords/Em");
   await page.getByRole("button", { name: "Segna come imparato" }).click();
-  await page.goto("/account");
-  await page.getByRole("button", { name: "Creane uno" }).click();
-  await page.getByLabel("Nome").fill("Prova");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("una-password-lunga");
-  await page.getByRole("button", { name: "Crea account" }).click();
-  await expect(page.getByRole("link", { name: "Prova", exact: true })).toBeVisible();
+  await expect(page.getByText(/Imparato:/)).toBeVisible();
 
-  // A new browser with no local storage: only the database can know.
+  // A new browser with nothing stored: only the database can know.
   const fresh = await page.context().browser()!.newContext();
   const other = await fresh.newPage();
   await other.goto("/account");
   await other.getByLabel("Email").fill(email);
-  await other.getByLabel("Password").fill("una-password-lunga");
-  await other.getByRole("button", { name: "Accedi" }).last().click();
-  await expect(other.getByRole("link", { name: "Prova", exact: true })).toBeVisible();
+  await other.getByLabel("Password").fill(PASSWORD);
+  await other.getByRole("button", { name: "Accedi", exact: true }).click();
+  await expect(other).toHaveURL(/\/path$/);
   await other.goto("/chords");
   await expect(other.getByRole("link", { name: /Em.*Imparato/ })).toBeVisible();
   await fresh.close();
 });
 
 test("space bar skips a step even with the Stop button focused", async ({ page }) => {
+  await signUp(page);
   await page.goto("/play/drill-g-c-d?mode=step");
   await page.getByRole("button", { name: "Avvia" }).click();
   // The click leaves focus on the button that now reads Ferma.
@@ -64,36 +104,23 @@ test("space bar skips a step even with the Stop button focused", async ({ page }
 });
 
 test("signing out leaves no trace of the account on screen", async ({ page }) => {
-  const email = `e2e-out-${Date.now()}@example.test`;
-  await page.goto("/account");
-  await page.getByRole("button", { name: "Creane uno" }).click();
-  await page.getByLabel("Nome").fill("Uscita");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("una-password-lunga");
-  await page.getByRole("button", { name: "Crea account" }).click();
-  await expect(page.getByRole("link", { name: "Uscita" })).toBeVisible();
+  await signUp(page, "Uscita");
   await page.goto("/chords/Am");
   await page.getByRole("button", { name: "Segna come imparato" }).click();
   await expect(page.getByText(/Imparato:/)).toBeVisible();
-  // Everything from here on is client-side navigation: a reload would hide the bug.
-  await page.getByRole("link", { name: "Uscita" }).click();
+  // Client-side navigation from here: a reload would hide a stale screen.
+  await page.getByRole("link", { name: "Uscita", exact: true }).click();
   await page.getByRole("button", { name: "Esci" }).click();
-  await expect(page.getByRole("button", { name: "Accedi" })).toBeVisible();
-  await page.getByRole("link", { name: "Prova senza account" }).click();
-  await expect(page.getByRole("link", { name: "Accedi", exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Accordi", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Accordi" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Am.*Imparato/ })).toHaveCount(0);
-  // A guest action now must not save the account's chords in this browser.
-  await page.getByRole("link", { name: /^Em Mi minore/ }).click();
-  await page.getByRole("button", { name: "Segna come imparato" }).click();
-  await expect(page.getByText(/Imparato:/)).toBeVisible();
-  const stored = await page.evaluate(() => localStorage.getItem("guitar-coach:progress"));
-  expect(stored ?? "").not.toContain('"Am"');
+  await expect(page.getByRole("button", { name: "Accedi", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Torna alla presentazione" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("un accordo alla volta");
+  await page.goto("/chords");
+  await expect(page).toHaveURL(/\/account$/);
 });
 
 test("the path starts from the notes, and the fretboard page teaches them", async ({ page }) => {
-  await page.goto("/");
+  await signUp(page);
+  await page.goto("/path");
   await expect(page.getByRole("heading", { name: "Le note sulla tastiera" }).first()).toBeVisible();
   await page.getByRole("link", { name: "Tastiera", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Le note sulla tastiera" })).toBeVisible();
@@ -102,8 +129,7 @@ test("the path starts from the notes, and the fretboard page teaches them", asyn
 });
 
 test("the questionnaire hears the declared chords and starts the path past them", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: "Rispondi alle domande" }).click();
+  await signUp(page);
   const next = page.getByRole("button", { name: "Avanti", exact: true });
   await page.getByText("Qualche mese").click();
   await next.click();
@@ -123,4 +149,7 @@ test("the questionnaire hears the declared chords and starts the path past them"
   await page.getByRole("button", { name: "Inizia il percorso" }).click();
   await expect(page.getByRole("heading", { name: "Impara G" })).toBeVisible();
   await expect(page.getByText("Il percorso parte dalle tue risposte.")).toBeVisible();
+  // Saved in the account, not only on screen.
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Impara G" })).toBeVisible();
 });

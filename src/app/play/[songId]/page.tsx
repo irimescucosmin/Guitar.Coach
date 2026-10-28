@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Player } from "@/components/play/player";
 import type { PracticeMode } from "@/lib/music/path";
+import { requireUser } from "@/lib/auth";
 import { findSong } from "@/lib/music/songs";
 
 const MODES: PracticeMode[] = ["listen", "step", "timed"];
@@ -17,6 +18,7 @@ export default async function SongPage({
   params: Promise<{ songId: string }>;
   searchParams: Promise<{ mode?: string }>;
 }) {
+  await requireUser();
   const [{ songId }, { mode }] = await Promise.all([params, searchParams]);
   if (!findSong(songId)) notFound();
   const initialMode = MODES.includes(mode as PracticeMode) ? (mode as PracticeMode) : "listen";

@@ -1,9 +1,9 @@
 import { Sidebar } from "@/components/chrome/sidebar";
-import { pageProgress } from "@/lib/progress/server";
+import { requireUser } from "@/lib/auth";
 
-/** Every screen except playing and signing in: the navy sidebar and the page beside it. */
+/** Every screen except playing and signing in: the navy sidebar and the page beside it. Signed-in only. */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { userName } = await pageProgress();
+  const { name: userName } = await requireUser();
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       <Sidebar userName={userName} />

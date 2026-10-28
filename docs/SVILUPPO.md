@@ -40,7 +40,16 @@ Gli URL in `.env.example` puntano già a `coach:coach@localhost:5432`.
 pnpm dev                    # http://localhost:3000
 ```
 
-Senza account l'app funziona da ospite, con i progressi nel `localStorage`. Il database serve per gli account e per i test `*.db.test.ts`.
+`/` è la presentazione; tutto il resto chiede un account, che si crea da `/account?mode=signup` con email e password. Dopo la registrazione si parte dal questionario (`/start`), poi il percorso è su `/path`.
+
+### Accesso con Google e Apple
+
+I bottoni compaiono solo quando le variabili sono impostate in `.env.local` (e con `fly secrets set` in produzione).
+
+- **Google**: in Google Cloud Console, *API e servizi*, *Credenziali*, un *ID client OAuth* di tipo *Applicazione web*. URI di reindirizzamento: `http://localhost:3000/api/auth/callback/google` e `https://DOMINIO/api/auth/callback/google`. Poi `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. Funziona anche su localhost.
+- **Apple**: serve l'Apple Developer Program. Un *Services ID* con *Sign in with Apple* e return URL `https://DOMINIO/api/auth/callback/apple`; Apple non accetta localhost né http, quindi si prova solo sul dominio vero. `APPLE_CLIENT_ID` è il Services ID; `APPLE_CLIENT_SECRET` è un JWT ES256 firmato con la chiave `.p8` (Team ID come issuer, Services ID come subject), valido al massimo sei mesi: va rigenerato prima che scada, altrimenti l'accesso con Apple smette di funzionare. Il dominio `https://appleid.apple.com` entra da solo tra le origini fidate.
+
+Fonti: [Better Auth, Google](https://better-auth.com/docs/authentication/google), [Better Auth, Apple](https://better-auth.com/docs/authentication/apple).
 
 ## 3. Il microfono
 
@@ -77,16 +86,18 @@ Le cuffie servono solo con la *Chitarra guida* accesa in *A tempo*: è l'unico s
 
 Prima di `pnpm e2e` la prima volta: `pnpm exec playwright install chromium`, e una `pnpm build` aggiornata (il test usa il server di produzione).
 
+Ogni test crea il suo account. In produzione Better Auth limita gli accessi (3 ogni 10 secondi per indirizzo), quindi `pnpm e2e` avvia il server con `AUTH_RATE_LIMIT=off`. Se il server lo avvii tu, avvialo così: `AUTH_RATE_LIMIT=off pnpm start`. In produzione quella variabile non va mai impostata.
+
 Il microfono finto suona `tests/e2e/fixtures/em-am.wav`, generato a ogni giro da `make-wav.mjs`: pennate Karplus-Strong di Em ed Am, 2,4 s l'una, cioè una battuta a 100 bpm.
 
 ### Screenshot di tutte le schermate
 
 ```bash
-pnpm build && pnpm start &  # oppure pnpm dev
-pnpm shots                  # screenshots/*.png a 1440×960
+pnpm build && AUTH_RATE_LIMIT=off pnpm start &   # oppure pnpm dev
+pnpm shots                                       # screenshots/*.png a 1440×960
 ```
 
-Servono per confrontare il codice con il design: percorso, tastiera, brani, accordi, impara G, accordatore, accesso, e il brano *A tempo* a metà corsa.
+Servono per confrontare il codice con il design: presentazione e accesso da fuori, poi con un account nuovo percorso, tastiera, brani, accordi, impara G, accordatore, questionario, e il brano *A tempo* a metà corsa.
 
 ## 5. Il rilascio
 
@@ -107,10 +118,11 @@ Dopo, `fly deploy` e basta: le migrazioni girano come `release_command` prima ch
 
 | Sintomo | Causa | Rimedio |
 |---|---|---|
+| e2e o `pnpm shots`: la registrazione non va avanti | limite degli accessi di Better Auth | server avviato con `AUTH_RATE_LIMIT=off` |
+| e2e *A tempo* al 50% | microfono finto sfasato | il test deve stare nel progetto `em-am-timed`, che gira per primo |
 | *Serve https* sul bottone del microfono | pagina su http e non su localhost | `localhost:3000`, o `pnpm dev:https` |
 | *Microfono bloccato* | permesso negato una volta | impostazioni del sito nel browser, poi ricarica |
 | Em letto come E | quinta armonica della corda grave | è già gestito da `harmonicWeight`: se torna, serve un test in `detect.test.ts` |
 | Colori della corsia sbagliati | token con `light-dark()` letti senza risolutore | passare da `resolver()` in `highway.ts` |
-| e2e *A tempo* al 50% | microfono finto sfasato di una battuta | il test deve stare nel progetto `em-am-timed` |
 | Il server non si ferma | `next start` rimasto in ascolto | `fuser -k 3000/tcp` (non `pkill -f "next start"`) |
 | `relation does not exist` | migrazioni mancanti | `pnpm db:migrate` |

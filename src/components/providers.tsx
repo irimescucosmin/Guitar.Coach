@@ -5,9 +5,11 @@ import { importGuest, saveAnswers, saveLearnedChord, savePracticeRun } from "@/a
 import type { ChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, recordResult, type Progress } from "@/lib/music/path";
 import { placedChords, type Profile } from "@/lib/music/profile";
-import { guestProgress, toProgress, type RunInput } from "@/lib/progress/validation";
+import { guestProgress, type RunInput } from "@/lib/progress/validation";
 
 /* ---------- local storage, always behind try/catch: private windows refuse it ---------- */
+
+/** Where progress lived before accounts were required; read once to import it. */
 
 const GUEST_KEY = "guitar-coach:progress";
 const SETTINGS_KEY = "guitar-coach:settings";
@@ -57,8 +59,8 @@ interface ProgressApi {
   learn: (chord: ChordId) => void;
   /** Stores a finished run; resolves with whether it beat the previous best. */
   record: (run: RunInput) => boolean;
-  /** Stores the questionnaire's answers and learns the chords they place. */
-  answer: (profile: Profile) => void;
+  /** Stores the questionnaire's answers and learns the chords they place; resolves once saved. */
+  answer: (profile: Profile) => Promise<void>;
 }
 
 const ProgressContext = createContext<ProgressApi>({
@@ -66,7 +68,7 @@ const ProgressContext = createContext<ProgressApi>({
   signedIn: false,
   learn: () => {},
   record: () => false,
-  answer: () => {},
+  answer: async () => {},
 });
 
 export function useProgress() {
@@ -88,15 +90,15 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
     if (initialProgress) setProgress(initialProgress);
   }, [initialProgress]);
 
-  // A guest keeps progress in this browser. After signing in, it joins the account once.
+  // Before accounts were required, progress lived in this browser. It joins the
+  // account once, on the first signed-in visit, and the browser copy goes.
   useEffect(() => {
-    const parsed = guestProgress.safeParse(readJson(GUEST_KEY));
     if (!signedIn) {
-      // Also after signing out: the account's progress must not stay on screen,
-      // or the next guest run would save it locally and hand it to the next account.
-      setProgress(parsed.success ? toProgress(parsed.data) : EMPTY_PROGRESS);
+      // Also after signing out: nothing of the account stays on screen.
+      setProgress(EMPTY_PROGRESS);
       return;
     }
+    const parsed = guestProgress.safeParse(readJson(GUEST_KEY));
     if (!parsed.success) return;
     // Taken out before the call, so a second tab or a re-run does not import it twice.
     writeJson(GUEST_KEY, null);
@@ -116,48 +118,38 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
     });
   }, []);
 
-  const persistGuest = useCallback(
-    (next: Progress) => {
-      if (!signedIn) writeJson(GUEST_KEY, next);
-    },
-    [signedIn],
-  );
-
   const learn = useCallback(
     (chord: ChordId) => {
       setProgress((p) => {
-        const next = { ...p, learned: { ...p.learned, [chord]: true as const } };
-        persistGuest(next);
-        return next;
+        return { ...p, learned: { ...p.learned, [chord]: true as const } };
       });
-      if (signedIn) void saveLearnedChord(chord).then((r) => r.saved && setProgress(r.progress));
+      void saveLearnedChord(chord).then((r) => r.saved && setProgress(r.progress));
     },
-    [signedIn, persistGuest],
+    [],
   );
 
   const record = useCallback(
     (run: RunInput) => {
       const { progress: next, isRecord } = recordResult(progress, run.songId, run.mode, run.value);
       setProgress(next);
-      persistGuest(next);
-      if (signedIn) void savePracticeRun(run).then((r) => r.saved && setProgress(r.progress));
+      void savePracticeRun(run).then((r) => r.saved && setProgress(r.progress));
       return isRecord;
     },
-    [progress, signedIn, persistGuest],
+    [progress],
   );
 
   const answer = useCallback(
-    (profile: Profile) => {
+    async (profile: Profile) => {
       setProgress((p) => {
         const learned = { ...p.learned };
         for (const chord of placedChords(profile)) learned[chord] = true;
-        const next = { ...p, learned, profile };
-        persistGuest(next);
-        return next;
+        return { ...p, learned, profile };
       });
-      if (signedIn) void saveAnswers(profile).then((r) => r.saved && setProgress(r.progress));
+      // Awaited by the caller: a page loaded before the save lands would show the path without the answers.
+      const result = await saveAnswers(profile);
+      if (result.saved) setProgress(result.progress);
     },
-    [signedIn, persistGuest],
+    [],
   );
 
   const progressApi = useMemo(

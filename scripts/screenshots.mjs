@@ -1,6 +1,6 @@
 // Screenshots of every screen, for comparing with the design.
 // Usage: pnpm shots [base-url]   (default http://localhost:3000, server already running)
-// Output: screenshots/*.png at 1440x960, with some guest progress so no screen is empty.
+// Output: screenshots/*.png at 1440x960: the presentation signed out, the app with a new account.
 import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -18,22 +18,26 @@ const browser = await chromium.launch({ args });
 const context = await browser.newContext({ viewport: { width: 1440, height: 960 }, permissions: ["microphone"] });
 const page = await context.newPage();
 
+// The presentation first, signed out; then a fresh account for the app screens.
 await page.goto(base);
-await page.evaluate(() =>
-  localStorage.setItem(
-    "guitar-coach:progress",
-    JSON.stringify({ learned: { Em: true, Am: true, G: true }, best: { notes: { step: 3400 }, "drill-em-am": { step: 1800, timed: 0.88 } } }),
-  ),
-);
+await page.waitForTimeout(600);
+await page.screenshot({ path: `${out}landing.png`, fullPage: true });
+await page.goto(`${base}/account`);
+await page.screenshot({ path: `${out}account.png`, fullPage: true });
+const signUp = await page.request.post(`${base}/api/auth/sign-up/email`, {
+  data: { email: `shots-${Date.now()}@example.test`, password: "screenshots-only", name: "Cosmin" },
+  headers: { origin: base },
+});
+if (!signUp.ok()) throw new Error(`Sign-up failed (${signUp.status()}): is the server running with AUTH_RATE_LIMIT=off?`);
 
 const screens = [
-  ["path", "/"],
+  ["path", "/path"],
   ["fretboard", "/fretboard"],
   ["songs", "/songs"],
   ["chords", "/chords"],
   ["learn", "/chords/G"],
   ["tools", "/tools"],
-  ["account", "/account"],
+  ["start", "/start"],
 ];
 for (const [name, path] of screens) {
   await page.goto(base + path);

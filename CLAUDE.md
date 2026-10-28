@@ -28,7 +28,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 | Un accordo | `ChordId` e `SHAPES` in `src/lib/music/chords.ts`, un token colore in `globals.css`, il nome in `common.chord` |
 | Un brano | `SONGS` in `src/lib/music/songs.ts` e in una lezione di `src/lib/music/path.ts` (un test pretende che ogni brano stia in una lezione e non usi accordi non ancora insegnati) |
 | Un ritmo | `StrumPattern` e `guitarEvents` in `src/lib/music/patterns.ts` |
-| Una schermata | `src/app/(app)/` con la voce in `NAV` di `components/chrome/sidebar.tsx`, testi in `messages` |
+| Una schermata | `src/app/(app)/` con la voce in `NAV` di `components/chrome/sidebar.tsx`, testi in `messages`; fuori dal gruppo, `requireUser()` in cima alla pagina |
 | Una tabella | `src/db/schema/`, poi `pnpm db:generate` |
 
 ## Insidie già pagate
@@ -36,5 +36,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - In zod 4 `z.record(z.enum(...))` pretende **tutte** le chiavi: per dati parziali si usa `z.partialRecord`.
 - La quinta armonica di una corda grave è la sua terza maggiore: senza `harmonicWeight` un Em si legge E.
 - Il canvas non legge `light-dark()`: i colori della corsia passano dal risolutore in `highway.ts`.
-- Il microfono finto di Chromium è uno per browser e continua da dove l'ha lasciato il test precedente: un test che conta le battute contro l'orologio va nel progetto `em-am-timed` (tag `@own-browser`).
+- Il microfono finto di Chromium continua da dove l'hanno lasciato i test precedenti: un test che conta le battute contro l'orologio va nel progetto `em-am-timed` (tag `@own-browser`), che gira per primo, e crea l'account via API (`signUpQuickly`).
+- Ogni test e2e crea un account: il server va avviato con `AUTH_RATE_LIMIT=off`, o Better Auth rifiuta dalla terza registrazione.
+- Una schermata che salva e poi naviga aspetta il salvataggio: la pagina nuova caricata prima porterebbe progressi vecchi (`answer` nel questionario).
 - `pkill -f "next start"` uccide anche la shell che lo lancia: per fermare il server, `fuser -k 3000/tcp`.
