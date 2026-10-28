@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { CHORD_IDS } from "@/lib/music/chords";
+import { CHORD_IDS, isChordId } from "@/lib/music/chords";
+import type { Progress } from "@/lib/music/path";
 import { SONGS } from "@/lib/music/songs";
 
 /**
@@ -22,8 +23,17 @@ export type RunInput = z.infer<typeof runInput>;
 
 export const chordInput = chordId;
 
+// partialRecord: in zod 4 a record keyed by an enum demands every key, and a
+// guest has learned some chords, not all of them.
 export const guestProgress = z.object({
-  learned: z.record(chordId, z.literal(true)),
-  best: z.record(songId, z.object({ step: stepMs.optional(), timed: share.optional() })),
+  learned: z.partialRecord(chordId, z.literal(true)),
+  best: z.partialRecord(songId, z.object({ step: stepMs.optional(), timed: share.optional() })),
 });
 export type GuestProgress = z.infer<typeof guestProgress>;
+
+/** The validated shape, with chord keys narrowed back to chord ids. */
+export function toProgress(guest: GuestProgress): Progress {
+  const learned: Progress["learned"] = {};
+  for (const key of Object.keys(guest.learned)) if (isChordId(key)) learned[key] = true;
+  return { learned, best: guest.best };
+}

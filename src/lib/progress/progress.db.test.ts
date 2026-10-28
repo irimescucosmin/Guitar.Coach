@@ -61,6 +61,11 @@ describe("input validation", () => {
     expect(runInput.safeParse({ songId: "jolene", mode: "timed", value: 1.2 }).success).toBe(false);
   });
 
+  it("accepts guest progress that covers only part of the catalogue", () => {
+    const parsed = guestProgress.safeParse({ learned: { Em: true }, best: { jolene: { timed: 0.5 } } });
+    expect(parsed.success).toBe(true);
+  });
+
   it("refuses unknown chords in guest progress", () => {
     expect(guestProgress.safeParse({ learned: { Fmaj7: true }, best: {} }).success).toBe(false);
   });

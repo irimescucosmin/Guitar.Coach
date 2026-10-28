@@ -35,7 +35,7 @@ export type PracticeMode = "listen" | "step" | "timed";
 export interface Progress {
   learned: Partial<Record<ChordId, true>>;
   /** Best result per song and mode. Step: average ms per change, lower is better. Timed: share of bars right. */
-  best: Record<string, { step?: number; timed?: number }>;
+  best: Partial<Record<string, { step?: number; timed?: number }>>;
 }
 
 export const EMPTY_PROGRESS: Progress = { learned: {}, best: {} };

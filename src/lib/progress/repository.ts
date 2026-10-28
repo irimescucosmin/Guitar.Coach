@@ -57,7 +57,7 @@ export async function importGuestProgress(db: Database, userId: string, guest: G
     }
     const runs = Object.entries(guest.best).flatMap(([songId, best]) =>
       (["step", "timed"] as const).flatMap((mode) =>
-        best[mode] === undefined ? [] : [{ userId, songId, mode, value: best[mode] }],
+        best?.[mode] === undefined ? [] : [{ userId, songId, mode, value: best[mode] }],
       ),
     );
     if (runs.length > 0) await tx.insert(practiceRuns).values(runs);

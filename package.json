@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node src/db/migrate.mjs"
+    "db:migrate": "node src/db/migrate.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "better-auth": "^1.7.14",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",

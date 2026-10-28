@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { importGuest, saveLearnedChord, savePracticeRun } from "@/app/actions";
 import type { ChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, recordResult, type Progress } from "@/lib/music/path";
-import { guestProgress, type RunInput } from "@/lib/progress/validation";
+import { guestProgress, toProgress, type RunInput } from "@/lib/progress/validation";
 
 /* ---------- local storage, always behind try/catch: private windows refuse it ---------- */
 
@@ -89,7 +89,7 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
     const parsed = guestProgress.safeParse(readJson(GUEST_KEY));
     if (!parsed.success) return;
     if (!signedIn) {
-      setProgress(parsed.data);
+      setProgress(toProgress(parsed.data));
       return;
     }
     void importGuest(parsed.data).then((result) => {
