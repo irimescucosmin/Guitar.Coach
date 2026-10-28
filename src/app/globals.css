@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/*
+ * Tokens. One name, two themes through light-dark(); components use these
+ * names only, never a raw colour or an invented radius.
+ * Chord colours are the same in both themes: each is dark enough for white text.
+ */
+:root {
+  color-scheme: light dark;
+}
+
+@theme {
+  --color-page: light-dark(#eef2ef, #0f1512);
+  --color-surface: light-dark(#ffffff, #17201b);
+  --color-sunken: light-dark(#e3e9e5, #0b100d);
+  --color-line: light-dark(#cbd5cf, #2b3731);
+  --color-ink: light-dark(#16201b, #e6eee9);
+  --color-muted: light-dark(#56655d, #93a39a);
+  --color-accent: light-dark(#1f6b57, #5cc2a3);
+  --color-on-accent: light-dark(#ffffff, #0b100d);
+  --color-good: light-dark(#1e7d47, #4cc97f);
+  --color-warn: light-dark(#a56a12, #e3a64a);
+  --color-bad: light-dark(#b8382f, #ef6b63);
+
+  --color-chord-Em: #2f6ea8;
+  --color-chord-Am: #6d4fa0;
+  --color-chord-C: #b06a14;
+  --color-chord-G: #23784b;
+  --color-chord-D: #b2442b;
+  --color-chord-Dm: #96385f;
+  --color-chord-E: #1f7a7a;
+  --color-chord-A: #6f6420;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --radius-field: 8px;
+  --radius-card: 14px;
+}
+
+html {
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Chord diagram, drawn as inline SVG so it inherits the theme. */
+.dg-line { stroke: var(--color-muted); }
+.dg-nut { fill: var(--color-ink); }
+.dg-dot { fill: var(--color-accent); }
+.dg-dot.miss { fill: var(--color-bad); }
+.dg-num { fill: var(--color-on-accent); font: 700 10px var(--font-sans); }
+.dg-open { fill: none; stroke: var(--color-ink); stroke-width: 1.6; }
+.dg-open.miss { stroke: var(--color-bad); stroke-width: 2.4; }
+.dg-x { fill: var(--color-muted); font: 700 11px var(--font-sans); }
+.dg-label { fill: var(--color-muted); font: 500 8px var(--font-sans); }
+.dg-fretno { fill: var(--color-muted); font: 500 8px var(--font-mono); }
+
+@keyframes pulse-soon {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 60%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-accent) 0%, transparent); }
+}
+.soon { animation: pulse-soon 0.6s ease-in-out infinite; }

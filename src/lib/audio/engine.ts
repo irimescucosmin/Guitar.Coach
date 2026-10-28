@@ -1,0 +1,107 @@
+"use client";
+
+import { chromaFromSpectrum, rms, smoothChroma } from "./detect";
+import { Synth } from "./synth";
+
+/**
+ * One AudioContext for the whole app, created on the first tap (browsers
+ * refuse sound and microphone before a gesture), shared by the synth and the
+ * microphone so their clocks agree.
+ */
+
+export type MicState = "off" | "starting" | "on" | "denied" | "unsupported";
+
+export interface Frame {
+  level: number;
+  chroma: Float32Array;
+  /** A new strum: the level jumped well above its recent average. */
+  attack: boolean;
+  /** Raw samples, for the tuner. */
+  samples: Float32Array;
+}
+
+const FFT_SIZE = 16_384;
+
+class Engine {
+  ctx: AudioContext | null = null;
+  synth: Synth | null = null;
+  micState: MicState = "off";
+  private analyser: AnalyserNode | null = null;
+  private spectrum: Float32Array<ArrayBuffer> | null = null;
+  private samples: Float32Array<ArrayBuffer> | null = null;
+  private chroma: Float32Array = new Float32Array(12);
+  private levelAverage = 0;
+  private listeners = new Set<() => void>();
+
+  audio(): { ctx: AudioContext; synth: Synth } {
+    if (!this.ctx) {
+      const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.ctx = new Ctor();
+      this.synth = new Synth(this.ctx);
+      this.synth.warmUp();
+    }
+    if (this.ctx.state === "suspended") void this.ctx.resume();
+    return { ctx: this.ctx, synth: this.synth! };
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private setMic(state: MicState): void {
+    this.micState = state;
+    this.listeners.forEach((l) => l());
+  }
+
+  async startMic(): Promise<boolean> {
+    if (this.micState === "on") return true;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.setMic("unsupported");
+      return false;
+    }
+    this.setMic("starting");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        // The browser's voice processing would erase the very notes we listen for.
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      });
+      const { ctx } = this.audio();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = FFT_SIZE;
+      analyser.smoothingTimeConstant = 0.5;
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      this.analyser = analyser;
+      this.spectrum = new Float32Array(analyser.frequencyBinCount);
+      this.samples = new Float32Array(analyser.fftSize);
+      this.setMic("on");
+      return true;
+    } catch {
+      this.setMic("denied");
+      return false;
+    }
+  }
+
+  /** Call once per animation frame while listening. */
+  read(): Frame | null {
+    if (!this.analyser || !this.spectrum || !this.samples || !this.ctx) return null;
+    this.analyser.getFloatTimeDomainData(this.samples);
+    this.analyser.getFloatFrequencyData(this.spectrum);
+    const level = rms(this.samples);
+    const attack = level > 0.015 && level > this.levelAverage * 1.8;
+    this.levelAverage = this.levelAverage * 0.85 + level * 0.15;
+    if (attack) this.chroma = new Float32Array(12);
+    this.chroma = smoothChroma(this.chroma, chromaFromSpectrum(this.spectrum, this.ctx.sampleRate, FFT_SIZE));
+    return { level, chroma: this.chroma, attack, samples: this.samples };
+  }
+
+  /** Forget the last chord, when the expected chord changes. */
+  resetChroma(): void {
+    this.chroma = new Float32Array(12);
+  }
+}
+
+export const engine = new Engine();
+
+/** Below this level nothing is being played. */
+export const SILENCE = 0.008;
