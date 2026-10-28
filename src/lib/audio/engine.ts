@@ -9,7 +9,8 @@ import { Synth } from "./synth";
  * microphone so their clocks agree.
  */
 
-export type MicState = "off" | "starting" | "on" | "denied" | "unsupported";
+/** "insecure": the page is on plain http away from localhost, where browsers hide the microphone. */
+export type MicState = "off" | "starting" | "on" | "denied" | "unsupported" | "insecure";
 
 export interface Frame {
   level: number;
@@ -66,6 +67,10 @@ class Engine {
   }
 
   private async openMic(): Promise<boolean> {
+    if (!window.isSecureContext) {
+      this.setMic("insecure");
+      return false;
+    }
     if (!navigator.mediaDevices?.getUserMedia) {
       this.setMic("unsupported");
       return false;

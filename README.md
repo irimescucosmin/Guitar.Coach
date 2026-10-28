@@ -26,7 +26,10 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Il microfono richiede `localhost` o HTTPS. Le cuffie servono solo se accendi la chitarra guida in *A tempo*.
+Il microfono richiede `localhost` o HTTPS: un indirizzo `http://192.168…` non lo ottiene mai.
+Per provare dal telefono sulla stessa rete: `pnpm dev:https`, poi `https://IP-DEL-MAC:3000` dal telefono, accettando il certificato locale. Per accedere con un account da lì, aggiungi quell'indirizzo a `BETTER_AUTH_TRUSTED_ORIGINS`.
+
+Le cuffie servono solo se accendi la chitarra guida in *A tempo*.
 
 ## Controlli prima di consegnare
 

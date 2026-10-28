@@ -10,6 +10,9 @@ if (!process.env.BETTER_AUTH_SECRET) throw new Error("BETTER_AUTH_SECRET is not 
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
+  // Extra origins allowed to sign in, e.g. the https address of the Mac on the
+  // home network while testing from a phone. Comma separated.
+  trustedOrigins: (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean),
   emailAndPassword: { enabled: true, autoSignIn: true, minPasswordLength: 10 },
   session: { expiresIn: 60 * 60 * 24 * 60, updateAge: 60 * 60 * 24 },
   // nextCookies must stay last: it writes the cookies the other plugins set.
