@@ -77,30 +77,30 @@ export function ChangeTest() {
 
   const select = (value: ChordId, set: (c: ChordId) => void, id: string) => (
     <select id={id} value={value} disabled={running} onChange={(e) => set(e.target.value as ChordId)}
-      className="rounded-[var(--radius-field)] border border-line bg-surface px-2 py-1.5 font-mono">
+      className="h-12 rounded-[var(--radius-field)] border border-line-strong bg-surface px-3 font-mono text-lg">
       {CHORD_IDS.map((c) => <option key={c} value={c}>{c}</option>)}
     </select>
   );
 
   return (
-    <section className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-5">
-      <h2 className="text-lg font-bold">{t("title")}</h2>
+    <section className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-6">
+      <h2 className="m-0 text-xl font-extrabold">{t("title")}</h2>
       <p className="text-sm text-muted">{t("help")}</p>
       <div className="flex flex-wrap items-center gap-2">
         {select(a, setA, "test-a")}<span aria-hidden>↔</span>{select(b, setB, "test-b")}
         <button type="button" disabled={running} onClick={() => void start()}
-          className="rounded-[var(--radius-field)] bg-accent px-4 py-2 font-semibold text-on-accent disabled:opacity-60">
+          className="inline-flex h-12 items-center rounded-[var(--radius-control)] bg-primary px-5 font-extrabold text-on-primary disabled:opacity-60">
           {running ? t("running") : t("start")}
         </button>
       </div>
       <div className="flex items-end justify-between">
         <div>
           <p className="text-xs uppercase tracking-wider text-muted">{t("play")}</p>
-          <p className="font-mono text-5xl font-bold" style={{ color: `var(--color-chord-${expect})` }}>{expect}</p>
+          <p className="text-6xl font-black [font-stretch:85%]" style={{ color: `var(--color-chord-${expect})` }}>{expect}</p>
         </div>
         <div className="text-right">
           <p className="text-xs uppercase tracking-wider text-muted">{t("time")}</p>
-          <p className="font-mono text-5xl font-bold tabular-nums">{left}</p>
+          <p className="text-6xl font-black [font-stretch:85%] tabular-nums">{left}</p>
         </div>
       </div>
       <div className="flex gap-8">

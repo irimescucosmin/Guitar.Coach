@@ -3,11 +3,11 @@ import { expect, test } from "@playwright/test";
 test("step mode moves on each time the microphone hears the expected chord", async ({ page }) => {
   await page.goto("/play/drill-em-am?mode=step");
   await page.getByRole("button", { name: "Avvia" }).click();
-  await expect(page.getByText("8/8")).toBeVisible({ timeout: 60_000 });
-  await expect(page.getByText(/in media .* s per cambio/)).toBeVisible();
+  await expect(page.getByText(/8\/8 cambi giusti/)).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText(/In media .* s per cambio/)).toBeVisible();
 });
 
-test("timed mode scores the bars and saves a record", async ({ page }) => {
+test("timed mode scores the bars and saves a record", { tag: "@own-browser" }, async ({ page }) => {
   await page.goto("/play/drill-em-am?mode=timed");
   await page.getByRole("button", { name: "Avvia" }).click();
   const result = page.getByText(/% delle battute con l'accordo giusto/);
@@ -16,7 +16,7 @@ test("timed mode scores the bars and saves a record", async ({ page }) => {
   expect(percent).toBeGreaterThanOrEqual(70);
   // The best result survives a reload: it was saved, not just shown.
   await page.reload();
-  await expect(page.getByText("Record · A tempo")).toBeVisible();
+  await expect(page.getByText(/Record \d+%/)).toBeVisible();
 });
 
 test("learning a chord counts three clean strums", async ({ page }) => {
@@ -30,12 +30,12 @@ test("an account keeps what was learned as a guest and syncs to the database", a
   await page.goto("/chords/Em");
   await page.getByRole("button", { name: "Segna come imparato" }).click();
   await page.goto("/account");
-  await page.getByRole("button", { name: "Non hai un account? Creane uno" }).click();
+  await page.getByRole("button", { name: "Creane uno" }).click();
   await page.getByLabel("Nome").fill("Prova");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("una-password-lunga");
   await page.getByRole("button", { name: "Crea account" }).click();
-  await expect(page.getByRole("link", { name: "Prova" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Prova", exact: true })).toBeVisible();
 
   // A new browser with no local storage: only the database can know.
   const fresh = await page.context().browser()!.newContext();
@@ -44,7 +44,7 @@ test("an account keeps what was learned as a guest and syncs to the database", a
   await other.getByLabel("Email").fill(email);
   await other.getByLabel("Password").fill("una-password-lunga");
   await other.getByRole("button", { name: "Accedi" }).last().click();
-  await expect(other.getByRole("link", { name: "Prova" })).toBeVisible();
+  await expect(other.getByRole("link", { name: "Prova", exact: true })).toBeVisible();
   await other.goto("/chords");
   await expect(other.getByRole("link", { name: /Em.*Imparato/ })).toBeVisible();
   await fresh.close();
@@ -55,17 +55,18 @@ test("space bar skips a step even with the Stop button focused", async ({ page }
   await page.getByRole("button", { name: "Avvia" }).click();
   // The click leaves focus on the button that now reads Ferma.
   await expect(page.getByRole("button", { name: "Ferma" })).toBeFocused();
-  await expect(page.getByText("Adesso")).toBeVisible();
-  const before = await page.locator(".font-mono.text-5xl").first().textContent();
+  const now = page.getByRole("region", { name: "Adesso" });
+  await expect(now).toBeVisible();
+  const before = await now.textContent();
   await page.keyboard.press("Space");
   await expect(page.getByRole("button", { name: "Ferma" })).toBeVisible();
-  await expect(page.locator(".font-mono.text-5xl").first()).not.toHaveText(before!);
+  await expect(now).not.toHaveText(before!);
 });
 
 test("signing out leaves no trace of the account on screen", async ({ page }) => {
   const email = `e2e-out-${Date.now()}@example.test`;
   await page.goto("/account");
-  await page.getByRole("button", { name: "Non hai un account? Creane uno" }).click();
+  await page.getByRole("button", { name: "Creane uno" }).click();
   await page.getByLabel("Nome").fill("Uscita");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("una-password-lunga");
@@ -77,14 +78,25 @@ test("signing out leaves no trace of the account on screen", async ({ page }) =>
   // Everything from here on is client-side navigation: a reload would hide the bug.
   await page.getByRole("link", { name: "Uscita" }).click();
   await page.getByRole("button", { name: "Esci" }).click();
-  await expect(page.getByRole("link", { name: "Account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Accedi" })).toBeVisible();
+  await page.getByRole("link", { name: "Prova senza account" }).click();
+  await expect(page.getByRole("link", { name: "Accedi", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Accordi", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Accordi" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Am.*Imparato/ })).toHaveCount(0);
   // A guest action now must not save the account's chords in this browser.
-  await page.getByRole("link", { name: /^Diagramma di Em/ }).click();
+  await page.getByRole("link", { name: /^Em Mi minore/ }).click();
   await page.getByRole("button", { name: "Segna come imparato" }).click();
   await expect(page.getByText(/Imparato:/)).toBeVisible();
   const stored = await page.evaluate(() => localStorage.getItem("guitar-coach:progress"));
   expect(stored ?? "").not.toContain('"Am"');
+});
+
+test("the path starts from the notes, and the fretboard page teaches them", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Le note sulla tastiera" }).first()).toBeVisible();
+  await page.getByRole("link", { name: "Tastiera", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Le note sulla tastiera" })).toBeVisible();
+  await page.getByRole("button", { name: /^Sol/ }).click();
+  await expect(page.getByText(/Il Sol \(G\) sta in \d+ punti/)).toBeVisible();
 });

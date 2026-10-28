@@ -26,4 +26,6 @@ Per chi scrive codice qui, persone e agenti. L'architettura sta in `docs/STACK.m
 
 - In zod 4 `z.record(z.enum(...))` pretende **tutte** le chiavi: per dati parziali si usa `z.partialRecord`.
 - La quinta armonica di una corda grave è la sua terza maggiore: senza `harmonicWeight` un Em si legge E.
+- Il canvas non legge `light-dark()`: i colori della corsia passano dal risolutore in `highway.ts`.
+- Il microfono finto di Chromium è uno per browser e continua da dove l'ha lasciato il test precedente: un test che conta le battute contro l'orologio va nel progetto `em-am-timed` (tag `@own-browser`).
 - `pkill -f "next start"` uccide anche la shell che lo lancia: per fermare il server, `fuser -k 3000/tcp`.

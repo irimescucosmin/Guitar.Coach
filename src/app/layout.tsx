@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
-import { Header } from "@/components/chrome/header";
 import { Providers } from "@/components/providers";
 import { pageProgress } from "@/lib/progress/server";
+// Served by the app itself: no request to a font host, nothing to block.
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,23 +24,18 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef2ef" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f1512" },
+    { media: "(prefers-color-scheme: light)", color: "#13263a" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1520" },
   ],
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [locale, messages, { userName, progress }] = await Promise.all([getLocale(), getMessages(), pageProgress()]);
+  const [locale, messages, { progress }] = await Promise.all([getLocale(), getMessages(), pageProgress()]);
   return (
     <html lang={locale}>
-      <body className="pb-[max(24px,env(safe-area-inset-bottom))]">
+      <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <Providers initialProgress={progress}>
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-              <Header userName={userName} />
-              <main className="flex flex-col gap-6">{children}</main>
-            </div>
-          </Providers>
+          <Providers initialProgress={progress}>{children}</Providers>
         </NextIntlClientProvider>
       </body>
     </html>

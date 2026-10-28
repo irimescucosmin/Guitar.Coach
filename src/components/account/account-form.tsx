@@ -1,9 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { button } from "@/components/ui/links";
 import { authClient } from "@/lib/auth-client";
+
+const field = "h-12 rounded-[var(--radius-field)] border border-line-strong bg-surface px-3.5 text-base text-ink";
+const labelClass = "flex flex-col gap-1.5 text-sm font-bold";
 
 export function AccountForm({ userName, locale }: { userName: string | null; locale: string }) {
   const t = useTranslations("account");
@@ -18,10 +23,9 @@ export function AccountForm({ userName, locale }: { userName: string | null; loc
   };
 
   const languagePicker = (
-    <label className="flex items-center gap-2 text-sm">
+    <label htmlFor="locale" className={labelClass}>
       {t("language")}
-      <select id="locale" value={locale} onChange={(e) => setLocale(e.target.value)}
-        className="rounded-[var(--radius-field)] border border-line bg-surface px-2 py-1">
+      <select id="locale" value={locale} onChange={(e) => setLocale(e.target.value)} className={field}>
         <option value="it">Italiano</option>
         <option value="en">English</option>
       </select>
@@ -30,13 +34,17 @@ export function AccountForm({ userName, locale }: { userName: string | null; loc
 
   if (userName) {
     return (
-      <div className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-5">
-        <p>{t("signedInAs", { name: userName })}</p>
-        <button type="button" disabled={pending} className="self-start rounded-[var(--radius-field)] border border-line px-4 py-2"
+      <div className="flex w-full max-w-[400px] flex-col gap-5">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="display m-0 text-[32px] font-extrabold">{t("title")}</h2>
+          <p className="m-0 text-base text-ink-2">{t("signedInAs", { name: userName })}</p>
+        </div>
+        {languagePicker}
+        <Link href="/" className={`${button.brass} h-[52px] text-[17px]`}>{t("toPath")}</Link>
+        <button type="button" disabled={pending} className={`${button.outline} h-12`}
           onClick={() => startTransition(async () => { await authClient.signOut(); router.refresh(); })}>
           {t("signOut")}
         </button>
-        {languagePicker}
       </div>
     );
   }
@@ -59,37 +67,44 @@ export function AccountForm({ userName, locale }: { userName: string | null; loc
       router.refresh();
     });
 
-  const field = "rounded-[var(--radius-field)] border border-line bg-page px-3 py-2";
   return (
-    <div className="flex flex-col gap-4">
-      <form action={submit} className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-5">
-        <h2 className="text-lg font-bold">{mode === "signIn" ? t("signIn") : t("signUp")}</h2>
-        {mode === "signUp" && (
-          <label className="flex flex-col gap-1 text-sm">
-            {t("name")}
-            <input id="name" name="name" required autoComplete="name" className={field} />
-          </label>
-        )}
-        <label className="flex flex-col gap-1 text-sm">
-          {t("email")}
-          <input id="email" name="email" type="email" required autoComplete="email" className={field} />
+    <form action={submit} className="flex w-full max-w-[400px] flex-col gap-[18px]">
+      <div className="flex flex-col gap-1.5">
+        <h2 className="display m-0 text-[32px] font-extrabold">{mode === "signIn" ? t("signIn") : t("signUp")}</h2>
+        <p className="m-0 text-base text-ink-2">{t("why")}</p>
+      </div>
+      {mode === "signUp" && (
+        <label htmlFor="name" className={labelClass}>
+          {t("name")}
+          <input id="name" name="name" required autoComplete="name" className={field} />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          {t("password")}
-          <input id="password" name="password" type="password" required minLength={10}
-            autoComplete={mode === "signIn" ? "current-password" : "new-password"} className={field} />
-          {mode === "signUp" && <span className="text-xs text-muted">{t("passwordHelp")}</span>}
-        </label>
-        {error && <p className="text-sm font-semibold text-bad" role="alert">{error}</p>}
-        <button type="submit" disabled={pending} className="rounded-[var(--radius-field)] bg-accent px-4 py-2 font-semibold text-on-accent disabled:opacity-60">
-          {pending ? t("working") : mode === "signIn" ? t("signIn") : t("signUp")}
-        </button>
-        <button type="button" className="text-sm text-accent hover:underline" onClick={() => { setMode(mode === "signIn" ? "signUp" : "signIn"); setError(""); }}>
+      )}
+      <label htmlFor="email" className={labelClass}>
+        {t("email")}
+        <input id="email" name="email" type="email" required autoComplete="email" placeholder={t("emailPlaceholder")} className={field} />
+      </label>
+      <label htmlFor="password" className={labelClass}>
+        {t("password")}
+        <input id="password" name="password" type="password" required minLength={10}
+          autoComplete={mode === "signIn" ? "current-password" : "new-password"} className={field} />
+        {mode === "signUp" && <span className="text-xs font-normal text-muted">{t("passwordHelp")}</span>}
+      </label>
+      {error && <p className="m-0 text-sm font-semibold text-bad" role="alert">{error}</p>}
+      <button type="submit" disabled={pending} className={`${button.primary} h-[52px] text-[17px] disabled:opacity-60`}>
+        {pending ? t("working") : mode === "signIn" ? t("signIn") : t("signUp")}
+      </button>
+      <p className="m-0 text-center text-[15px] text-ink-2">
+        {mode === "signIn" ? t("noAccount") : t("haveAccount")}{" "}
+        <button type="button" className="font-bold text-ink underline underline-offset-2" onClick={() => { setMode(mode === "signIn" ? "signUp" : "signIn"); setError(""); }}>
           {mode === "signIn" ? t("toSignUp") : t("toSignIn")}
         </button>
-        <p className="text-xs text-muted">{t("guestNote")}</p>
-      </form>
+      </p>
+      <div aria-hidden className="flex items-center gap-3 text-sm text-muted">
+        <span className="h-px flex-1 bg-line" />{t("or")}<span className="h-px flex-1 bg-line" />
+      </div>
+      <Link href="/" className={`${button.outline} h-12`}>{t("guest")}</Link>
+      <p className="m-0 text-[13px] leading-relaxed text-muted">{t("guestNote")}</p>
       {languagePicker}
-    </div>
+    </form>
   );
 }

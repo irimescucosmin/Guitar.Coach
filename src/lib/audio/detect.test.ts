@@ -170,6 +170,10 @@ describe("tuner", () => {
     expect(pitchFromSamples(tone(hz), SAMPLE_RATE)).toBeCloseTo(hz, 0);
   });
 
+  it.each([440, 659.25])("hears %f Hz when asked to look higher", (hz) => {
+    expect(pitchFromSamples(tone(hz), SAMPLE_RATE, 1000)).toBeCloseTo(hz, 0);
+  });
+
   it("stays silent below the noise floor", () => {
     expect(pitchFromSamples(new Float32Array(4096), SAMPLE_RATE)).toBeNull();
   });

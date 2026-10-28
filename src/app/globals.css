@@ -1,9 +1,14 @@
 @import "tailwindcss";
 
 /*
- * Tokens. One name, two themes through light-dark(); components use these
- * names only, never a raw colour or an invented radius.
- * Chord colours are the same in both themes: each is dark enough for white text.
+ * Tokens from the design canvas. One name, two themes through light-dark();
+ * components use these names only, never a raw colour or an invented radius.
+ *
+ * Navy carries the frame (sidebar, primary buttons), brass marks "now" (the
+ * next step, the current beat, the now-line), each chord keeps its own colour
+ * everywhere. Chord colours are the same in both themes: each is dark enough
+ * for white text.
+ *
  * `static` keeps every token in the CSS even when no class uses it: the lane
  * canvas and inline styles read them by name.
  */
@@ -12,17 +17,36 @@
 }
 
 @theme static {
-  --color-page: light-dark(#eef2ef, #0f1512);
-  --color-surface: light-dark(#ffffff, #17201b);
-  --color-sunken: light-dark(#e3e9e5, #0b100d);
-  --color-line: light-dark(#cbd5cf, #2b3731);
-  --color-ink: light-dark(#16201b, #e6eee9);
-  --color-muted: light-dark(#56655d, #93a39a);
-  --color-accent: light-dark(#1f6b57, #5cc2a3);
-  --color-on-accent: light-dark(#ffffff, #0b100d);
-  --color-good: light-dark(#1e7d47, #4cc97f);
+  --color-page: light-dark(#f2f4f6, #0e141b);
+  --color-surface: light-dark(#ffffff, #161f2a);
+  --color-subtle: light-dark(#f2f4f6, #1c2734);
+  --color-sunken: light-dark(#e3e8ed, #0a0f15);
+  --color-line: light-dark(#dce1e7, #2a3644);
+  --color-line-strong: light-dark(#c9d1da, #3a4858);
+  --color-ink: light-dark(#0f1c2b, #e7edf3);
+  --color-ink-2: light-dark(#3b4858, #b9c4d0);
+  --color-muted: light-dark(#566474, #8e9baa);
+
+  --color-navy: light-dark(#13263a, #0b1520);
+  --color-navy-2: light-dark(#22405f, #1d3550);
+  --color-navy-line: light-dark(#2a4664, #24384f);
+  --color-on-navy: #ffffff;
+  --color-on-navy-muted: #c7d1db;
+  --color-primary: light-dark(#13263a, #2b4a6b);
+  --color-on-primary: #ffffff;
+
+  --color-brass: #d99a2b;
+  --color-brass-ink: light-dark(#8a5410, #e8b65a);
+  --color-on-brass: #0f1c2b;
+
+  --color-good: light-dark(#1e7a4c, #4cc97f);
+  --color-good-soft: light-dark(#e4f3ea, #12301f);
+  --color-good-ink: light-dark(#145c38, #8ee0b4);
+  --color-bad: light-dark(#b3362d, #ef6b63);
+  --color-bad-soft: light-dark(#fbedec, #3a1a18);
+  --color-bad-ink: light-dark(#8e2a22, #f6a39c);
   --color-warn: light-dark(#a56a12, #e3a64a);
-  --color-bad: light-dark(#b8382f, #ef6b63);
+  --color-warn-soft: light-dark(#fbf1df, #33260f);
 
   --color-chord-Em: #2f6ea8;
   --color-chord-Am: #6d4fa0;
@@ -33,11 +57,13 @@
   --color-chord-E: #1f7a7a;
   --color-chord-A: #6f6420;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-  --radius-field: 8px;
-  --radius-card: 14px;
+  --radius-field: 10px;
+  --radius-control: 14px;
+  --radius-card: 20px;
+  --radius-hero: 24px;
 }
 
 html {
@@ -48,17 +74,29 @@ html {
 }
 
 body {
+  margin: 0;
   min-height: 100dvh;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 
 h1, h2, h3 {
   text-wrap: balance;
 }
 
+/* Display type: Archivo narrowed, heavy, tight. */
+.display {
+  font-stretch: 88%;
+  letter-spacing: -0.015em;
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-brass);
   outline-offset: 2px;
 }
 
@@ -70,11 +108,11 @@ h1, h2, h3 {
 }
 
 /* Chord diagram, drawn as inline SVG so it inherits the theme. */
-.dg-line { stroke: var(--color-muted); }
+.dg-line { stroke: light-dark(#8a97a5, #5e6c7b); }
 .dg-nut { fill: var(--color-ink); }
-.dg-dot { fill: var(--color-accent); }
+.dg-dot { fill: light-dark(#13263a, #e7edf3); }
 .dg-dot.miss { fill: var(--color-bad); }
-.dg-num { fill: var(--color-on-accent); font: 700 10px var(--font-sans); }
+.dg-num { fill: light-dark(#ffffff, #0f1c2b); font: 700 10px var(--font-sans); }
 .dg-open { fill: none; stroke: var(--color-ink); stroke-width: 1.6; }
 .dg-open.miss { stroke: var(--color-bad); stroke-width: 2.4; }
 .dg-x { fill: var(--color-muted); font: 700 11px var(--font-sans); }
@@ -82,7 +120,7 @@ h1, h2, h3 {
 .dg-fretno { fill: var(--color-muted); font: 500 8px var(--font-mono); }
 
 @keyframes pulse-soon {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 60%, transparent); }
-  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-accent) 0%, transparent); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brass) 55%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-brass) 0%, transparent); }
 }
 .soon { animation: pulse-soon 0.6s ease-in-out infinite; }

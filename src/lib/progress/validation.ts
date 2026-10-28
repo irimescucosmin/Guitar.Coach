@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CHORD_IDS, isChordId } from "@/lib/music/chords";
 import type { Progress } from "@/lib/music/path";
+import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { SONGS } from "@/lib/music/songs";
 
 /**
@@ -8,7 +9,9 @@ import { SONGS } from "@/lib/music/songs";
  * a song id the app does not know would become a row nobody can read.
  */
 
-const songId = z.enum(SONGS.map((s) => s.id) as [string, ...string[]]);
+/** Songs, plus the exercises that record results the same way (lesson 0). */
+const PRACTICE_IDS = [...SONGS.map((s) => s.id), NOTE_DRILL_ID];
+const songId = z.enum(PRACTICE_IDS as [string, ...string[]]);
 const chordId = z.enum(CHORD_IDS as [string, ...string[]]);
 
 /** One hour per change is already absurd; it only stops garbage. */
@@ -24,7 +27,7 @@ export type RunInput = z.infer<typeof runInput>;
 export const chordInput = chordId;
 
 const knownChords = new Set<string>(CHORD_IDS);
-const knownSongs = new Set<string>(SONGS.map((s) => s.id));
+const knownSongs = new Set<string>(PRACTICE_IDS);
 const pick = <T,>(record: Record<string, T>, known: Set<string>) =>
   Object.fromEntries(Object.entries(record).filter(([key]) => known.has(key)));
 

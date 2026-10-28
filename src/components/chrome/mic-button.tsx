@@ -12,31 +12,33 @@ export function useMicState(): MicState {
   );
 }
 
-export function MicButton() {
+/** The microphone's state for the navy sidebar: a dot when on, a button when off, the reason when blocked. */
+export function MicStatus() {
   const t = useTranslations("common");
   const state = useMicState();
-  const on = state === "on";
+  if (state === "on") {
+    return (
+      <p className="flex items-center gap-2.5 text-sm text-[#8ee0b4]">
+        <span aria-hidden className="size-2.5 rounded-full bg-[#4cc97f]" />
+        {t("mic.on")}
+      </p>
+    );
+  }
   const broken = state === "denied" || state === "unsupported" || state === "insecure";
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col gap-2">
       <button
         type="button"
         onClick={() => void engine.startMic()}
-        disabled={on || state === "starting"}
-        title={state === "insecure" ? t("micInsecure") : broken ? t("micDenied") : undefined}
-        className={`flex items-center gap-2 rounded-[var(--radius-field)] border px-3 py-1.5 text-sm font-semibold ${
-          on
-            ? "border-good text-good"
-            : broken
-              ? "border-bad text-bad"
-              : "border-accent bg-accent text-on-accent"
+        disabled={state === "starting"}
+        className={`flex h-11 items-center justify-center gap-2 rounded-[var(--radius-field)] px-3 text-sm font-bold ${
+          broken ? "border border-[#ef6b63] text-[#f6a39c]" : "bg-brass text-on-brass"
         }`}
       >
-        <span aria-hidden className={`size-2 rounded-full ${on ? "bg-good" : broken ? "bg-bad" : "bg-on-accent"}`} />
         {t(`mic.${state}`)}
       </button>
       {broken && (
-        <p role="alert" className="max-w-72 text-right text-xs text-bad">
+        <p role="alert" className="text-xs leading-relaxed text-on-navy-muted">
           {state === "insecure" ? t("micInsecure") : t("micDenied")}
         </p>
       )}

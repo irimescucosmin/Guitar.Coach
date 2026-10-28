@@ -40,7 +40,11 @@ export interface View {
   countIn: number | null;
   /** 0-based beat in the bar, -1 when not counting. */
   beat: number;
-  section: { name: Bar["section"]; pass: number } | null;
+  section: { name: Bar["section"]; pass: number; position: number; length: number } | null;
+  /** The bar (timed modes) or step (step mode) being played, -1 before the start. */
+  position: number;
+  /** Verdict per bar or step, for the structure panel. */
+  statuses: Status[];
   feedback: Feedback | null;
   /** Strings to mark red on the current diagram. */
   flagged: number[];
@@ -139,6 +143,8 @@ export class PracticeSession {
       countIn: null,
       beat: -1,
       section: null,
+      position: -1,
+      statuses: (this.mode === "step" ? this.steps : this.bars).map(() => ""),
       feedback: null,
       flagged: [],
       right: 0,
@@ -185,6 +191,7 @@ export class PracticeSession {
         phase: "playing",
         current: first,
         next: this.steps[1]?.chord ?? null,
+        position: 0,
         feedback: engine.micState === "on" ? { kind: "play", chord: first } : { kind: "micOff" },
       });
     } else {
@@ -335,12 +342,15 @@ export class PracticeSession {
     const right = run.statuses.filter((s) => s === "ok").length;
     const step = this.steps[run.index];
     if (!step) {
+      this.emit({ statuses: [...run.statuses] });
       this.finishStep(run, right);
       return;
     }
     this.emit({
       current: step.chord,
       next: this.steps[run.index + 1]?.chord ?? null,
+      position: run.index,
+      statuses: [...run.statuses],
       right,
       flagged: [],
       feedback: heard ? { kind: "right", chord: done.chord } : engine.micState === "on" ? { kind: "play", chord: step.chord } : { kind: "micOff" },
@@ -378,7 +388,8 @@ export class PracticeSession {
         beatsToNext: bar < 0 || changeBar < 0 ? null : perBar + changeBar * perBar - whole,
         countIn: bar < 0 ? perBar - Math.max(whole, 0) : null,
         beat: whole < 0 ? -1 : ((whole % perBar) + perBar) % perBar,
-        section: bar < 0 ? null : { name: current.section, pass: current.pass },
+        section: bar < 0 ? null : { name: current.section, pass: current.pass, position: current.position, length: current.passLength },
+        position: bar,
       });
     }
 
@@ -398,7 +409,12 @@ export class PracticeSession {
     if (match.clean) {
       if (++run.streak >= CLEAN_FRAMES) {
         run.statuses[judged] = "ok";
-        this.emit({ right: run.statuses.filter((s) => s === "ok").length, feedback: { kind: "right", chord: bar.chord }, flagged: [] });
+        this.emit({
+          right: run.statuses.filter((s) => s === "ok").length,
+          statuses: [...run.statuses],
+          feedback: { kind: "right", chord: bar.chord },
+          flagged: [],
+        });
       }
       return;
     }
@@ -413,7 +429,10 @@ export class PracticeSession {
   }
 
   private closeBar(run: BeatRun, index: number): void {
-    if (index >= 0 && index < this.bars.length && run.statuses[index] !== "ok") run.statuses[index] = "miss";
+    if (index >= 0 && index < this.bars.length && run.statuses[index] !== "ok") {
+      run.statuses[index] = "miss";
+      this.emit({ statuses: [...run.statuses] });
+    }
   }
 
   private finishBeats(run: BeatRun): void {

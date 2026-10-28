@@ -49,7 +49,8 @@ export function ChordDiagram({
         <line key={`s${s}`} x1={x(s)} x2={x(s)} y1={Y0} y2={Y0 + FRETS * DY} className="dg-line" strokeWidth={1 + (5 - s) * 0.18} />
       ))}
       {Array.from({ length: FRETS }, (_, f) => (
-        <text key={`n${f}`} x={leftHanded ? X0 + 5 * DX + 8 : X0 - 13} y={Y0 + (f + 0.5) * DY + 3} className="dg-fretno">
+        <text key={`n${f}`} x={leftHanded ? X0 + 5 * DX + 12 : X0 - 12} y={Y0 + (f + 0.5) * DY + 3}
+          textAnchor={leftHanded ? "start" : "end"} className="dg-fretno">
           {f + 1}
         </text>
       ))}

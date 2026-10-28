@@ -1,4 +1,6 @@
 import type { ChordId } from "./chords";
+import { NOTE_DRILL_ID } from "./fretboard";
+import { chordsOf, type Song } from "./songs";
 
 /**
  * The learning path. Each lesson adds the chords a set of songs needs, in an
@@ -7,9 +9,12 @@ import type { ChordId } from "./chords";
  * A lesson has three core tasks, in this order, because each one prepares the
  * next: learn every new chord, play the drill in step mode, play the drill in
  * time at the target score. Songs are there to enjoy what was learned.
+ *
+ * Lesson 0 comes before any chord: the names of the notes on the neck, with one
+ * task, the "find the note" drill.
  */
 
-export type LessonId = "emAm" | "gD" | "c" | "dm" | "eA";
+export type LessonId = "notes" | "emAm" | "gD" | "c" | "dm" | "eA";
 
 export interface Lesson {
   id: LessonId;
@@ -19,6 +24,7 @@ export interface Lesson {
 }
 
 export const LESSONS: readonly Lesson[] = [
+  { id: "notes", newChords: [], drill: NOTE_DRILL_ID, songs: [] },
   { id: "emAm", newChords: ["Em", "Am"], drill: "drill-em-am", songs: [] },
   { id: "gD", newChords: ["G", "D"], drill: "drill-g-d", songs: ["skip-to-my-lou", "tom-dooley", "down-in-the-valley"] },
   { id: "c", newChords: ["C"], drill: "drill-g-c-d",
@@ -41,11 +47,13 @@ export interface Progress {
 export const EMPTY_PROGRESS: Progress = { learned: {}, best: {} };
 
 export type Task =
+  | { kind: "notes"; lesson: LessonId }
   | { kind: "learn"; lesson: LessonId; chord: ChordId }
   | { kind: "step"; lesson: LessonId; song: string }
   | { kind: "timed"; lesson: LessonId; song: string };
 
 export function coreTasks(lesson: Lesson): Task[] {
+  if (lesson.id === "notes") return [{ kind: "notes", lesson: lesson.id }];
   return [
     ...lesson.newChords.map((chord): Task => ({ kind: "learn", lesson: lesson.id, chord })),
     { kind: "step", lesson: lesson.id, song: lesson.drill },
@@ -55,6 +63,8 @@ export function coreTasks(lesson: Lesson): Task[] {
 
 export function isDone(task: Task, progress: Progress): boolean {
   switch (task.kind) {
+    case "notes":
+      return progress.best[NOTE_DRILL_ID]?.step !== undefined;
     case "learn":
       return progress.learned[task.chord] === true;
     case "step":
@@ -119,4 +129,26 @@ export function recordResult(
  */
 export function readyForTimed(averageChangeMs: number, bpm: number, beatsPerBar: number): boolean {
   return averageChangeMs <= (beatsPerBar * 60_000) / bpm;
+}
+
+/** Chords in path order, so "learn this first" names the one the path teaches next. */
+const PATH_CHORDS = LESSONS.flatMap((l) => l.newChords);
+
+export type NextMode =
+  | { kind: "learnFirst"; chord: ChordId }
+  | { kind: "step" }
+  | { kind: "timed" }
+  /** Passed in time: the next thing is the same song a little faster. */
+  | { kind: "faster" };
+
+/** What a song asks for next, given what this player has done. */
+export function nextModeFor(song: Song, progress: Progress): NextMode {
+  const missing = chordsOf(song)
+    .filter((c) => !progress.learned[c])
+    .sort((a, b) => PATH_CHORDS.indexOf(a) - PATH_CHORDS.indexOf(b));
+  if (missing[0]) return { kind: "learnFirst", chord: missing[0] };
+  const best = progress.best[song.id];
+  if (best?.step === undefined) return { kind: "step" };
+  if ((best.timed ?? 0) < PASS_SCORE) return { kind: "timed" };
+  return { kind: "faster" };
 }

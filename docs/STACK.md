@@ -9,9 +9,13 @@ Com'è fatta, com'è divisa, con cosa. Lo stesso telaio di Verso Loyalty, più p
 ```
 src/
   app/          rotte e server action, sottili
-  components/   per area: path, play, chords, tools, account, chrome, ui
+    (app)/      le schermate con la barra laterale: percorso, tastiera, accordi, brani, accordatore
+    play/       il brano a schermo pieno, senza barra laterale
+    account/    accesso, a due colonne, fuori dalla barra laterale
+  components/   per area: path, fretboard, songs, play, chords, tools, account, chrome, ui
   lib/
-    music/      il dominio, puro: accordi, brani, ritmi, percorso, consigli
+    music/      il dominio, puro: accordi, brani, ritmi, percorso, consigli,
+                note sulla tastiera (lezione 0), passaggi tra accordi
     audio/      detect.ts puro (croma, confronto accordi, accordatore),
                 synth.ts e engine.ts lato browser (Web Audio)
     progress/   validazione, repository Postgres, caricamento per pagina
@@ -28,6 +32,12 @@ tests/e2e/      Playwright con microfono finto
 3. L'accompagnamento è programmato 150 ms avanti sul tempo dell'`AudioContext`: un `setInterval` riempie la coda, il suono non dipende dal disegno.
 4. Ogni fotogramma il microfono dà livello, croma (12 classi di nota) e attacco. `matchChord` dice quale accordo somiglia di più, quali note mancano, se è pulito.
 5. Tre fotogrammi puliti di fila valgono un accordo giusto. In *A tempo* la battuta si giudica da 0,3 battiti prima della stanghetta: la pennata in anticipo appartiene alla battuta nuova.
+
+### Lo schermo del brano
+
+- *Adesso* grande, *Dopo* con il bordo ottone e il conto dei battiti; la frase sotto *Dopo* viene da `transition()`: quali dita restano, quali scivolano di una corda, quale muovere per primo.
+- La corsia è un canvas: i token con `light-dark()` li risolve un elemento nascosto, perché il canvas non capisce `light-dark()`.
+- La struttura mostra ogni battuta (o ogni cambio, in *Passo passo*) con il suo esito, da `View.statuses`.
 
 ### Cosa il microfono non deve sentire
 

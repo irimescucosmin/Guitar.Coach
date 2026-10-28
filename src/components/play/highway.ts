@@ -21,6 +21,34 @@ function roundedRect(g: CanvasRenderingContext2D, x: number, y: number, w: numbe
   g.closePath();
 }
 
+/**
+ * Tokens use `light-dark()`, which a canvas cannot parse. A hidden element
+ * resolves them to plain rgb in the current colour scheme.
+ */
+function resolver(canvas: HTMLCanvasElement): (name: string) => string {
+  let probe = canvas.parentElement?.querySelector<HTMLSpanElement>("span[data-token-probe]");
+  if (!probe) {
+    probe = document.createElement("span");
+    probe.dataset.tokenProbe = "";
+    probe.hidden = true;
+    canvas.after(probe);
+  }
+  const p = probe;
+  // Resolving forces a style pass: once per token and colour scheme, not per frame.
+  const scheme = `${matchMedia("(prefers-color-scheme: dark)").matches}${document.documentElement.dataset.theme ?? ""}`;
+  return (name) => {
+    const key = scheme + name;
+    let value = resolved.get(key);
+    if (value === undefined) {
+      p.style.color = `var(${name})`;
+      value = getComputedStyle(p).color;
+      resolved.set(key, value);
+    }
+    return value;
+  };
+}
+const resolved = new Map<string, string>();
+
 export function drawHighway(canvas: HTMLCanvasElement, layout: Layout): void {
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
@@ -36,12 +64,13 @@ export function drawHighway(canvas: HTMLCanvasElement, layout: Layout): void {
   g.clearRect(0, 0, w, h);
 
   const css = getComputedStyle(document.documentElement);
-  const token = (name: string) => css.getPropertyValue(name).trim();
+  const token = resolver(canvas);
   const ink = token("--color-ink");
   const line = token("--color-line");
   const good = token("--color-good");
   const bad = token("--color-bad");
-  const mono = token("--font-mono") || "monospace";
+  const brass = token("--color-brass") || ink;
+  const mono = css.getPropertyValue("--font-mono").trim() || "monospace";
   const nowX = Math.round(w * NOW_AT);
   const { position, unit } = layout;
   const top = 12;
@@ -100,6 +129,6 @@ export function drawHighway(canvas: HTMLCanvasElement, layout: Layout): void {
     g.globalAlpha = 1;
   }
 
-  g.fillStyle = ink;
-  g.fillRect(nowX - 1, 2, 3, h - 4);
+  g.fillStyle = brass;
+  g.fillRect(nowX - 2, 2, 4, h - 4);
 }

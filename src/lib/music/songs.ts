@@ -96,6 +96,9 @@ export interface Bar {
   pass: number;
   /** True on the first bar of a section pass. */
   opensSection: boolean;
+  /** 1-based place of the bar in its section pass, and how many bars the pass has. */
+  position: number;
+  passLength: number;
 }
 
 export function barsOf(song: Song): Bar[] {
@@ -106,6 +109,8 @@ export function barsOf(song: Song): Bar[] {
         section: section.name,
         pass: section.repeat > 1 ? r + 1 : 0,
         opensSection: i === 0,
+        position: i + 1,
+        passLength: section.bars.length,
       })),
     ).flat(),
   );

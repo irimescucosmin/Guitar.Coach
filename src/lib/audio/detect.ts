@@ -131,13 +131,14 @@ export function rms(samples: ArrayLike<number>): number {
 }
 
 /**
- * Fundamental frequency of a single string by autocorrelation, or null when
- * the signal is too quiet or has no clear period between 70 and 400 Hz.
+ * Fundamental frequency of a single note by autocorrelation, or null when the
+ * signal is too quiet or has no clear period between 70 Hz and `maxHz`. The
+ * tuner needs only open strings (up to 330 Hz); finding notes goes higher.
  */
-export function pitchFromSamples(samples: ArrayLike<number>, sampleRate: number): number | null {
+export function pitchFromSamples(samples: ArrayLike<number>, sampleRate: number, maxHz = 400): number | null {
   if (rms(samples) < 0.01) return null;
   const n = Math.min(samples.length, 4096);
-  const minLag = Math.floor(sampleRate / 400);
+  const minLag = Math.floor(sampleRate / maxHz);
   const maxLag = Math.ceil(sampleRate / 70);
   if (maxLag + 1 >= n) return null;
   const corr = new Float64Array(maxLag + 2);
