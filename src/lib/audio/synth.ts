@@ -22,6 +22,8 @@ export class Synth {
   private readonly buffers = new Map<number, AudioBuffer>();
   private readonly ringing: ({ gain: GainNode; at: number } | null)[] = [null, null, null, null, null, null];
   private noise: AudioBuffer | null = null;
+  /** Every source still scheduled or sounding, so Stop can cut them all. */
+  private readonly live = new Set<AudioScheduledSourceNode>();
 
   constructor(ctx: AudioContext) {
     this.ctx = ctx;
@@ -37,6 +39,12 @@ export class Synth {
     g.gain.value = gain;
     g.connect(this.master);
     return g;
+  }
+
+  private track<T extends AudioScheduledSourceNode>(node: T): T {
+    this.live.add(node);
+    node.addEventListener("ended", () => this.live.delete(node));
+    return node;
   }
 
   setVolume(volume: number): void {
@@ -77,7 +85,7 @@ export class Synth {
   }
 
   private note(midi: number, at: number, gain: number, string: number): void {
-    const src = this.ctx.createBufferSource();
+    const src = this.track(this.ctx.createBufferSource());
     src.buffer = this.pluck(midi);
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(gain, at);
@@ -110,7 +118,7 @@ export class Synth {
   bass(chordId: ChordId, at: number, seconds: number): void {
     const chord = CHORDS[chordId];
     const midi = chord.notes[chord.bassString]! - 12;
-    const osc = this.ctx.createOscillator();
+    const osc = this.track(this.ctx.createOscillator());
     osc.type = "triangle";
     osc.frequency.value = frequencyFromMidi(midi);
     const g = this.ctx.createGain();
@@ -124,7 +132,7 @@ export class Synth {
   }
 
   kick(at: number): void {
-    const osc = this.ctx.createOscillator();
+    const osc = this.track(this.ctx.createOscillator());
     osc.frequency.setValueAtTime(110, at);
     osc.frequency.exponentialRampToValueAtTime(42, at + 0.12);
     const g = this.ctx.createGain();
@@ -143,7 +151,7 @@ export class Synth {
       const data = this.noise.getChannelData(0);
       for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
     }
-    const src = this.ctx.createBufferSource();
+    const src = this.track(this.ctx.createBufferSource());
     src.buffer = this.noise;
     const filter = this.ctx.createBiquadFilter();
     filter.type = "highpass";
@@ -160,7 +168,7 @@ export class Synth {
 
   /** Above 1.1 kHz, so the detector never mistakes it for a note. */
   click(at: number, accent: boolean): void {
-    const osc = this.ctx.createOscillator();
+    const osc = this.track(this.ctx.createOscillator());
     osc.frequency.value = accent ? 2600 : 1900;
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(0.0001, at);
@@ -191,12 +199,17 @@ export class Synth {
     });
   }
 
-  /** Cuts everything still ringing, for Stop. */
-  silence(volume: number): void {
+  /** Cuts everything still ringing or already scheduled, for Stop. */
+  silence(): void {
     const now = this.ctx.currentTime;
-    this.master.gain.cancelScheduledValues(now);
-    this.master.gain.setTargetAtTime(0, now, 0.02);
-    this.master.gain.setTargetAtTime(volume, now + 0.25, 0.02);
+    for (const node of this.live) {
+      try {
+        node.stop(now);
+      } catch {
+        /* already stopped */
+      }
+    }
+    this.live.clear();
     this.ringing.fill(null);
   }
 }

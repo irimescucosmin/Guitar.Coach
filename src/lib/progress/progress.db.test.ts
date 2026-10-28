@@ -66,7 +66,12 @@ describe("input validation", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("refuses unknown chords in guest progress", () => {
-    expect(guestProgress.safeParse({ learned: { Fmaj7: true }, best: {} }).success).toBe(false);
+  it("drops unknown chords and songs from guest progress and keeps the rest", () => {
+    const parsed = guestProgress.parse({ learned: { Fmaj7: true, Em: true }, best: { "old-song": { step: 1 }, jolene: { timed: 0.5 } } });
+    expect(parsed).toEqual({ learned: { Em: true }, best: { jolene: { timed: 0.5 } } });
+  });
+
+  it("still refuses values out of range", () => {
+    expect(guestProgress.safeParse({ learned: {}, best: { jolene: { timed: 3 } } }).success).toBe(false);
   });
 });

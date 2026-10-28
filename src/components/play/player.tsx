@@ -64,15 +64,22 @@ export function Player({ songId, initialMode }: { songId: string; initialMode: P
   }, [session]);
 
   // Space bar moves on in step mode, for hands that are busy with a guitar.
+  // Both key events are taken: a focused button would otherwise turn the same
+  // press into a click on Stop.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code !== "Space" || mode !== "step" || !playing) return;
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement) return;
+      const target = e.target;
+      if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) return;
       e.preventDefault();
-      session.skip();
+      if (e.type === "keydown" && !e.repeat) session.skip();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("keyup", onKey, true);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("keyup", onKey, true);
+    };
   }, [mode, playing, session]);
 
   const chooseMode = (next: PracticeMode) => {
@@ -335,7 +342,9 @@ function ResultPanel({ session, view, bpm, onMode }: { session: PracticeSession;
     );
     if (!result.passed) next = "step";
   }
-  const isRecord = result.mode !== "listen" && result.isRecord;
+  // A first run is always a "record"; a 0% one is not worth a badge.
+  const isRecord =
+    result.mode === "step" ? result.isRecord : result.mode === "timed" ? result.isRecord && (result.share ?? 0) > 0 : false;
 
   return (
     <section className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-accent bg-surface p-5" aria-live="polite">

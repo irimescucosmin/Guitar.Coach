@@ -87,17 +87,21 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
   // A guest keeps progress in this browser. After signing in, it joins the account once.
   useEffect(() => {
     const parsed = guestProgress.safeParse(readJson(GUEST_KEY));
-    if (!parsed.success) return;
     if (!signedIn) {
-      setProgress(toProgress(parsed.data));
+      // Also after signing out: the account's progress must not stay on screen,
+      // or the next guest run would save it locally and hand it to the next account.
+      setProgress(parsed.success ? toProgress(parsed.data) : EMPTY_PROGRESS);
       return;
     }
-    void importGuest(parsed.data).then((result) => {
-      if (result.saved) {
-        writeJson(GUEST_KEY, null);
-        setProgress(result.progress);
-      }
-    });
+    if (!parsed.success) return;
+    // Taken out before the call, so a second tab or a re-run does not import it twice.
+    writeJson(GUEST_KEY, null);
+    importGuest(parsed.data)
+      .then((result) => {
+        if (result.saved) setProgress(result.progress);
+        else writeJson(GUEST_KEY, parsed.data);
+      })
+      .catch(() => writeJson(GUEST_KEY, parsed.data));
   }, [signedIn]);
 
   const update = useCallback((patch: Partial<Settings>) => {

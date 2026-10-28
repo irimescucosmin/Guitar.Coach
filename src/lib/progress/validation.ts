@@ -23,12 +23,21 @@ export type RunInput = z.infer<typeof runInput>;
 
 export const chordInput = chordId;
 
-// partialRecord: in zod 4 a record keyed by an enum demands every key, and a
-// guest has learned some chords, not all of them.
-export const guestProgress = z.object({
-  learned: z.partialRecord(chordId, z.literal(true)),
-  best: z.partialRecord(songId, z.object({ step: stepMs.optional(), timed: share.optional() })),
-});
+const knownChords = new Set<string>(CHORD_IDS);
+const knownSongs = new Set<string>(SONGS.map((s) => s.id));
+const pick = <T,>(record: Record<string, T>, known: Set<string>) =>
+  Object.fromEntries(Object.entries(record).filter(([key]) => known.has(key)));
+
+/**
+ * Keys the catalogue no longer knows (a renamed song, a removed chord) are
+ * dropped, not refused: refusing would throw away everything else the guest did.
+ */
+export const guestProgress = z
+  .object({
+    learned: z.record(z.string(), z.literal(true)),
+    best: z.record(z.string(), z.object({ step: stepMs.optional(), timed: share.optional() })),
+  })
+  .transform((g) => ({ learned: pick(g.learned, knownChords), best: pick(g.best, knownSongs) }));
 export type GuestProgress = z.infer<typeof guestProgress>;
 
 /** The validated shape, with chord keys narrowed back to chord ids. */

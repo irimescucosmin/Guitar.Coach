@@ -113,6 +113,8 @@ export class PracticeSession {
   private raf = 0;
   private timer = 0;
   private listeners = new Set<() => void>();
+  private starting = false;
+  private disposed = false;
 
   constructor(
     readonly song: Song,
@@ -160,10 +162,15 @@ export class PracticeSession {
   /* ---------- lifecycle ---------- */
 
   async start(): Promise<void> {
+    if (this.starting || this.disposed) return;
     this.stop();
+    this.starting = true;
     const { ctx, synth } = engine.audio();
     synth.setVolume(this.options.volume);
     if (this.mode !== "listen") await engine.startMic();
+    // Stop or a page change may have happened while the browser asked for the microphone.
+    if (!this.starting || this.disposed) return;
+    this.starting = false;
     engine.resetChroma();
 
     if (this.mode === "step") {
@@ -199,14 +206,16 @@ export class PracticeSession {
   }
 
   stop(): void {
+    this.starting = false;
     cancelAnimationFrame(this.raf);
     window.clearInterval(this.timer);
-    if (this.run && engine.synth) engine.synth.silence(this.options.volume);
+    if (this.run && engine.synth) engine.synth.silence();
     this.run = null;
     if (this.view.phase === "playing") this.emit(this.idleView());
   }
 
   dispose(): void {
+    this.disposed = true;
     this.stop();
     this.listeners.clear();
   }
@@ -374,7 +383,7 @@ export class PracticeSession {
     }
 
     if (run.kind !== "timed" || !frame) return;
-    run.heardAnything = true;
+    if (frame.level >= SILENCE) run.heardAnything = true;
     const judged = Math.floor((position - perBar + EARLY_BEATS) / perBar);
     if (judged !== run.judged) {
       this.closeBar(run, run.judged);

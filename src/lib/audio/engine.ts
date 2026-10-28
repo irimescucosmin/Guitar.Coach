@@ -54,19 +54,37 @@ class Engine {
     this.listeners.forEach((l) => l());
   }
 
-  async startMic(): Promise<boolean> {
-    if (this.micState === "on") return true;
+  private pending: Promise<boolean> | null = null;
+
+  /** Safe to call twice: a second call waits for the first prompt instead of opening another. */
+  startMic(): Promise<boolean> {
+    if (this.micState === "on") return Promise.resolve(true);
+    this.pending ??= this.openMic().finally(() => {
+      this.pending = null;
+    });
+    return this.pending;
+  }
+
+  private async openMic(): Promise<boolean> {
     if (!navigator.mediaDevices?.getUserMedia) {
       this.setMic("unsupported");
       return false;
     }
+    // Before the await: Safari only lets an AudioContext run if it is made inside the tap.
+    const { ctx } = this.audio();
     this.setMic("starting");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         // The browser's voice processing would erase the very notes we listen for.
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
-      const { ctx } = this.audio();
+      // A microphone unplugged or revoked must not look "on" while hearing silence.
+      stream.getAudioTracks().forEach((track) =>
+        track.addEventListener("ended", () => {
+          this.analyser = null;
+          this.setMic("off");
+        }),
+      );
       const analyser = ctx.createAnalyser();
       analyser.fftSize = FFT_SIZE;
       analyser.smoothingTimeConstant = 0.5;
