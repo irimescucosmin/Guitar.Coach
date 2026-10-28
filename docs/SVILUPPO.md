@@ -44,15 +44,23 @@ Senza account l'app funziona da ospite, con i progressi nel `localStorage`. Il d
 
 ## 3. Il microfono
 
-Il browser dà il microfono solo a `localhost` o a una pagina HTTPS: su `http://192.168…` il bottone dice *Serve https*.
+Il browser dà il microfono solo a un'origine sicura: `localhost`, `127.0.0.1` o qualsiasi `https://`. Altrimenti il bottone dice *Serve https*. Attenzione a `http://lvh.me:3000`: risolve su 127.0.0.1 ma origine sicura non è, quindi il microfono non lo ottiene.
 
-Dal telefono sulla stessa rete:
+Una volta sola, per rendere fidata la CA locale. Chiede la password, ed è il passo che `--experimental-https` da solo non riesce a fare:
+
+```bash
+mkcert -install   # senza mkcert nel PATH, pnpm dev:cert stampa il percorso di quello scaricato da Next
+```
+
+Poi, ogni volta:
 
 ```bash
 pnpm dev:https              # certificato locale, ascolta su 0.0.0.0
 ```
 
-Poi apri `https://IP-DEL-MAC:3000` sul telefono e accetta il certificato. Per accedere con un account da lì, aggiungi l'indirizzo a `BETTER_AUTH_TRUSTED_ORIGINS` in `.env.local`.
+`dev:https` passa da `dev:cert`, che genera con mkcert un certificato per `localhost`, `lvh.me`, `*.lvh.me` e l'IP del Mac sulla rete, e lo rigenera solo quando uno di quei nomi manca, per esempio dopo un cambio di rete. Sta in `certificates/`, fuori da git. Quello che scriverebbe Next da solo copre `localhost 127.0.0.1 ::1 0.0.0.0` e niente altro, perciò su `lvh.me` darebbe errore di nome.
+
+Vale per tutti e tre gli indirizzi: dal telefono sulla stessa rete apri `https://IP-DEL-MAC:3000`. Per accedere con un account da un'origine diversa da `BETTER_AUTH_URL`, aggiungi quell'indirizzo a `BETTER_AUTH_TRUSTED_ORIGINS` in `.env.local`.
 
 Le cuffie servono solo con la *Chitarra guida* accesa in *A tempo*: è l'unico suono dell'app dentro la banda che il microfono ascolta (75 Hz – 1,1 kHz).
 

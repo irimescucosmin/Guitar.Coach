@@ -12,9 +12,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node src/db/migrate.mjs",
+    "db:migrate": "node --env-file-if-exists=.env.local src/db/migrate.mjs",
     "e2e": "playwright test",
-    "dev:https": "next dev --turbopack --experimental-https -H 0.0.0.0",
+    "dev:cert": "bash scripts/dev-cert.sh",
+    "dev:https": "pnpm dev:cert && next dev --turbopack -H 0.0.0.0 --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem",
     "shots": "node scripts/screenshots.mjs",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
