@@ -17,19 +17,33 @@
 }
 
 @theme static {
+  /*
+   * Le superfici sono una scala, non un elenco: cornice, pagina, scheda, in
+   * quest'ordine e con uno scalino visibile fra l'una e l'altra. E' quello che
+   * impedisce a una schermata di leggersi come un foglio piatto con delle righe
+   * sopra. Nel tema scuro la scala si era chiusa: `navy` e `page` stavano a
+   * 1,01:1, cioe' la barra laterale, il riquadro del prossimo passo e il
+   * risultato di fine brano non avevano piu' bordi ne' corpo.
+   *
+   * Un passo fra due superfici scure vale circa 1,5:1, ed e' normale che sia
+   * poco: il contrasto fra tinte scure e' compresso. La soglia 3:1 di WCAG
+   * 1.4.11 non riguarda queste, riguarda `line-strong`, che delimita campi e
+   * bottoni.
+   */
   --color-page: light-dark(#f2f4f6, #0e141b);
   --color-surface: light-dark(#ffffff, #161f2a);
   --color-subtle: light-dark(#f2f4f6, #1c2734);
   --color-sunken: light-dark(#e3e8ed, #0a0f15);
-  --color-line: light-dark(#dce1e7, #2a3644);
-  --color-line-strong: light-dark(#c9d1da, #3a4858);
+  --color-line: light-dark(#dce1e7, #44566b);
+  --color-line-strong: light-dark(#c9d1da, #5f7389);
   --color-ink: light-dark(#0f1c2b, #e7edf3);
   --color-ink-2: light-dark(#3b4858, #b9c4d0);
   --color-muted: light-dark(#566474, #8e9baa);
 
-  --color-navy: light-dark(#13263a, #0b1520);
-  --color-navy-2: light-dark(#22405f, #1d3550);
-  --color-navy-line: light-dark(#2a4664, #24384f);
+  /* La cornice: sopra la pagina, non confusa con lei. Il bianco ci sta sopra a 12,5:1. */
+  --color-navy: light-dark(#13263a, #1d3550);
+  --color-navy-2: light-dark(#22405f, #264a6e);
+  --color-navy-line: light-dark(#2a4664, #33577d);
   --color-on-navy: #ffffff;
   --color-on-navy-muted: #c7d1db;
   --color-primary: light-dark(#13263a, #2b4a6b);
@@ -48,6 +62,15 @@
   --color-warn: light-dark(#a56a12, #e3a64a);
   --color-warn-soft: light-dark(#fbf1df, #33260f);
 
+  /*
+   * Due famiglie, come `brass`/`brass-ink` e `good`/`good-ink`.
+   *
+   * La prima e' il riempimento: regge il testo bianco sopra, e per quello e'
+   * scura in entrambi i temi. Usata come colore del testo su fondo scuro
+   * falliva il contrasto (Dm 2,40:1, Am 2,59:1), perche' chiedeva a una tinta
+   * da sfondo di fare la foreground. La seconda e' la lettera: `light-dark()`,
+   * almeno 4,5:1 sulla scheda in tutti e due i temi.
+   */
   --color-chord-Em: #2f6ea8;
   --color-chord-Am: #6d4fa0;
   --color-chord-C: #9f5f11;
@@ -56,6 +79,15 @@
   --color-chord-Dm: #96385f;
   --color-chord-E: #1f7a7a;
   --color-chord-A: #6f6420;
+
+  --color-chord-Em-ink: light-dark(#2f6ea8, #448acb);
+  --color-chord-Am-ink: light-dark(#6d4fa0, #9279bd);
+  --color-chord-C-ink: light-dark(#9f5f11, #c47515);
+  --color-chord-G-ink: light-dark(#23784b, #2c985f);
+  --color-chord-D-ink: light-dark(#b2442b, #d4654c);
+  --color-chord-Dm-ink: light-dark(#96385f, #c7688f);
+  --color-chord-E-ink: light-dark(#1f7a7a, #269696);
+  --color-chord-A-ink: light-dark(#6f6420, #97882b);
 
   --font-sans: "Archivo Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;

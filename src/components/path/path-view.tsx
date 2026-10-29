@@ -144,7 +144,7 @@ export function PathView({ community = [] }: { community?: CommunitySong[] }) {
               {taskChords(task).slice(0, 3).map((c) => (
                 <figure key={c} className="m-0 flex flex-col items-center gap-1.5 rounded-[16px] bg-surface px-2.5 pb-2.5 pt-3 text-ink">
                   <ChordDiagram chord={c} width={110} leftHanded={settings.leftHanded} title={tc("diagram", { chord: c, name: tc(`chord.${c}`) })} />
-                  <figcaption className="text-xl font-extrabold" style={{ color: `var(--color-chord-${c})` }}>{c}</figcaption>
+                  <figcaption className="text-xl font-extrabold" style={{ color: `var(--color-chord-${c}-ink)` }}>{c}</figcaption>
                 </figure>
               ))}
             </div>

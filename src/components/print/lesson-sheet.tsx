@@ -53,7 +53,7 @@ export async function LessonSheet({ progress, locale, name }: { progress: Progre
         {chords.map((c) => (
           <div key={c} className="flex flex-col gap-2 rounded-[var(--radius-card)] border border-line p-4">
             <h2 className="m-0 flex items-baseline gap-2 text-2xl font-extrabold">
-              <span className="text-[40px] leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${c})` }}>{c}</span>
+              <span className="text-[40px] leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${c}-ink)` }}>{c}</span>
               <span className="text-base font-semibold text-ink-2">{tc(`chord.${c}`)}</span>
             </h2>
             <ChordDiagram chord={c} className="h-auto w-[150px]" leftHanded={false} title={tc("diagram", { chord: c, name: tc(`chord.${c}`) })} />

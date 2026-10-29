@@ -87,7 +87,7 @@ export function ChordCheck({ chords, onDone }: { chords: ChordId[]; onDone: (ver
           title={tc("diagram", { chord, name: tc(`chord.${chord}`) })} />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <span className="eyebrow text-muted">{t("progress", { n: index + 1, total: chords.length })}</span>
-          <span className="text-[96px] font-black leading-[0.85] [font-stretch:85%]" style={{ color: `var(--color-chord-${chord})` }}>
+          <span className="text-[96px] font-black leading-[0.85] [font-stretch:85%]" style={{ color: `var(--color-chord-${chord}-ink)` }}>
             {chord}
           </span>
           <span className="text-lg font-semibold text-ink-2">{tc(`chord.${chord}`)}</span>

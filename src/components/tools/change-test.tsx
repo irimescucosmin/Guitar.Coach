@@ -88,7 +88,7 @@ export function ChangeTest({ initial }: { initial?: [ChordId, ChordId] }) {
       <div className="flex items-end justify-between">
         <div>
           <p className="text-xs uppercase tracking-wider text-muted">{t("play")}</p>
-          <p className="text-6xl font-black [font-stretch:85%]" style={{ color: `var(--color-chord-${expect})` }}>{expect}</p>
+          <p className="text-6xl font-black [font-stretch:85%]" style={{ color: `var(--color-chord-${expect}-ink)` }}>{expect}</p>
         </div>
         <div className="text-right">
           <p className="text-xs uppercase tracking-wider text-muted">{t("time")}</p>

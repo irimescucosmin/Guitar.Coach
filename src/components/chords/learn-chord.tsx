@@ -116,7 +116,7 @@ export function LearnChord({ chord }: { chord: ChordId }) {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <section className="flex flex-col items-center gap-5 rounded-[var(--radius-hero)] border border-line bg-surface px-8 py-7">
           <h1 className="m-0 flex items-baseline gap-3.5 self-start">
-            <span className="text-[96px] font-black leading-[0.85] tracking-[-0.03em] [font-stretch:85%]" style={{ color: `var(--color-chord-${chord})` }}>{chord}</span>
+            <span className="text-[96px] font-black leading-[0.85] tracking-[-0.03em] [font-stretch:85%]" style={{ color: `var(--color-chord-${chord}-ink)` }}>{chord}</span>
             <span className="text-2xl font-semibold text-ink-2">{tc(`chord.${chord}`)}</span>
           </h1>
           <ChordDiagram chord={chord} className="h-auto w-full max-w-[300px]" leftHanded={settings.leftHanded} flagged={flagged}
@@ -205,7 +205,7 @@ export function LearnChord({ chord }: { chord: ChordId }) {
           <div className="flex flex-col gap-2.5">
             {frequentNext(chord).map((to) => (
               <Link key={to} href={learnHref(to)} className="flex items-center gap-4 rounded-[14px] bg-subtle px-4 py-3 hover:bg-sunken">
-                <span className="w-12 text-[34px] font-black leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${to})` }}>{to}</span>
+                <span className="w-12 text-[34px] font-black leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${to}-ink)` }}>{to}</span>
                 <span className="text-[15px] text-ink-2">{hint(chord, to)}</span>
               </Link>
             ))}

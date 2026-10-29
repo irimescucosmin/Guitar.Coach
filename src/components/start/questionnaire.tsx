@@ -134,7 +134,7 @@ export function Questionnaire() {
                   <input type="checkbox" className="sr-only" checked={on}
                     onChange={() => set({ knownChords: on ? draft.knownChords!.filter((x) => x !== c) : CHORD_IDS.filter((x) => x === c || draft.knownChords?.includes(x)) })} />
                   <span className="flex w-full items-center justify-between">
-                    <span className="text-3xl font-black [font-stretch:85%]" style={{ color: `var(--color-chord-${c})` }}>{c}</span>
+                    <span className="text-3xl font-black [font-stretch:85%]" style={{ color: `var(--color-chord-${c}-ink)` }}>{c}</span>
                     <span aria-hidden className={`flex size-6 items-center justify-center rounded-full ${on ? "bg-brass text-on-brass" : "border-2 border-line-strong"}`}>
                       {on && <IconCheck size={14} />}
                     </span>

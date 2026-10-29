@@ -28,7 +28,7 @@ export function ChordGrid() {
             >
               <span className="flex items-start justify-between gap-2">
                 <span className="flex flex-col">
-                  <span className="text-[44px] font-black leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${c})` }}>{c}</span>
+                  <span className="text-[44px] font-black leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${c}-ink)` }}>{c}</span>
                   <span className="text-sm font-semibold text-ink-2">{tc(`chord.${c}`)}</span>
                 </span>
                 {learned ? (

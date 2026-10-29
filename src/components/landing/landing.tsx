@@ -63,12 +63,12 @@ export async function Landing({ providers }: { providers: ("google" | "apple")[]
             <div aria-hidden className="grid grid-cols-[1.25fr_1fr] gap-4">
               <div className="flex flex-col items-center gap-3 rounded-[var(--radius-hero)] border border-line bg-surface p-5">
                 <span className="eyebrow self-start text-muted">{tp("now")}</span>
-                <span className="self-start text-[88px] font-black leading-[0.85] [font-stretch:85%]" style={{ color: "var(--color-chord-G)" }}>G</span>
+                <span className="self-start text-[88px] font-black leading-[0.85] [font-stretch:85%]" style={{ color: "var(--color-chord-G-ink)" }}>G</span>
                 <ChordDiagram chord="G" flagged={[FLAGGED_STRING]} className="h-auto w-full max-w-[170px]" title={tc("diagram", { chord: "G", name: tc("chord.G") })} />
               </div>
               <div className="flex flex-col items-center gap-3 rounded-[var(--radius-hero)] border-[3px] border-brass bg-surface p-5">
                 <span className="eyebrow self-start text-brass-ink">{tp("upNext")}</span>
-                <span className="self-start text-[56px] font-black leading-none [font-stretch:85%]" style={{ color: "var(--color-chord-D)" }}>D</span>
+                <span className="self-start text-[56px] font-black leading-none [font-stretch:85%]" style={{ color: "var(--color-chord-D-ink)" }}>D</span>
                 <ChordDiagram chord="D" className="h-auto w-full max-w-[120px]" title={tc("diagram", { chord: "D", name: tc("chord.D") })} />
               </div>
               <p className="col-span-2 m-0 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[16px] bg-warn-soft px-5 py-3 text-warn">

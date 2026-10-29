@@ -207,7 +207,7 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
           <p className="m-0 flex flex-wrap items-center gap-2 rounded-[14px] bg-warn-soft px-4 py-3 text-[15px]">
             {t("notLearnedYet")}
             {unlearned.map((c) => (
-              <Link key={c} href={learnHref(c)} className="font-extrabold underline underline-offset-2" style={{ color: `var(--color-chord-${c})` }}>
+              <Link key={c} href={learnHref(c)} className="font-extrabold underline underline-offset-2" style={{ color: `var(--color-chord-${c}-ink)` }}>
                 {c}
               </Link>
             ))}
@@ -219,7 +219,7 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
             <ChordDiagram chord={view.current} className="h-auto w-[200px] xl:w-[260px]" leftHanded={settings.leftHanded} flagged={view.flagged} title={diagramTitle(view.current)} />
             <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-2.5">
               <span className="eyebrow text-muted">{view.countIn !== null ? t("getReady") : t("now")}</span>
-              <span className="text-[120px] font-black leading-[0.85] tracking-[-0.03em] [font-stretch:85%] xl:text-[168px]" style={{ color: `var(--color-chord-${view.current})` }}>
+              <span className="text-[120px] font-black leading-[0.85] tracking-[-0.03em] [font-stretch:85%] xl:text-[168px]" style={{ color: `var(--color-chord-${view.current}-ink)` }}>
                 {view.current}
               </span>
               <span className="text-xl font-semibold text-ink-2">{tc(`chord.${view.current}`)}</span>
@@ -325,7 +325,7 @@ function NextCard({ view, mode, leftHanded, diagramTitle }: {
           </div>
           <ChordDiagram chord={view.next} className="h-auto w-[150px] xl:w-[170px]" leftHanded={leftHanded} title={diagramTitle(view.next)} />
           <span className="flex items-baseline gap-2.5">
-            <span className="text-[56px] font-black leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${view.next})` }}>{view.next}</span>
+            <span className="text-[56px] font-black leading-none [font-stretch:85%]" style={{ color: `var(--color-chord-${view.next}-ink)` }}>{view.next}</span>
             <span className="text-base text-ink-2">{tc(`chord.${view.next}`)}</span>
           </span>
           <TransitionHint from={view.current} to={view.next} className="text-center text-[13px] leading-snug text-muted" />
@@ -441,7 +441,7 @@ function Structure({ session, view, mode, best }: {
               {row.cells.map((c) => {
                 const state = c.index === view.position && view.phase === "playing" ? "current" : (view.statuses[c.index] ?? "");
                 return (
-                  <span key={c.index} className={`flex h-[30px] items-center justify-center rounded-[7px] font-extrabold ${CELL[state]}`} style={{ color: `var(--color-chord-${c.chord})` }}>
+                  <span key={c.index} className={`flex h-[30px] items-center justify-center rounded-[7px] font-extrabold ${CELL[state]}`} style={{ color: `var(--color-chord-${c.chord}-ink)` }}>
                     {c.chord}
                   </span>
                 );
