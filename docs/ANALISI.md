@@ -147,14 +147,14 @@ Dati: `community_songs` (autore, stato: bozza, pubblicato, nascosto; stessa form
 
 ## 10. Punti per chi aiuta
 
-Punti per quello che serve agli altri, non per il volume:
+Punti per quello che serve agli altri, non per il volume. Niente punti per la sola quantità di brani o di commenti: spingerebbero a pubblicare doppioni.
 
-- brano pubblicato e superato *A tempo* dall'autore;
-- altri che lo suonano e lo superano (il punto va all'autore, una volta per persona);
-- correzione accettata dall'autore del brano;
-- risposta segnata come utile.
+**Fatto** (`lib/community/points.ts`): i punti non si salvano, si leggono ogni volta dai brani, così nessuno li assegna a mano e un brano nascosto dopo le segnalazioni perde i suoi da solo.
+- 10 per ogni brano pubblicato, cioè superato a tempo dal suo autore.
+- 5 per ogni altro giocatore che lo supera a tempo, una volta per persona per brano.
+- Traguardi, non classifiche: primo brano, cinque brani, ha aiutato qualcuno, superato 10 e 50 volte dagli altri. Si vedono nella pagina Community, e il punteggio di ogni autore accanto al suo nome.
 
-Niente punti per la sola quantità di brani o di commenti: spingerebbero a pubblicare doppioni. I punti si vedono nel profilo pubblico con dei livelli (per esempio *Primo brano*, *Ha aiutato 10 persone*), senza classifiche globali all'inizio. Una segnalazione accolta toglie i punti di quel brano.
+Da fare, con le funzioni che ancora mancano: punti per una correzione accettata dall'autore e per una risposta segnata come utile.
 
 ## 11. Assistente AI
 
@@ -202,6 +202,6 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 6 | Assistente AI: insegnante e riepilogo settimanale | fatto |
 | 7 | Lezione su postura e mani, e guide in PDF | fatto |
 | 8 | Community: procedura guidata, bozza finché non la superi, segnalazioni, regole | fatto |
-| 9 | Punti per chi aiuta | da fare, dopo la community |
+| 9 | Punti per chi aiuta, letti dai risultati | fatto |
 | 10 | Registrazione settimanale | da fare |
 | 11 | Tecniche e teoria | da fare |

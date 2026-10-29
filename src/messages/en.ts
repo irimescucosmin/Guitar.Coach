@@ -968,6 +968,19 @@ export const en: typeof it = {
     byLine: "{origin} · published by {author}",
     plays: "{count, plural, =0 {nobody has passed it yet} =1 {passed by 1 player} other {passed by # players}}",
     edit: "Edit",
+    points: {
+      label: "points",
+      how: "{published} for every song published, {pass} every time another player passes it in time. Nothing is awarded by hand: points are read off the results.",
+      of: "{count} points",
+      badges: "Milestones",
+      badge: {
+        firstSong: "First song",
+        fiveSongs: "Five songs",
+        firstHelp: "Helped someone",
+        tenHelps: "Passed 10 times by others",
+        fiftyHelps: "Passed 50 times by others",
+      },
+    },
     passToPublish: "Pass it in time to publish",
     report: {
       button: "Report",

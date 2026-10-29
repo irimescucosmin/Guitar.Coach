@@ -12,6 +12,7 @@ import type { CommunitySong } from "@/lib/community/song";
 import { nextModeFor, type Progress } from "@/lib/music/path";
 import { patternSymbols } from "@/lib/music/patterns";
 import { chordsOf } from "@/lib/music/songs";
+import { authorScore, POINTS_PASS, POINTS_PUBLISHED } from "@/lib/community/points";
 
 /** Songs players published, each playable like the catalogue's; the viewer's own drafts on top. */
 export function CommunityList({ songs, viewerId }: { songs: CommunitySong[]; viewerId: string }) {
@@ -19,6 +20,7 @@ export function CommunityList({ songs, viewerId }: { songs: CommunitySong[]; vie
   const { progress } = useProgress();
   const mine = songs.filter((s) => s.authorId === viewerId);
   const others = songs.filter((s) => s.authorId !== viewerId && s.status === "published");
+  const score = authorScore(songs, viewerId);
 
   return (
     <>
@@ -30,6 +32,21 @@ export function CommunityList({ songs, viewerId }: { songs: CommunitySong[]; vie
         </div>
         <Link href="/community/new" className={`${button.brass} h-12`}>{t("new")}</Link>
       </header>
+
+      <section aria-label={t("points.label")} className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[var(--radius-card)] border border-line bg-surface px-5 py-4">
+        <span className="flex items-baseline gap-2">
+          <span className="font-mono text-3xl font-semibold">{score.points}</span>
+          <span className="text-sm font-bold">{t("points.label")}</span>
+        </span>
+        <span className="text-sm text-ink-2">{t("points.how", { published: POINTS_PUBLISHED, pass: POINTS_PASS })}</span>
+        {score.badges.length > 0 && (
+          <ul className="m-0 flex list-none flex-wrap gap-2 p-0" aria-label={t("points.badges")}>
+            {score.badges.map((b) => (
+              <li key={b} className="rounded-full bg-warn-soft px-3 py-1 text-xs font-bold text-brass-ink">{t(`points.badge.${b}`)}</li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {mine.length > 0 && (
         <section aria-labelledby="mine" className="flex flex-col gap-3">
@@ -46,7 +63,7 @@ export function CommunityList({ songs, viewerId }: { songs: CommunitySong[]; vie
           <p className="m-0 rounded-[var(--radius-card)] border border-dashed border-line-strong p-6 text-[15px] text-ink-2">{t("empty")}</p>
         ) : (
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
-            {others.map((song) => <SongRow key={song.id} song={song} progress={progress} />)}
+            {others.map((song) => <SongRow key={song.id} song={song} progress={progress} authorPoints={authorScore(songs, song.authorId).points} />)}
           </ul>
         )}
       </section>
@@ -58,7 +75,7 @@ export function CommunityList({ songs, viewerId }: { songs: CommunitySong[]; vie
 }
 
 /** One song: its chords, rhythm, who passed it, and what the viewer can do with it. A component of its own, so its state survives the list re-rendering. */
-function SongRow({ song, own = false, progress: p }: { song: CommunitySong; own?: boolean; progress: Progress }) {
+function SongRow({ song, own = false, progress: p, authorPoints }: { song: CommunitySong; own?: boolean; progress: Progress; authorPoints?: number }) {
   const t = useTranslations("community");
   const tp = useTranslations("play");
   const ts = useTranslations("songs");
@@ -79,7 +96,8 @@ function SongRow({ song, own = false, progress: p }: { song: CommunitySong; own?
           {song.status === "hidden" && <span className="rounded-full bg-bad-soft px-2.5 py-0.5 text-xs font-bold text-bad-ink">{t("status.hidden")}</span>}
         </span>
         <span className="text-[13px] text-muted">
-          {t("byLine", { origin: song.source, author: song.authorName })} · {song.kind === "chordsOnly" ? tp("origin.chordsOnly") : tp("origin.traditional")}
+          {t("byLine", { origin: song.source, author: song.authorName })}
+          {authorPoints !== undefined && ` (${t("points.of", { count: authorPoints })})`} · {song.kind === "chordsOnly" ? tp("origin.chordsOnly") : tp("origin.traditional")}
         </span>
       </div>
       <span className="inline-flex flex-wrap gap-1">

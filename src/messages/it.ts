@@ -969,6 +969,19 @@ export const it = {
     byLine: "{origin} · pubblicato da {author}",
     plays: "{count, plural, =0 {nessuno l'ha ancora superato} =1 {superato da 1 persona} other {superato da # persone}}",
     edit: "Modifica",
+    points: {
+      label: "punti",
+      how: "{published} per ogni brano pubblicato, {pass} ogni volta che un altro giocatore lo supera a tempo. Niente si assegna a mano: i punti si leggono dai risultati.",
+      of: "{count} punti",
+      badges: "Traguardi",
+      badge: {
+        firstSong: "Primo brano",
+        fiveSongs: "Cinque brani",
+        firstHelp: "Ha aiutato qualcuno",
+        tenHelps: "Superato 10 volte dagli altri",
+        fiftyHelps: "Superato 50 volte dagli altri",
+      },
+    },
     passToPublish: "Superalo a tempo per pubblicarlo",
     report: {
       button: "Segnala",

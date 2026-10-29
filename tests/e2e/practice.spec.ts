@@ -322,6 +322,9 @@ test("a community song is a draft until its author passes it in time, then other
   await saved;
   await page.goto("/community");
   await expect(mine.getByText("Bozza")).toHaveCount(0);
+  // Points are read off the same fact: one song published, the first milestone.
+  await expect(page.getByRole("region", { name: "punti" })).toContainText("10");
+  await expect(page.getByRole("region", { name: "punti" })).toContainText("Primo brano");
   await other.goto("/community");
   const theirs = other.getByRole("listitem").filter({ hasText: title });
   await expect(theirs).toContainText("pubblicato da Prova");
