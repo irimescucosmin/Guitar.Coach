@@ -446,6 +446,7 @@ export const it = {
       body: "cassa", neck: "manico", headstock: "paletta", tuners: "meccaniche", nut: "capotasto", frets: "tasti", soundhole: "buca", bridge: "ponte", strings: "corde",
       boxNut: "capotasto (linea spessa)", boxStrings: "corde: Mi grave a sinistra, Mi cantino a destra", boxFrets: "tasti, dall'alto", boxDot: "dito, con il numero", boxOpen: "○ corda a vuoto", boxMuted: "× non si suona",
       thumb: "pollice", index: "indice", tip: "punta: pochi mm",
+      pick: "Tocca una parte per leggerne il nome.",
       missing: "Figura non ancora disegnata: si genera con `pnpm figures`.",
     },
     parts: {

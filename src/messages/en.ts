@@ -445,6 +445,7 @@ export const en: typeof it = {
       body: "body", neck: "neck", headstock: "headstock", tuners: "tuners", nut: "nut", frets: "frets", soundhole: "sound hole", bridge: "bridge", strings: "strings",
       boxNut: "nut (thick line)", boxStrings: "strings: low E on the left, high E on the right", boxFrets: "frets, from the top", boxDot: "finger, with its number", boxOpen: "○ open string", boxMuted: "× not played",
       thumb: "thumb", index: "index", tip: "tip: a few mm",
+      pick: "Tap a part to read its name.",
       missing: "Figure not drawn yet: it is generated with `pnpm figures`.",
     },
     parts: {

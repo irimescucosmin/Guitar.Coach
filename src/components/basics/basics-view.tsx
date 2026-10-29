@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { button } from "@/components/ui/links";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { themed } from "@/lib/basics/figure";
 import { ReadBox } from "./figures";
+import { GuitarMap } from "./guitar-map";
 
 /** The illustrations drawn with scripts/figures.mjs; a missing file shows a placeholder, never a drawing of ours. */
-const DRAWN = ["parts", "sit", "left", "pick"] as const;
-const figurePath = (id: string) => (existsSync(`${process.cwd()}/public/figures/${id}.png`) ? `/figures/${id}.png` : existsSync(`${process.cwd()}/public/figures/${id}.svg`) ? `/figures/${id}.svg` : null);
+const DRAWN = ["sit", "left", "pick"] as const;
+/** Inlined, so themed() can swap the baked palette for the tokens and the drawing follows the theme. */
+const drawing = (id: string) => {
+  const file = `${process.cwd()}/public/figures/${id}.svg`;
+  return existsSync(file) ? themed(readFileSync(file, "utf8")) : null;
+};
+/** A raster figure cannot be themed, so it stays an image. */
+const rasterPath = (id: string) => (existsSync(`${process.cwd()}/public/figures/${id}.png`) ? `/figures/${id}.png` : null);
 
 const TOPICS = ["parts", "sit", "left", "right", "pick", "box", "tune", "pain"] as const;
 
@@ -24,14 +32,28 @@ export async function BasicsView({ print = false }: { print?: boolean }) {
   const box = { nut: t("figures.boxNut"), strings: t("figures.boxStrings"), frets: t("figures.boxFrets"), dot: t("figures.boxDot"), open: t("figures.boxOpen"), muted: t("figures.boxMuted") };
   const figure = (k: (typeof TOPICS)[number]) => {
     if (k === "box") return <ReadBox labels={box} />;
+    if (k === "parts") {
+      const art = drawing("parts");
+      if (!art) return null;
+      return (
+        <figure className="m-0 md:sticky md:top-4">
+          <GuitarMap names={parts} hint={t("figures.pick")} drawing={art} print={print} />
+        </figure>
+      );
+    }
     if (!(DRAWN as readonly string[]).includes(k)) return null;
-    const src = figurePath(k);
-    const legend = k === "parts" ? Object.values(parts) : k === "pick" ? [t("figures.thumb"), t("figures.index"), t("figures.tip")] : [];
+    const svg = drawing(k);
+    const src = rasterPath(k);
+    const alt = t(`${k as (typeof DRAWN)[number]}.figureAlt`);
+    const legend = k === "pick" ? [t("figures.thumb"), t("figures.index"), t("figures.tip")] : [];
     return (
       <figure className="m-0 flex flex-col gap-2 md:sticky md:top-4">
-        {src ? (
+        {svg ? (
+          // A static file of ours, generated and committed, never anything a visitor sends.
+          <div role="img" aria-label={alt} className="[&>svg]:h-auto [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
+        ) : src ? (
           // eslint-disable-next-line @next/next/no-img-element -- a static file of ours, no optimisation needed
-          <img src={src} alt={t(`${k as (typeof DRAWN)[number]}.figureAlt`)} width={1024} height={1024} className="h-[240px] w-full object-contain" />
+          <img src={src} alt={alt} width={1024} height={1024} className="h-[240px] w-full object-contain" />
         ) : (
           <div role="img" aria-label={t("figures.missing")} className="flex h-[240px] w-full items-center justify-center rounded-[var(--radius-control)] border border-dashed border-line-strong bg-sunken p-4 text-center text-sm text-muted">
             {t("figures.missing")}
