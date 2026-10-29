@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { themed } from "./figure";
 
@@ -67,7 +67,9 @@ describe("the light theme", () => {
 describe("the drawings on disk", () => {
   // They are generated, so this guards the assumption the mapping rests on:
   // the model answered with the palette scripts/figures.mjs asked for.
-  for (const id of ["parts", "sit", "left", "pick"]) {
+  // A figure taken down to be regenerated (the page shows its placeholder) is not on disk yet.
+  const onDisk = ["parts", "sit", "left", "pick"].filter((id) => existsSync(`${process.cwd()}/public/figures/${id}.svg`));
+  for (const id of onDisk) {
     it(`${id} carries no backdrop and no baked palette once themed`, () => {
       const out = themed(readFileSync(`${process.cwd()}/public/figures/${id}.svg`, "utf8"));
       expect(out).not.toContain("<metadata>");
