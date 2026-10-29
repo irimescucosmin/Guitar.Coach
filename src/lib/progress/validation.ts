@@ -3,6 +3,7 @@ import { CHORD_IDS, isChordId } from "@/lib/music/chords";
 import type { Progress } from "@/lib/music/path";
 import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { EXPERIENCE, GOALS, GUITARS, MINUTES, STYLES, TAB_READING, type Profile } from "@/lib/music/profile";
+import { BLOCK_IDS, PAIR_KEYS, isNearToday } from "@/lib/music/routine";
 import { SONGS } from "@/lib/music/songs";
 
 /**
@@ -69,3 +70,18 @@ export const guestProgress = z
     ...(g.profile ? { profile: g.profile } : {}),
   }));
 export type GuestProgress = z.infer<typeof guestProgress>;
+
+/** One minute of changes: more than 200 clean changes is not a guitar. */
+export const changeTestInput = z.object({
+  pair: z.enum(PAIR_KEYS as [string, ...string[]]),
+  count: z.number().int().min(0).max(200),
+});
+export type ChangeTestInput = z.infer<typeof changeTestInput>;
+
+/** The player's local day, close to the server's. */
+export const dayInput = z.string().refine((d) => isNearToday(d, new Date()), "not today");
+
+export const routineInput = z.object({
+  day: dayInput,
+  blocks: z.array(z.enum(BLOCK_IDS)).min(1).max(BLOCK_IDS.length),
+});

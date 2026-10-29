@@ -15,6 +15,13 @@
       "when": 1793229571717,
       "tag": "0001_player_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793231830553,
+      "tag": "0002_routine",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@ import postgres from "postgres";
 import * as schema from "@/db/schema";
 import { user } from "@/db/schema";
 import type { Profile } from "@/lib/music/profile";
-import { importGuestProgress, loadProgress, markLearned, saveProfile, saveRun, type Database } from "./repository";
+import { importGuestProgress, loadProgress, loadRoutine, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun, type Database } from "./repository";
 import { guestProgress, profileInput, runInput } from "./validation";
 
 const answers: Profile = {
@@ -71,6 +71,22 @@ describe.skipIf(!url)("progress in Postgres", () => {
     const progress = await loadProgress(db, userId);
     expect(progress.profile).toEqual(answers);
     expect(progress.learned).toEqual({ Em: true, Am: true, G: true, D: true });
+  });
+
+  it("keeps the best one-minute change test per pair", async () => {
+    await saveChangeTest(db, userId, "G-D", 18);
+    await saveChangeTest(db, userId, "G-D", 24);
+    await saveChangeTest(db, userId, "Em-Am", 30);
+    expect((await loadProgress(db, userId)).changes).toEqual({ "G-D": 24, "Em-Am": 30 });
+  });
+
+  it("logs routine blocks once per day and lists the days, newest first", async () => {
+    await markRoutine(db, userId, "2026-10-28", ["tune", "new"]);
+    await markRoutine(db, userId, "2026-10-29", ["tune"]);
+    await markRoutine(db, userId, "2026-10-29", ["tune", "song"]);
+    const today = await loadRoutine(db, userId, "2026-10-29");
+    expect(today.done.sort()).toEqual(["song", "tune"]);
+    expect(today.days).toEqual(["2026-10-29", "2026-10-28"]);
   });
 
   it("replaces the answers when given again, and keeps them over a guest's", async () => {

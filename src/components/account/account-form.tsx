@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { PATH_HREF, button } from "@/components/ui/links";
+import { PATH_HREF, TODAY_HREF, button } from "@/components/ui/links";
 import { authClient } from "@/lib/auth-client";
 
 const field = "h-12 rounded-[var(--radius-field)] border border-line-strong bg-surface px-3.5 text-base text-ink";
@@ -69,15 +69,15 @@ export function AccountForm({ userName, locale, providers, initialMode = "signIn
         return;
       }
       // A new player starts from the questions; a returning one from the path.
-      router.push(mode === "signUp" ? "/start" : PATH_HREF);
+      router.push(mode === "signUp" ? "/start" : TODAY_HREF);
       router.refresh();
     });
 
   const social = (provider: "google" | "apple") =>
     startTransition(async () => {
       setError("");
-      // New accounts land on the path too: it offers the questions when there are no answers yet.
-      const result = await authClient.signIn.social({ provider, callbackURL: PATH_HREF });
+      // New accounts land on today too: the path offers the questions when there are no answers yet.
+      const result = await authClient.signIn.social({ provider, callbackURL: TODAY_HREF });
       if (result?.error) setError(t("errorSocial"));
     });
 

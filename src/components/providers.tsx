@@ -1,10 +1,12 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { importGuest, saveAnswers, saveLearnedChord, savePracticeRun } from "@/app/actions";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { importGuest, loadToday, markToday, saveAnswers, saveChanges, saveLearnedChord, savePracticeRun, type Today } from "@/app/actions";
 import type { ChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, recordResult, type Progress } from "@/lib/music/path";
+import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { placedChords, type Profile } from "@/lib/music/profile";
+import { blocksDoneBy, dailyRoutine, localDate, pairKey, type BlockId, type PracticeEvent } from "@/lib/music/routine";
 import { guestProgress, type RunInput } from "@/lib/progress/validation";
 
 /* ---------- local storage, always behind try/catch: private windows refuse it ---------- */
@@ -61,6 +63,12 @@ interface ProgressApi {
   record: (run: RunInput) => boolean;
   /** Stores the questionnaire's answers and learns the chords they place; resolves once saved. */
   answer: (profile: Profile) => Promise<void>;
+  /** Stores a one-minute change test; returns whether it beat the previous best for that pair. */
+  recordChanges: (a: ChordId, b: ChordId, count: number) => boolean;
+  /** Today's routine as far as it is done, on the player's own date; null until loaded. */
+  today: (Today & { date: string }) | null;
+  /** Marks routine blocks done by hand, for the ones the app cannot see (tuning, warm-up). */
+  markDone: (blocks: BlockId[]) => void;
 }
 
 const ProgressContext = createContext<ProgressApi>({
@@ -69,6 +77,9 @@ const ProgressContext = createContext<ProgressApi>({
   learn: () => {},
   record: () => false,
   answer: async () => {},
+  recordChanges: () => false,
+  today: null,
+  markDone: () => {},
 });
 
 export function useProgress() {
@@ -110,6 +121,45 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
       .catch(() => writeJson(GUEST_KEY, parsed.data));
   }, [signedIn]);
 
+  // Today's routine: loaded once signed in, then kept up to date by what the player does.
+  const [today, setToday] = useState<(Today & { date: string }) | null>(null);
+  const progressRef = useRef(progress);
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+  const todayRef = useRef(today);
+  useEffect(() => {
+    todayRef.current = today;
+  }, [today]);
+
+  useEffect(() => {
+    if (!signedIn) {
+      setToday(null);
+      return;
+    }
+    const date = localDate(new Date());
+    void loadToday(date).then((t) => t && setToday({ ...t, date }));
+  }, [signedIn]);
+
+  const markDone = useCallback(
+    (blocks: BlockId[]) => {
+      if (!signedIn) return;
+      const date = localDate(new Date());
+      const done = todayRef.current?.date === date ? todayRef.current.done : [];
+      const fresh = blocks.filter((b) => !done.includes(b));
+      if (fresh.length === 0) return;
+      setToday((t) => ({ date, streak: t?.streak ?? 0, done: [...(t?.date === date ? t.done : []), ...fresh] }));
+      void markToday({ day: date, blocks: fresh }).then((t) => t && setToday({ ...t, date }));
+    },
+    [signedIn],
+  );
+
+  /** Whatever the player does anywhere in the app ticks today's block it belongs to. */
+  const noticed = useCallback(
+    (event: PracticeEvent) => markDone(blocksDoneBy(dailyRoutine(progressRef.current, localDate(new Date())), event)),
+    [markDone],
+  );
+
   const update = useCallback((patch: Partial<Settings>) => {
     setSettings((s) => {
       const next = { ...s, ...patch };
@@ -123,19 +173,34 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
       setProgress((p) => {
         return { ...p, learned: { ...p.learned, [chord]: true as const } };
       });
+      noticed({ kind: "learn", chord });
       void saveLearnedChord(chord).then((r) => r.saved && setProgress(r.progress));
     },
-    [],
+    [noticed],
   );
 
   const record = useCallback(
     (run: RunInput) => {
       const { progress: next, isRecord } = recordResult(progress, run.songId, run.mode, run.value);
       setProgress(next);
+      noticed({ kind: "run", song: run.songId, mode: run.songId === NOTE_DRILL_ID ? "notes" : run.mode });
       void savePracticeRun(run).then((r) => r.saved && setProgress(r.progress));
       return isRecord;
     },
-    [progress],
+    [progress, noticed],
+  );
+
+  const recordChanges = useCallback(
+    (a: ChordId, b: ChordId, count: number) => {
+      const pair = pairKey(a, b);
+      const previous = progress.changes?.[pair];
+      const isRecord = previous === undefined || count > previous;
+      if (isRecord) setProgress({ ...progress, changes: { ...progress.changes, [pair]: count } });
+      noticed({ kind: "changes", pair });
+      void saveChanges({ pair, count }).then((r) => r.saved && setProgress(r.progress));
+      return isRecord;
+    },
+    [progress, noticed],
   );
 
   const answer = useCallback(
@@ -153,8 +218,8 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
   );
 
   const progressApi = useMemo(
-    () => ({ progress, signedIn, learn, record, answer }),
-    [progress, signedIn, learn, record, answer],
+    () => ({ progress, signedIn, learn, record, answer, recordChanges, today, markDone }),
+    [progress, signedIn, learn, record, answer, recordChanges, today, markDone],
   );
   const settingsApi = useMemo(() => ({ settings, update }), [settings, update]);
 

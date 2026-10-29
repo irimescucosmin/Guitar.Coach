@@ -1,9 +1,10 @@
-import { and, eq, max, min } from "drizzle-orm";
+import { and, desc, eq, max, min } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { isChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, type Progress } from "@/lib/music/path";
 import * as schema from "@/db/schema";
-import { chordMastery, playerProfile, practiceRuns } from "@/db/schema";
+import { changeTests, chordMastery, playerProfile, practiceRuns, routineLog } from "@/db/schema";
+import type { BlockId } from "@/lib/music/routine";
 import { placedChords, type Profile } from "@/lib/music/profile";
 import { profileInput, type GuestProgress, type RunInput } from "./validation";
 
@@ -14,7 +15,7 @@ import { profileInput, type GuestProgress, type RunInput } from "./validation";
 export type Database = PostgresJsDatabase<typeof schema>;
 
 export async function loadProgress(db: Database, userId: string): Promise<Progress> {
-  const [learnedRows, bestRows, profileRows] = await Promise.all([
+  const [learnedRows, bestRows, profileRows, changeRows] = await Promise.all([
     db.select({ chord: chordMastery.chord }).from(chordMastery).where(eq(chordMastery.userId, userId)),
     db
       .select({
@@ -27,6 +28,11 @@ export async function loadProgress(db: Database, userId: string): Promise<Progre
       .where(eq(practiceRuns.userId, userId))
       .groupBy(practiceRuns.songId, practiceRuns.mode),
     db.select({ answers: playerProfile.answers }).from(playerProfile).where(eq(playerProfile.userId, userId)),
+    db
+      .select({ pair: changeTests.pair, best: max(changeTests.count) })
+      .from(changeTests)
+      .where(eq(changeTests.userId, userId))
+      .groupBy(changeTests.pair),
   ]);
 
   const progress: Progress = { learned: {}, best: {} };
@@ -39,11 +45,38 @@ export async function loadProgress(db: Database, userId: string): Promise<Progre
   // Answers saved by an older version of the questions are simply not there.
   const profile = profileInput.safeParse(profileRows[0]?.answers);
   if (profile.success) progress.profile = profile.data;
+  if (changeRows.length > 0) {
+    progress.changes = {};
+    for (const row of changeRows) if (row.best !== null) progress.changes[row.pair] = row.best;
+  }
   return progress;
 }
 
 export async function markLearned(db: Database, userId: string, chord: string): Promise<void> {
   await db.insert(chordMastery).values({ userId, chord }).onConflictDoNothing();
+}
+
+export async function saveChangeTest(db: Database, userId: string, pair: string, count: number): Promise<void> {
+  await db.insert(changeTests).values({ userId, pair, count });
+}
+
+/** Marks routine blocks done on the player's day; doing one twice changes nothing. */
+export async function markRoutine(db: Database, userId: string, day: string, blocks: readonly BlockId[]): Promise<void> {
+  await db.insert(routineLog).values(blocks.map((block) => ({ userId, day, block }))).onConflictDoNothing();
+}
+
+/** One day's done blocks, and every day with something done (the last year), newest first. */
+export async function loadRoutine(db: Database, userId: string, day: string): Promise<{ done: BlockId[]; days: string[] }> {
+  const [doneRows, dayRows] = await Promise.all([
+    db.select({ block: routineLog.block }).from(routineLog).where(and(eq(routineLog.userId, userId), eq(routineLog.day, day))),
+    db
+      .selectDistinct({ day: routineLog.day })
+      .from(routineLog)
+      .where(eq(routineLog.userId, userId))
+      .orderBy(desc(routineLog.day))
+      .limit(366),
+  ]);
+  return { done: doneRows.map((r) => r.block as BlockId), days: dayRows.map((r) => r.day) };
 }
 
 export async function saveRun(db: Database, userId: string, run: RunInput): Promise<void> {

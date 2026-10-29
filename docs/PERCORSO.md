@@ -28,7 +28,23 @@ Al primo avvio il percorso propone `/start`: nove domande (esperienza, corde a v
 - Chi ha già suonato (non *Mai*) e ha tutti gli accordi di una lezione ne salta anche gli esercizi *Passo passo* e *A tempo* (`skipsDrillsFor`). Un principiante assoluto li fa sempre: i cambi si costruiscono lì.
 - Dopo 14 giorni il percorso propone di rispondere di nuovo (`needsRecheck`).
 
-Tempo, stile e obiettivo sono salvati per la routine giornaliera e per l'ordine dei brani, che arrivano dopo (vedi `ANALISI.md`).
+Il tempo al giorno decide la routine, lo stile quali brani arrivano prima.
+
+## 3 bis. La pratica di oggi
+
+`/today` è la pagina di ogni giorno: dopo l'accesso si arriva lì. La costruisce `dailyRoutine` in `routine.ts`.
+
+| Minuti | Accordatura | Riscaldamento | Prossimo passo | Cambi | Brano |
+|---|---|---|---|---|---|
+| 10 | 1 | 0 | 5 | 4 | 0 |
+| 20 | 1 | 3 | 7 | 4 | 5 |
+| 30 | 1 | 4 | 10 | 6 | 9 |
+
+- **Prossimo passo**: lo stesso compito del percorso (`nextTask`).
+- **Cambi**: una coppia di accordi imparati che i brani usano davvero (`practisedPairs`). Prima le coppie mai provate, poi quella col record più basso nel test dei cambi (`weakPair`).
+- **Brano**: uno al giorno tra quelli con tutti gli accordi imparati, prima i ritmi dello stile scelto (`songOfTheDay`).
+- Un blocco senza niente da fare passa i minuti agli altri.
+- Fare la cosa segna l'attività (`blocksDoneBy`), ovunque nell'app; accordatura e riscaldamento si segnano a mano. I giorni di fila (`streak`) contano fino a ieri finché oggi non è finito.
 
 ## 4. I compiti di una lezione
 

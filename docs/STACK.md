@@ -18,7 +18,8 @@ src/
   lib/
     music/      il dominio, puro: accordi, brani, ritmi, percorso, consigli,
                 note sulla tastiera (lezione 0), passaggi tra accordi,
-                profilo dal questionario e punto di partenza
+                profilo dal questionario e punto di partenza,
+                routine del giorno e giorni di fila
     audio/      detect.ts puro (croma, confronto accordi, accordatore),
                 synth.ts e engine.ts lato browser (Web Audio)
     progress/   validazione, repository Postgres, caricamento per pagina
@@ -50,7 +51,8 @@ Il riconoscimento ascolta tra 75 Hz e 1,1 kHz. Il basso suona un'ottava sotto la
 
 - L'app è gratuita ma si usa solo con un account: serve a tenere traccia dei progressi. `/` è la presentazione pubblica; `(app)/layout.tsx`, `/play` e `/start` chiamano `requireUser()` e senza sessione mandano a `/account`.
 - Accesso con email e password, e con Google o Apple quando le loro credenziali sono impostate (`socialProviders()` in `lib/auth.ts`).
-- Su Postgres: `chord_mastery`, `practice_runs` e `player_profile` (le risposte al questionario, in JSON validato a ogni lettura). Ogni prova è una riga, mai sovrascritta: il record è una query (`min` per *Passo passo*, `max` per *A tempo*).
+- Su Postgres: `chord_mastery`, `practice_runs`, `player_profile` (le risposte al questionario, in JSON validato a ogni lettura), `change_tests` (ogni test dei cambi, il record è il massimo per coppia) e `routine_log` (le attività fatte, per giorno locale del giocatore).
+- Il giorno lo manda il browser, perché "oggi" è quello di chi suona; il server lo accetta solo se dista al massimo un giorno dal suo (`isNearToday`). Ogni prova è una riga, mai sovrascritta: il record è una query (`min` per *Passo passo*, `max` per *A tempo*).
 - Prima che l'account diventasse obbligatorio i progressi stavano nel `localStorage`: al primo accesso entrano nell'account una volta, poi il browser li dimentica.
 
 ## 2. Le tecnologie

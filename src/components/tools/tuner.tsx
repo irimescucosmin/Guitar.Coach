@@ -44,7 +44,7 @@ export function Tuner() {
   const needle = reading ? 50 + Math.max(-50, Math.min(50, reading.cents)) : 50;
 
   return (
-    <section className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-6">
+    <section id="tuner" className="flex scroll-mt-6 flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="m-0 text-xl font-extrabold">{t("title")}</h2>
         <button type="button" onClick={() => (on ? setOn(false) : void start())}

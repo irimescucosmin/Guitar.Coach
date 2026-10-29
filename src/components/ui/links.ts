@@ -5,6 +5,9 @@ export const learnHref = (chord: string) => `/chords/${chord}`;
 export const FRETBOARD_HREF = "/fretboard";
 /** The path: home for a signed-in player. "/" is the presentation page. */
 export const PATH_HREF = "/path";
+export const TODAY_HREF = "/today";
+/** The change test with a pair already chosen. */
+export const changesHref = (a: string, b: string) => `/tools?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}#changes`;
 
 export function taskHref(task: Task): string {
   switch (task.kind) {

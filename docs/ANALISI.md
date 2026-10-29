@@ -59,6 +59,17 @@ Generata dall'app sul tempo disponibile, per esempio 20 minuti:
 
 Con 10 minuti si tengono accordatura, accordo nuovo e cambi; con 30 si allungano cambi e brano e si aggiunge il ripasso.
 
+**Fatto** (`/today`, `lib/music/routine.ts`):
+- blocchi e minuti dal tempo dichiarato nel questionario (20 se non c'è): accordatura, riscaldamento (il ragno, con timer), prossimo passo del percorso, cambio da ripassare, brano del giorno;
+- il cambio da ripassare è una coppia di accordi già imparati che i brani usano davvero: prima quelle mai provate (l'accordo più recente, il cambio più frequente), poi quella con meno cambi puliti al minuto;
+- il brano del giorno ruota ogni giorno tra quelli che si sanno già suonare, prima quelli dello stile scelto, nel modo che serve (*Passo passo* o *A tempo*);
+- un blocco senza niente da fare passa i suoi minuti agli altri, il totale resta quello dichiarato;
+- le attività si segnano da sole quando si fa la cosa (accordo imparato, esercizio completato, test dei cambi, brano suonato); accordatura e riscaldamento si segnano a mano;
+- giorni di fila, che non si interrompono finché il giorno non è finito;
+- il test dei cambi ora si salva nell'account (`change_tests`), i giorni in `routine_log`.
+
+Manca: l'orecchio musicale dentro la routine (quando ci saranno gli esercizi).
+
 ## 4. Migliorare con la costanza
 
 - **Ripasso mirato**: l'app ricorda quali accordi e quali cambi vengono peggio e li ripropone più spesso.
@@ -141,17 +152,28 @@ Con l'API di Claude, solo lato server, solo dove aggiunge qualcosa che le regole
 
 Modello: Claude Haiku 5.5 (`claude-haiku-5-5`), 0,10 $ per milione di token in ingresso e 0,50 $ in uscita ([fonte](https://www.llmreference.com/provider/anthropic-api/claude-haiku-5-5)): una risposta dell'insegnante costa una frazione di centesimo. Limite di domande al giorno per account, chiave `ANTHROPIC_API_KEY` solo sul server, risposte in italiano con le stesse regole di tono dei testi dell'app.
 
-## 12. Ordine di sviluppo
+## 12. Guide da scaricare in PDF
+
+Per chi non ha mai preso in mano una chitarra, guide brevi da stampare e tenere sul leggio, scelte in base al percorso di ognuno:
+
+- **Prima di iniziare**: le parti della chitarra, come si tiene da seduti, mano sinistra e mano destra, il plettro, come si legge un diagramma.
+- **Accordare**: le corde a vuoto, l'accordatore, quando cambiare le corde.
+- **La scheda della lezione**: i diagrammi degli accordi della lezione in corso, i consigli sul cambio, il ritmo e i brani che si sbloccano.
+- **Il foglio della settimana**: la routine dei prossimi sette giorni, da spuntare a mano.
+
+Generate dall'app con i dati dell'account (lezione, accordi, routine), non file fissi: la scheda di chi è alla lezione 2 non è quella di chi è alla 4. Le prime due sono uguali per tutti, con la mano specchiata per i mancini.
+
+## 13. Ordine di sviluppo
 
 | # | Cosa | Stato |
 |---|---|---|
 | 1 | Questionario e test di livello | fatto |
 | 2 | Account obbligatorio, presentazione, accesso con Google e Apple | fatto |
-| 3 | Routine giornaliera | da fare |
+| 3 | Routine giornaliera, giorni di fila, test dei cambi nell'account | fatto |
 | 4 | Orecchio musicale, livelli 1-5 | da fare |
 | 5 | Ripasso mirato e grafico dei progressi | da fare |
 | 6 | Assistente AI: insegnante e riepilogo settimanale | da fare |
-| 7 | Lezione su postura e mani | da fare |
+| 7 | Lezione su postura e mani, e guide in PDF | da fare |
 | 8 | Community: procedura guidata, segnalazioni, termini | da fare |
 | 9 | Punti per chi aiuta | da fare, dopo la community |
 | 10 | Registrazione settimanale | da fare |

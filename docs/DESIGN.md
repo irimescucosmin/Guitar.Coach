@@ -36,14 +36,15 @@ Due eccezioni note:
 
 | Rotta | Schermata | Componente principale |
 |---|---|---|
-| `/` | Presentazione: perché esiste, come funziona, cosa c'è, i brani liberi, gratis. Chi ha fatto l'accesso va su `/path` | `components/landing/landing.tsx` |
+| `/` | Presentazione: perché esiste, come funziona, cosa c'è, i brani liberi, gratis. Chi ha fatto l'accesso va su `/today` | `components/landing/landing.tsx` |
+| `/today` | Oggi: la routine del giorno, blocchi numerati con minuti e azione, giorni di fila. La pagina dopo l'accesso | `components/today/today-view.tsx` |
 | `/path` | Percorso: prossimo passo, numeri, lezioni, compiti, brani della lezione | `components/path/path-view.tsx` |
 | `/fretboard` | Lezione 0: regole, mappa delle note, esercizio col microfono, nomi | `components/fretboard/*` |
 | `/chords` | Gli otto accordi nell'ordine del percorso | `components/chords/chord-grid.tsx` |
 | `/chords/[chord]` | Impara un accordo: dita, tre pennate pulite, verso dove si va | `components/chords/learn-chord.tsx` |
 | `/songs` | Brani: filtri, ricerca, prossimo modo | `components/songs/songs-table.tsx` |
 | `/play/[songId]?mode=` | Il brano a schermo pieno, senza barra laterale | `components/play/player.tsx` |
-| `/tools` | Accordatore e test dei cambi | `components/tools/*` |
+| `/tools` | Accordatore e test dei cambi; `?a=G&b=D#changes` sceglie la coppia | `components/tools/*` |
 | `/start` | Questionario: una domanda per schermata, prova al microfono, riepilogo | `components/start/*` |
 | `/account` | Accesso a due colonne, fuori dalla barra laterale; `?mode=signup` apre la registrazione | `components/account/account-form.tsx` |
 

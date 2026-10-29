@@ -45,6 +45,8 @@ export interface Progress {
   best: Partial<Record<string, { step?: number; timed?: number }>>;
   /** Answers to the first-run questionnaire, absent until given. */
   profile?: Profile;
+  /** Best clean changes in a minute, per pair of chords (`pairKey`, path order). */
+  changes?: Partial<Record<string, number>>;
 }
 
 export const EMPTY_PROGRESS: Progress = { learned: {}, best: {} };

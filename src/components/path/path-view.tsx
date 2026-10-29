@@ -12,6 +12,7 @@ import { CHORD_IDS, type ChordId } from "@/lib/music/chords";
 import { LESSONS, PASS_SCORE, lessonStates, nextTask, type Lesson, type Task } from "@/lib/music/path";
 import { patternSymbols } from "@/lib/music/patterns";
 import { needsRecheck } from "@/lib/music/profile";
+import { FirstRun, TodayStrip } from "@/components/today/today-view";
 import { chordsOf, findSong } from "@/lib/music/songs";
 
 /** Best one-minute change test, kept by the tools page in this browser. */
@@ -95,15 +96,7 @@ export function PathView() {
       </header>
 
 
-      {!progress.profile && (
-        <section aria-labelledby="first-run" className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-[var(--radius-card)] border-[3px] border-brass bg-surface px-6 py-5">
-          <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-1">
-            <h2 id="first-run" className="m-0 text-xl font-extrabold">{t("firstRun.title")}</h2>
-            <p className="m-0 text-[15px] leading-relaxed text-ink-2">{t("firstRun.body")}</p>
-          </div>
-          <Link href="/start" className={`${button.brass} h-12`}>{t("firstRun.go")}</Link>
-        </section>
-      )}
+      {progress.profile ? <TodayStrip /> : <FirstRun />}
       {progress.profile && (
         <p className="m-0 flex flex-wrap items-center gap-x-2 text-sm text-ink-2">
           {recheck ? t("recheck") : t("retake")}

@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useSettings } from "@/components/providers";
-import { AppMark, IconChords, IconFretboard, IconPath, IconSongs, IconTuner } from "@/components/ui/icons";
-import { PATH_HREF } from "@/components/ui/links";
+import { AppMark, IconChords, IconFretboard, IconPath, IconSongs, IconToday, IconTuner } from "@/components/ui/icons";
+import { PATH_HREF, TODAY_HREF } from "@/components/ui/links";
 import { MicStatus } from "./mic-button";
 
 const NAV = [
+  { href: TODAY_HREF, key: "today", Icon: IconToday },
   { href: PATH_HREF, key: "path", Icon: IconPath },
   { href: "/fretboard", key: "fretboard", Icon: IconFretboard },
   { href: "/chords", key: "chords", Icon: IconChords },

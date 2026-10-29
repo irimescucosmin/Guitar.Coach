@@ -49,3 +49,36 @@ export const playerProfile = pgTable("player_profile", {
   answers: jsonb("answers").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Every one-minute change test, never overwritten: the best per pair is a query. */
+export const changeTests = pgTable(
+  "change_tests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** Two chords in path order, "G-D". */
+    pair: text("pair").notNull(),
+    count: integer("count").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("change_tests_user_pair_idx").on(t.userId, t.pair)],
+);
+
+/**
+ * Routine blocks done, per local day of the player ("2026-10-29"): the day
+ * comes from the browser, because "today" is the player's, not the server's.
+ */
+export const routineLog = pgTable(
+  "routine_log",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    day: text("day").notNull(),
+    block: text("block").notNull(),
+    doneAt: timestamp("done_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day, t.block] })],
+);

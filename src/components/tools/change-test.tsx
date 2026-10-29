@@ -4,34 +4,30 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { matchChord } from "@/lib/audio/detect";
 import { engine, SILENCE } from "@/lib/audio/engine";
+import { useProgress } from "@/components/providers";
 import { CHORD_IDS, type ChordId } from "@/lib/music/chords";
+import { pairKey } from "@/lib/music/routine";
 
 const SECONDS = 60;
 const STABLE_FRAMES = 4;
 
-function readBest(key: string): number | null {
-  try {
-    const v = localStorage.getItem(key);
-    return v ? Number(v) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function ChangeTest() {
+/** Alternating two chords for a minute, counting only clean changes. The best per pair lives in the account. */
+export function ChangeTest({ initial }: { initial?: [ChordId, ChordId] }) {
   const t = useTranslations("tools.test");
-  const [a, setA] = useState<ChordId>("Em");
-  const [b, setB] = useState<ChordId>("Am");
+  const { progress, recordChanges } = useProgress();
+  const [a, setA] = useState<ChordId>(initial?.[0] ?? "Em");
+  const [b, setB] = useState<ChordId>(initial?.[1] ?? "Am");
   const [running, setRunning] = useState(false);
   const [expect, setExpect] = useState<ChordId>("Em");
   const [left, setLeft] = useState(SECONDS);
   const [count, setCount] = useState(0);
-  const [best, setBest] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const run = useRef({ expect: "Em" as ChordId, hits: 0, stable: 0, end: 0 });
-  const key = `guitar-coach:change-test:${a}-${b}`;
-
-  useEffect(() => setBest(readBest(key)), [key]);
+  const best = a === b ? undefined : progress.changes?.[pairKey(a, b)];
+  const recordRef = useRef(recordChanges);
+  useEffect(() => {
+    recordRef.current = recordChanges;
+  }, [recordChanges]);
 
   useEffect(() => {
     if (!running) return;
@@ -44,11 +40,7 @@ export function ChangeTest() {
         const changes = Math.max(0, r.hits - 1);
         setRunning(false);
         setMessage(t("result", { count: changes }));
-        const previous = readBest(key) ?? 0;
-        if (changes > previous) {
-          try { localStorage.setItem(key, String(changes)); } catch { /* best effort */ }
-          setBest(changes);
-        }
+        recordRef.current(a, b, changes);
         return;
       }
       id = requestAnimationFrame(tick);
@@ -66,7 +58,7 @@ export function ChangeTest() {
     };
     id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);
-  }, [running, a, b, key, t]);
+  }, [running, a, b, t]);
 
   const start = async () => {
     if (a === b) { setMessage(t("sameChord")); return; }
@@ -83,7 +75,7 @@ export function ChangeTest() {
   );
 
   return (
-    <section className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-6">
+    <section id="changes" className="flex scroll-mt-6 flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-6">
       <h2 className="m-0 text-xl font-extrabold">{t("title")}</h2>
       <p className="text-sm text-muted">{t("help")}</p>
       <div className="flex flex-wrap items-center gap-2">

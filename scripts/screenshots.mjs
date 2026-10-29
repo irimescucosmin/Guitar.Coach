@@ -30,7 +30,15 @@ const signUp = await page.request.post(`${base}/api/auth/sign-up/email`, {
 });
 if (!signUp.ok()) throw new Error(`Sign-up failed (${signUp.status()}): is the server running with AUTH_RATE_LIMIT=off?`);
 
+// A few chords learned, so the routine has changes and a song to show.
+for (const chord of ["Em", "Am", "G", "D"]) {
+  await page.goto(`${base}/chords/${chord}`);
+  await page.getByRole("button", { name: /Segna come imparato|Mark as learned/ }).click();
+  await page.waitForTimeout(300);
+}
+
 const screens = [
+  ["today", "/today"],
   ["path", "/path"],
   ["fretboard", "/fretboard"],
   ["songs", "/songs"],

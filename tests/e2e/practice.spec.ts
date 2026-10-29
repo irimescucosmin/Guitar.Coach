@@ -83,7 +83,7 @@ test("progress belongs to the account and follows it to another browser", async 
   await other.getByLabel("Email").fill(email);
   await other.getByLabel("Password").fill(PASSWORD);
   await other.getByRole("button", { name: "Accedi", exact: true }).click();
-  await expect(other).toHaveURL(/\/path$/);
+  await expect(other).toHaveURL(/\/today$/);
   await other.goto("/chords");
   await expect(other.getByRole("link", { name: /Em.*Imparato/ })).toBeVisible();
   await fresh.close();
@@ -152,4 +152,21 @@ test("the questionnaire hears the declared chords and starts the path past them"
   // Saved in the account, not only on screen.
   await page.reload();
   await expect(page.getByRole("heading", { name: "Impara G" })).toBeVisible();
+});
+
+test("today's practice is planned on the path and remembers what was done", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/today");
+  await expect(page.getByRole("heading", { level: 1, name: "Oggi" })).toBeVisible();
+  // No answers yet: the questions come first, the plan is the default twenty minutes.
+  await expect(page.getByRole("link", { name: "Rispondi alle domande" })).toBeVisible();
+  await expect(page.getByText(/20 minuti, 3 attività/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Accorda la chitarra" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Le note sulla tastiera" })).toBeVisible();
+  await page.getByRole("button", { name: "Segna fatto" }).first().click();
+  await expect(page.getByText("1/3")).toBeVisible();
+  // Saved in the account: the tick and the day in a row survive a reload.
+  await page.reload();
+  await expect(page.getByText("1/3")).toBeVisible();
+  await expect(page.getByText("giorno di fila")).toBeVisible();
 });
