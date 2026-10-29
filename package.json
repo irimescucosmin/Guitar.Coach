@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --env-file-if-exists=.env.local src/db/migrate.mjs",
+    "db:migrate": "node src/db/migrate.mjs",
     "e2e": "playwright test",
     "dev:cert": "bash scripts/dev-cert.sh",
     "dev:https": "pnpm dev:cert && next dev --turbopack -H 0.0.0.0 --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
+    "@next/env": "^15.5.28",
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.6",

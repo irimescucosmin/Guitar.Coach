@@ -1,12 +1,16 @@
 // Draws the figures of the Basics page with Recraft and saves them in
-// public/figures/<id>.png. The prompts are in scripts/figures.json; the style
+// public/figures/<id>.svg. The prompts are in scripts/figures.json; the style
 // sentence is prepended to each so the four look like one set.
 //
-// Usage: RECRAFT_API_TOKEN=... node scripts/figures.mjs [id ...]
+// Usage: pnpm figures [id ...], with RECRAFT_API_TOKEN in .env.local.
 // Model: FIGURES_MODEL (default recraftv4_1, raster, about $0.035 a figure).
 // Image URLs from the API last a day: this script downloads them at once.
+import nextEnv from "@next/env";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+
+// Plain node reads no .env file: same loader the app uses, same precedence.
+nextEnv.loadEnvConfig(process.cwd());
 
 const token = process.env.RECRAFT_API_TOKEN;
 if (!token) {
@@ -40,7 +44,6 @@ for (const id of ids) {
       model: process.env.FIGURES_MODEL ?? "recraftv4_1",
       style: "vector_illustration",
       size: "1024x1024",
-      image_format: "png",
       random_seed: 7,
       controls: { colors, background_color: { rgb: [255, 255, 255] } },
     }),
@@ -53,7 +56,12 @@ for (const id of ids) {
   const url = data?.[0]?.url;
   const image = await fetch(url);
   const bytes = Buffer.from(await image.arrayBuffer());
-  const ext = url.split("?")[0].endsWith(".svg") ? "svg" : "png";
+  // Recraft's URL carries no extension, so read the format off the response and
+  // fall back to the bytes. It matters: an SVG saved as .png is served as
+  // image/png, and the nosniff header stops the browser rendering it at all.
+  const type = image.headers.get("content-type") ?? "";
+  const svg = type.includes("svg") || bytes.subarray(0, 64).toString("latin1").trimStart().startsWith("<");
+  const ext = svg ? "svg" : "png";
   writeFileSync(`${root}public/figures/${id}.${ext}`, bytes);
   console.log(`${id}: ${bytes.length} bytes, ${credits} credits`);
 }

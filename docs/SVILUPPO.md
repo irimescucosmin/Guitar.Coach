@@ -59,7 +59,7 @@ Fonti: [Better Auth, Google](https://better-auth.com/docs/authentication/google)
 
 ## Le figure delle basi
 
-Le illustrazioni di `/basics` (parti della chitarra, postura, mano sinistra, plettro) non si disegnano a mano: le genera `pnpm figures` con l'API di Recraft (`RECRAFT_API_TOKEN`, modello `recraftv4_1`, stile `vector_illustration`, palette dell'app, circa 0,04 $ a figura) e le salva in `public/figures/<id>.png`, da committare. I prompt stanno in `scripts/figures.json`, con una frase di stile comune in testa a tutti. `pnpm figures sit` ne rifà una sola. Finché il file manca, la pagina mostra un riquadro che lo dice, mai un disegno di ripiego. Il diagramma dell'accordo (`ReadBox`) resta un SVG: è uno schema, non un'illustrazione.
+Le illustrazioni di `/basics` (parti della chitarra, postura, mano sinistra, plettro) non si disegnano a mano: le genera `pnpm figures` con l'API di Recraft (`RECRAFT_API_TOKEN`, modello `recraftv4_1`, stile `vector_illustration`, palette dell'app, circa 0,04 $ a figura) e le salva in `public/figures/<id>.svg`, da committare. Lo stile `vector_illustration` restituisce SVG, e il formato si legge dalla risposta, non dall'URL: un SVG salvato come `.png` viene servito `image/png` e con `nosniff` il browser non lo disegna. I prompt stanno in `scripts/figures.json`, con una frase di stile comune in testa a tutti. `pnpm figures sit` ne rifà una sola. Finché il file manca, la pagina mostra un riquadro che lo dice, mai un disegno di ripiego. Il diagramma dell'accordo (`ReadBox`) resta un SVG: è uno schema, non un'illustrazione.
 
 
 
