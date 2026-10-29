@@ -38,6 +38,15 @@ export function IconHelp({ size = 20 }: { size?: number }) {
   );
 }
 
+export function IconChart({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M4 20h16" />
+      <path d="M5 16l4-5 4 3 6-8" />
+    </svg>
+  );
+}
+
 export function IconPath({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base}>

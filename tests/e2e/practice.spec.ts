@@ -233,3 +233,15 @@ test("the help page explains common problems, opens one from a link and finds th
   await expect(page.getByText("Il plettro scivola o si incastra")).toBeVisible();
   await expect(page.getByText("Le corde ronzano")).toHaveCount(0);
 });
+
+test("the progress page shows the numbers, what to review and a chart once there is a result", async ({ page }) => {
+  await signUp(page);
+  await learnByEar(page, "Em");
+  await learnByEar(page, "Am");
+  await page.goto("/progress");
+  await expect(page.getByRole("heading", { level: 1, name: "Progressi" })).toBeVisible();
+  await expect(page.getByText("2/8")).toBeVisible();
+  // Em and Am learned, their change never measured: the first thing to review.
+  await expect(page.getByText("Cambio Em ↔ Am: non l'hai ancora misurato.")).toBeVisible();
+  await expect(page.getByText("Ancora nessun brano suonato a tempo.")).toBeVisible();
+});

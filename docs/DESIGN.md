@@ -38,6 +38,7 @@ Due eccezioni note:
 |---|---|---|
 | `/` | Presentazione: perché esiste, come funziona, cosa c'è, i brani liberi, gratis. Chi ha fatto l'accesso va su `/today` | `components/landing/landing.tsx` |
 | `/today` | Oggi: la routine del giorno, blocchi numerati con minuti e azione, giorni di fila. La pagina dopo l'accesso | `components/today/today-view.tsx` |
+| `/progress` | Progressi: numeri, da ripassare, calendario, grafici con tooltip e tabella | `components/progress/progress-view.tsx`, `components/charts/line-chart.tsx` |
 | `/path` | Percorso: prossimo passo, numeri, lezioni, compiti, brani della lezione | `components/path/path-view.tsx` |
 | `/fretboard` | Lezione 0: regole, mappa delle note, esercizio col microfono, nomi | `components/fretboard/*` |
 | `/ear` | Orecchio: cinque livelli, giri di dieci domande; `?level=N` evidenzia il livello di oggi | `components/ear/ear-view.tsx` |
@@ -68,7 +69,11 @@ Dall'alto: intestazione (indietro, titolo e ritmo, modi, bpm, Avvia/Ferma), *Ade
 | Icone | `components/ui/icons.tsx` | tratto 2 px, 20 px nella barra |
 | `.eyebrow`, `.display`, `.soon` | `globals.css` | etichetta maiuscola, titolo stretto, pulsazione dell'ultimo battito |
 
-## 5. Per cambiare il design
+## 5. I grafici
+
+Una serie per grafico, con il titolo che dice cosa misura e se più alto o più basso è meglio: niente legende né colori da distinguere. La linea è in `ink`, il riferimento (il 70% di *A tempo*, l'8 su 10 dell'orecchio) tratteggiato in `brass`. Ogni grafico ha il tooltip al passaggio e la tabella dei valori sotto, per chi non vede il grafico. Il calendario usa una sola tinta, l'ottone, più o meno intensa.
+
+## 6. Per cambiare il design
 
 1. Cambia prima il canvas, così resta la fonte.
 2. Un colore nuovo è un token nuovo in `@theme static`, con valore chiaro e scuro.

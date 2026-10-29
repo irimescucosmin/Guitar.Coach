@@ -75,8 +75,8 @@ Con 20 e 30 minuti c'è anche un blocco di 3 minuti per l'orecchio.
 
 ## 4. Migliorare con la costanza
 
-- **Ripasso mirato**: l'app ricorda quali accordi e quali cambi vengono peggio e li ripropone più spesso.
-- **Misure nel tempo**: cambi al minuto per coppia di accordi, precisione in *A tempo*, bpm massimo pulito. Grafico settimanale. La tabella `practice_runs` tiene già ogni prova.
+- **Ripasso mirato**: l'app ricorda quali accordi e quali cambi vengono peggio e li ripropone più spesso. **Fatto**: il blocco dei cambi della routine e il riquadro "Da ripassare" dei Progressi.
+- **Misure nel tempo**: cambi al minuto per coppia di accordi, precisione in *A tempo*, bpm massimo pulito. **Fatto**: pagina Progressi (`/progress`, `lib/music/history.ts`) con i numeri della settimana, il calendario delle ultime 12 settimane, i grafici giorno per giorno (cambi al minuto, *Passo passo*, *A tempo* con la linea del 70%, orecchio per livello) e un riquadro "Da ripassare": il cambio mai misurato, il più lento misurato, i brani non ancora superati a tempo, il livello dell'orecchio fermo.
 - **Tempo che sale piano**: si aumenta il bpm solo quando il precedente è pulito. C'è già: dopo un *A tempo* superato il prossimo modo è *Più veloce*.
 - **Registrarsi**: una registrazione a settimana dello stesso brano, da riascoltare e confrontare.
 - **Serie di giorni** e obiettivi settimanali realistici, senza punizioni se si salta un giorno.
@@ -183,7 +183,7 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 2 | Account obbligatorio, presentazione, accesso con Google e Apple | fatto |
 | 3 | Routine giornaliera, giorni di fila, test dei cambi nell'account | fatto |
 | 4 | Orecchio musicale, livelli 1-5; niente più spunte a mano, tutto verificato | fatto |
-| 5 | Ripasso mirato e grafico dei progressi | da fare |
+| 5 | Ripasso mirato e grafico dei progressi | fatto |
 | 6 | Assistente AI: insegnante e riepilogo settimanale | da fare |
 | 7 | Lezione su postura e mani, e guide in PDF | da fare |
 | 8 | Community: procedura guidata, segnalazioni, termini | da fare |

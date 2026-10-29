@@ -4,7 +4,7 @@ import postgres from "postgres";
 import * as schema from "@/db/schema";
 import { user } from "@/db/schema";
 import type { Profile } from "@/lib/music/profile";
-import { importGuestProgress, loadProgress, loadRoutine, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun, type Database } from "./repository";
+import { importGuestProgress, loadHistory, loadProgress, loadRoutine, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun, type Database } from "./repository";
 import { answersInput, guestProgress, optionalDay, profileInput, proofInput, runInput } from "./validation";
 import { localDate } from "@/lib/music/routine";
 import { recordPractice } from "./practice";
@@ -90,6 +90,14 @@ describe.skipIf(!url)("progress in Postgres", () => {
     const today = await loadRoutine(db, userId, "2026-10-29");
     expect(today.done.sort()).toEqual(["song", "tune"]);
     expect(today.days).toEqual(["2026-10-29", "2026-10-28"]);
+  });
+
+  it("returns the history for the charts: every run, every test, the routine days", async () => {
+    const h = await loadHistory(db, userId);
+    // Four runs saved, two more from the guest import.
+    expect(h.runs.filter((r) => r.song === "drill-em-am")).toHaveLength(6);
+    expect(h.changes.map((c) => c.count).sort()).toEqual([18, 24, 30]);
+    expect(h.days).toContainEqual({ day: "2026-10-29", blocks: 2 });
   });
 
   it("replaces the answers when given again, and keeps them over a guest's", async () => {

@@ -1,10 +1,11 @@
-import { and, desc, eq, max, min } from "drizzle-orm";
+import { and, count, desc, eq, gte, max, min } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { isChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, type Progress } from "@/lib/music/path";
 import * as schema from "@/db/schema";
 import { changeTests, chordMastery, playerProfile, practiceRuns, routineLog } from "@/db/schema";
 import type { BlockId } from "@/lib/music/routine";
+import type { History } from "@/lib/music/history";
 import { placedChords, type Profile } from "@/lib/music/profile";
 import { profileInput, type GuestProgress, type RunInput } from "./validation";
 
@@ -124,3 +125,33 @@ export async function forgetSong(db: Database, userId: string, songId: string): 
 }
 
 export { EMPTY_PROGRESS };
+
+/**
+ * The last six months, for the progress charts. Results are dated by the
+ * server's UTC calendar (a run near midnight may land on the next day);
+ * routine days are the player's own.
+ */
+export async function loadHistory(db: Database, userId: string, now = new Date()): Promise<History> {
+  const since = new Date(now.getTime() - 183 * 86_400_000);
+  const day = (d: Date) => d.toISOString().slice(0, 10);
+  const [runs, changes, days] = await Promise.all([
+    db
+      .select({ song: practiceRuns.songId, mode: practiceRuns.mode, value: practiceRuns.value, at: practiceRuns.createdAt })
+      .from(practiceRuns)
+      .where(and(eq(practiceRuns.userId, userId), gte(practiceRuns.createdAt, since))),
+    db
+      .select({ pair: changeTests.pair, count: changeTests.count, at: changeTests.createdAt })
+      .from(changeTests)
+      .where(and(eq(changeTests.userId, userId), gte(changeTests.createdAt, since))),
+    db
+      .select({ day: routineLog.day, blocks: count() })
+      .from(routineLog)
+      .where(and(eq(routineLog.userId, userId), gte(routineLog.day, day(since))))
+      .groupBy(routineLog.day),
+  ]);
+  return {
+    runs: runs.map((r) => ({ song: r.song, mode: r.mode, value: r.value, day: day(r.at) })),
+    changes: changes.map((c) => ({ pair: c.pair, count: c.count, day: day(c.at) })),
+    days: days.map((d) => ({ day: d.day, blocks: Number(d.blocks) })),
+  };
+}
