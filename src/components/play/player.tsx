@@ -24,7 +24,7 @@ import { TransitionHint } from "./transition-hint";
 const MODES: PracticeMode[] = ["listen", "step", "timed"];
 
 /** Playing a song: no sidebar, the chords as big as the screen allows. */
-export function Player({ song, initialMode, origin }: { song: Song; initialMode: PracticeMode; origin?: string }) {
+export function Player({ song, initialMode, origin, sung }: { song: Song; initialMode: PracticeMode; origin?: string; sung?: string }) {
   const t = useTranslations("play");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -251,7 +251,7 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
           <NextCard view={view} mode={mode} leftHanded={settings.leftHanded} diagramTitle={diagramTitle} />
         </div>
 
-        <Lyrics bars={session.bars} bar={mode === "step" ? (session.steps[view.position]?.firstBar ?? -1) : view.position} />
+        <Lyrics bars={session.bars} sung={sung} bar={mode === "step" ? (session.steps[view.position]?.firstBar ?? -1) : view.position} />
 
         <FeedbackBanner feedback={view.feedback} countIn={view.countIn} />
 

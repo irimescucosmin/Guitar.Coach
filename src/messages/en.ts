@@ -165,6 +165,7 @@ export const en: typeof it = {
   },
   play: {
     lyrics: "Words",
+    sung: { title: "The sung version", body: "To hear how the voice sits on the chords. It runs on its own: it does not follow the song's tempo and the microphone does not listen to it." },
     back: "Songs",
     origin: {
       exercise: "Drill",

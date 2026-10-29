@@ -166,6 +166,7 @@ export const it = {
   },
   play: {
     lyrics: "Testo",
+    sung: { title: "La versione cantata", body: "Per sentire come va la voce sugli accordi. Va per conto suo: non segue il tempo del brano e il microfono non la ascolta." },
     back: "Brani",
     origin: {
       exercise: "Esercizio",

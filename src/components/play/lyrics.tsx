@@ -8,8 +8,11 @@ import { lyricLines, type Bar } from "@/lib/music/songs";
  * The words of a public-domain song, the line being played and the one after:
  * the bar being played lights up in brass, so the chord change and the word
  * it falls on are read together. Nothing for a song without words.
+ *
+ * Under it, when one was generated, the sung version: a file to listen to on
+ * its own, not in time with the player, and never what the microphone judges.
  */
-export function Lyrics({ bars, bar }: { bars: readonly Bar[]; bar: number }) {
+export function Lyrics({ bars, bar, sung }: { bars: readonly Bar[]; bar: number; sung?: string }) {
   const t = useTranslations("play");
   const lines = useMemo(() => lyricLines(bars), [bars]);
   if (lines.length === 0) return null;
@@ -31,6 +34,15 @@ export function Lyrics({ bars, bar }: { bars: readonly Bar[]; bar: number }) {
         ))}
       </p>
       {after && <p className="m-0 text-lg text-muted">{after.parts.map((p) => p.text + (p.text && !p.runsOn ? " " : "")).join("")}</p>}
+      {sung && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4">
+          <span className="flex flex-col">
+            <span className="text-[15px] font-extrabold">{t("sung.title")}</span>
+            <span className="text-sm text-muted">{t("sung.body")}</span>
+          </span>
+          <audio controls preload="none" src={sung} className="ml-auto h-10 max-w-full" />
+        </div>
+      )}
     </section>
   );
 }

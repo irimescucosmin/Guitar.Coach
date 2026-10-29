@@ -63,6 +63,15 @@ Le illustrazioni di `/basics` (parti della chitarra, postura, mano sinistra, ple
 
 
 
+## Le versioni cantate
+
+I diciotto brani tradizionali hanno il testo battuta per battuta (`src/lib/music/lyrics.ts`), e il giocatore lo vede mentre suona. La versione cantata è un file in più, da ascoltare a parte: la genera `pnpm sung` con l'API musicale di ElevenLabs (`ELEVENLABS_API_KEY` in `.env.local`, mai nel repository) e la salva in `public/sung/<id>.mp3`, da committare. Il brano la mostra sotto il testo solo se il file c'è.
+
+- Serve un piano a pagamento di ElevenLabs: l'API musicale non è nel piano gratuito, e ogni brano consuma crediti. `pnpm sung tom-dooley` ne fa uno, `pnpm sung --all` fa quelli che mancano, `pnpm sung --plan tom-dooley` stampa la richiesta senza spendere niente.
+- L'API non ha campi per accordi, tempo o tonalità: li riceve come parole di stile (`compositionPlan` in `src/lib/music/sung-plan.ts`), con la durata di ogni sezione fissata alle sue battute a 90 bpm. Per questo ogni file passa da un controllo: ffmpeg lo decodifica, ogni battuta si legge con il riconoscimento dell'app e si stampa la quota di battute sull'accordo scritto. Sotto il 60% il file resta in `.sung-rejected/` e non si pubblica. Il controllo legge una chitarra sotto una voce: è un filtro, non una prova, quindi il file si ascolta prima di committarlo.
+- La versione cantata non segue il tempo del brano e il microfono non la giudica mai: per suonare a tempo c'è *Ascolta* con il sintetizzatore dell'app.
+- Dal contenitore cloud l'host di ElevenLabs non è raggiungibile: lo script gira sulla macchina di chi sviluppa.
+
 ## 3. Il microfono
 
 Il browser dà il microfono solo a un'origine sicura: `localhost`, `127.0.0.1` o qualsiasi `https://`. Altrimenti il bottone dice *Serve https*. Attenzione a `http://lvh.me:3000`: risolve su 127.0.0.1 ma origine sicura non è, quindi il microfono non lo ottiene.
