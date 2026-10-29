@@ -55,6 +55,9 @@ Fonti: [Better Auth, Google](https://better-auth.com/docs/authentication/google)
 
 `ANTHROPIC_API_KEY` in `.env.local` accende la pagina Insegnante e il riepilogo settimanale nei Progressi; senza chiave sono spenti e lo dicono. Il modello è `claude-haiku-5-5`, chiamato solo dal server (`lib/coach/model.ts`), 20 domande al giorno per account. I test di `lib/coach` sostituiscono il modello con una risposta finta: la chiave non serve per i test.
 
+`NEXT_PUBLIC_CONTACT_EMAIL` è l'indirizzo mostrato in `/terms` per segnalazioni e richieste di rimozione; senza, la pagina non mostra nessun contatto. Da impostare prima di aprire la community a qualcuno.
+
+
 ## 3. Il microfono
 
 Il browser dà il microfono solo a un'origine sicura: `localhost`, `127.0.0.1` o qualsiasi `https://`. Altrimenti il bottone dice *Serve https*. Attenzione a `http://lvh.me:3000`: risolve su 127.0.0.1 ma origine sicura non è, quindi il microfono non lo ottiene.

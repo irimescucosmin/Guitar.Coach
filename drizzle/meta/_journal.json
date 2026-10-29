@@ -29,6 +29,13 @@
       "when": 1793236180456,
       "tag": "0003_coach",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793237330344,
+      "tag": "0004_community",
+      "breakpoints": true
     }
   ]
 }

@@ -198,3 +198,14 @@ export function AppMark({ size = 34 }: { size?: number }) {
     </svg>
   );
 }
+
+export function IconPeople({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M16 14.2c3 0 5.5 2 5.5 5.3" />
+    </svg>
+  );
+}

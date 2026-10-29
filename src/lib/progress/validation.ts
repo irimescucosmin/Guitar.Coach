@@ -7,6 +7,7 @@ import { EXPERIENCE, GOALS, GUITARS, MINUTES, STYLES, TAB_READING, type Profile 
 import { PAIR_KEYS, isNearToday } from "@/lib/music/routine";
 import { QUESTION_MAX_CHARS } from "@/lib/coach/context";
 import { SONGS } from "@/lib/music/songs";
+import { isCommunityId } from "@/lib/community/song";
 
 /**
  * What arrives from a browser is checked against the catalogue, never trusted:
@@ -18,7 +19,8 @@ import { SONGS } from "@/lib/music/songs";
  * ms per note) and the ear levels (timed: share of right answers).
  */
 const PRACTICE_IDS = [...SONGS.map((s) => s.id), NOTE_DRILL_ID, ...EAR_IDS];
-const songId = z.enum(PRACTICE_IDS as [string, ...string[]]);
+/** Catalogue ids, or a community song id: the latter is checked against the database by the action. */
+const songId = z.string().refine((id) => PRACTICE_IDS.includes(id) || (isCommunityId(id) && /^c-[a-f0-9-]{6,40}$/.test(id)), "unknown song");
 const chordId = z.enum(CHORD_IDS as [string, ...string[]]);
 
 /** One hour per change is already absurd; it only stops garbage. */
@@ -70,7 +72,7 @@ export const profileInput = profileShape.transform(narrow);
 const knownChords = new Set<string>(CHORD_IDS);
 const knownSongs = new Set<string>(PRACTICE_IDS);
 const pick = <T,>(record: Record<string, T>, known: Set<string>) =>
-  Object.fromEntries(Object.entries(record).filter(([key]) => known.has(key)));
+  Object.fromEntries(Object.entries(record).filter(([key]) => known.has(key) || isCommunityId(key)));
 
 /**
  * Keys the catalogue no longer knows (a renamed song, a removed chord) are
@@ -111,3 +113,10 @@ export const answersInput = profileShape.extend({ openStringsHeard: z.boolean() 
 
 /** A question for the teacher: short, on the player's day. */
 export const questionInput = z.object({ day: dayInput, question: z.string().trim().min(2).max(QUESTION_MAX_CHARS) });
+
+/** A report on a community song: a fixed reason and, at most, one line. */
+export const reportInput = z.object({
+  songId: z.string().refine(isCommunityId),
+  reason: z.enum(["lyrics", "wrong", "offensive", "other"]),
+  note: z.string().trim().max(200).optional(),
+});

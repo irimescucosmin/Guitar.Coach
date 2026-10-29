@@ -22,6 +22,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - **Colori e raggi solo dai token** in `src/app/globals.css` (`--color-ink`, `--color-chord-Em`, `--radius-field`). Il blocco `@theme` è `static`: il canvas della corsia legge i token per nome e Tailwind toglierebbe quelli non usati da una classe.
 - **Mai un brano con testo o melodia** di un'opera protetta: per quelle solo il giro di accordi, gruppo `progression`.
 - **Niente si spunta a mano.** Un progresso conta solo se il microfono l'ha sentito o se c'è un risultato salvato che lo dimostra. Le attività della routine le segna il server (`recordPractice`); dal browser arrivano solo le prove del microfono (`reportProof`). Niente bottoni "fatto".
+- **Un brano della community si pubblica da solo** quando l'autore lo supera a tempo (`publishIfPassed`): nessun bottone "pubblica". Il modulo non ha un campo per il testo, e `looksLikeLyrics` rifiuta una riga di parole nel titolo.
 - **L'AI riceve solo fatti dal database.** Il brief dell'insegnante si costruisce in `lib/coach/context.ts` dai risultati salvati, mai da testo libero dell'utente oltre alla domanda; l'unico file che chiama l'API è `lib/coach/model.ts`. Niente chiave nel browser.
 
 ## Dove aggiungere cosa

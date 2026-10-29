@@ -269,3 +269,64 @@ test("the basics page and the printable sheets are built from the player's own p
   await expect(page.getByText("giovedì 29 ottobre")).toBeVisible();
   await expect(page.getByText("Accorda la chitarra")).toHaveCount(7);
 });
+
+test("a community song is a draft until its author passes it in time, then others see it", { tag: "@own-browser" }, async ({ page }) => {
+  await signUpQuickly(page);
+  // A title of its own: the database may hold songs from earlier runs.
+  const title = `Giro di Mi ${Date.now().toString(36)}`;
+  await page.goto("/community");
+  await expect(page.getByRole("heading", { level: 1, name: "I brani degli altri" })).toBeVisible();
+  await page.getByRole("link", { name: "Pubblica un brano" }).click();
+  const next = page.getByRole("button", { name: "Avanti", exact: true });
+  // Step 1: what it is. Step 2: title and source; a line of lyrics is refused.
+  await expect(page.getByRole("heading", { name: "Che brano è?" })).toBeVisible();
+  await next.click();
+  await page.getByLabel("Titolo").fill("oh oh oh la la la na na na hey hey hey yeah");
+  await page.getByLabel("Da dove viene").fill("Tradizionale");
+  await expect(page.getByText("Sembra una riga di testo")).toBeVisible();
+  await page.getByLabel("Titolo").fill(title);
+  await next.click();
+  // Step 3: the rhythm. Step 4: the bars, seven Em and one Am, the chords this microphone can prove.
+  await expect(page.getByRole("heading", { name: "Che ritmo ha?" })).toBeVisible();
+  await next.click();
+  const bars = page.getByRole("list", { name: "Battute" });
+  for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "+ battuta" }).click();
+  for (let i = 1; i <= 8; i++) await bars.getByLabel(`Battuta ${i}`).selectOption(i === 8 ? "Am" : "Em");
+  await next.click();
+  await expect(page.getByText("Accordi usati: Em (Mi minore), Am (La minore)")).toBeVisible();
+  await page.getByRole("button", { name: "Salva la bozza" }).click();
+  // Saved as a draft: it opens in listen mode, and only its author sees it in the list.
+  await expect(page).toHaveURL(/\/play\/c-[a-z0-9]+\?mode=listen$/);
+  const songId = page.url().match(/\/play\/(c-[a-z0-9]+)/)![1]!;
+  await page.goto("/community");
+  const mine = page.getByRole("listitem").filter({ hasText: title });
+  await expect(mine.getByText("Bozza")).toBeVisible();
+  await expect(mine.getByText("nessuno l'ha ancora superato")).toBeVisible();
+
+  const fresh = await page.context().browser()!.newContext();
+  const other = await fresh.newPage();
+  await signUpQuickly(other);
+  await other.goto("/community");
+  await expect(other.getByRole("listitem").filter({ hasText: title })).toHaveCount(0);
+  const hidden = await other.goto(`/play/${songId}?mode=listen`);
+  expect(hidden?.status()).toBe(404);
+
+  // Passing it in time is what publishes it: Em bars count, the one Am bar does not.
+  await page.getByRole("link", { name: "Superalo a tempo per pubblicarlo" }).click();
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === "POST" && (r.request().postData() ?? "").includes('"mode":"timed"'),
+    { timeout: 120_000 },
+  );
+  await page.getByRole("button", { name: "Avvia" }).click();
+  await expect(page.getByText(/% delle battute con l'accordo giusto/)).toBeVisible({ timeout: 90_000 });
+  await saved;
+  await page.goto("/community");
+  await expect(mine.getByText("Bozza")).toHaveCount(0);
+  await other.goto("/community");
+  const theirs = other.getByRole("listitem").filter({ hasText: title });
+  await expect(theirs).toContainText("pubblicato da Prova");
+  await theirs.getByRole("button", { name: "Segnala" }).click();
+  await theirs.getByRole("button", { name: "Contiene un testo protetto" }).click();
+  await expect(theirs.getByText("Grazie, segnalazione ricevuta.")).toBeVisible();
+  await fresh.close();
+});

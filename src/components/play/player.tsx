@@ -13,7 +13,7 @@ import { engine } from "@/lib/audio/engine";
 import type { ChordId } from "@/lib/music/chords";
 import { PASS_SCORE, type PracticeMode } from "@/lib/music/path";
 import { patternSymbols } from "@/lib/music/patterns";
-import { chordsOf, findSong } from "@/lib/music/songs";
+import { chordsOf, type Song } from "@/lib/music/songs";
 import { drawHighway } from "./highway";
 import { PracticeSession, type Feedback, type Status, type View } from "./session";
 import { TransitionHint } from "./transition-hint";
@@ -21,8 +21,7 @@ import { TransitionHint } from "./transition-hint";
 const MODES: PracticeMode[] = ["listen", "step", "timed"];
 
 /** Playing a song: no sidebar, the chords as big as the screen allows. */
-export function Player({ songId, initialMode }: { songId: string; initialMode: PracticeMode }) {
-  const song = findSong(songId)!;
+export function Player({ song, initialMode, origin }: { song: Song; initialMode: PracticeMode; origin?: string }) {
   const t = useTranslations("play");
   const tc = useTranslations("common");
   const router = useRouter();
@@ -39,9 +38,14 @@ export function Player({ songId, initialMode }: { songId: string; initialMode: P
     recordRef.current = record;
   }, [record]);
 
+  // The server sends a fresh song object with every re-render, a save included:
+  // the session must survive that, so it is keyed on the id, not the object.
+  const songRef = useRef(song);
+  songRef.current = song;
   const session = useMemo(
-    () => new PracticeSession(song, mode, { bpm: 100, guide: false, band: true, click: true, volume: 0.8 }, (run) => recordRef.current(run)),
-    [song, mode],
+    () => new PracticeSession(songRef.current, mode, { bpm: 100, guide: false, band: true, click: true, volume: 0.8 }, (run) => recordRef.current(run)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the id stands for the song
+    [song.id, mode],
   );
   useEffect(() => () => session.dispose(), [session]);
   useEffect(() => {
@@ -114,7 +118,7 @@ export function Player({ songId, initialMode }: { songId: string; initialMode: P
         <div className="mr-auto flex min-w-0 flex-col">
           <h1 className="display m-0 text-[22px] font-extrabold">{song.title}</h1>
           <span className="text-[13px] text-muted">
-            {t(`origin.${song.origin}`)} · {t("pattern")} <span className="font-mono">{symbols.join(" ")}</span>
+            {origin ?? t(`origin.${song.origin}`)} · {t("pattern")} <span className="font-mono">{symbols.join(" ")}</span>
           </span>
         </div>
         <div role="tablist" aria-label={t("modeLabel")} className="flex gap-1 rounded-[12px] bg-sunken p-1">

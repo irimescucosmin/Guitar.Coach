@@ -5,12 +5,14 @@ import { db } from "@/db/client";
 import { currentUser } from "@/lib/auth";
 import { importGuestProgress, loadProgress, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun } from "@/lib/progress/repository";
 import { loadToday as todayOf, recordPractice, type Today } from "@/lib/progress/practice";
-import { answersInput, changeTestInput, chordInput, dayInput, guestProgress, optionalDay, proofInput, questionInput, runInput } from "@/lib/progress/validation";
+import { reportInput, answersInput, changeTestInput, chordInput, dayInput, guestProgress, optionalDay, proofInput, questionInput, runInput } from "@/lib/progress/validation";
 import { answerQuestion, weeklySummary, type Answer } from "@/lib/coach/service";
 import { getLocale } from "next-intl/server";
 import { blocksDoneBy, dailyRoutine } from "@/lib/music/routine";
 import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { earRunAllowed } from "@/lib/music/ear";
+import { isCommunityId, communitySongInput, songProblems } from "@/lib/community/song";
+import { createCommunitySong, findCommunitySong, publishIfPassed, reportSong, updateCommunitySong } from "@/lib/community/repository";
 import { isChordId } from "@/lib/music/chords";
 import type { Progress } from "@/lib/music/path";
 
@@ -37,10 +39,17 @@ export async function savePracticeRun(run: unknown, day: unknown = null): Promis
   const parsed = runInput.safeParse(run);
   if (!me || !parsed.success) return { saved: false };
   const r = parsed.data;
+  // A community song must exist and be visible to this player: a result on a made-up id is refused.
+  if (isCommunityId(r.songId)) {
+    const song = await findCommunitySong(db, r.songId);
+    if (!song || (song.status !== "published" && song.authorId !== me.id)) return { saved: false };
+  }
   const event = { kind: "run" as const, song: r.songId, mode: r.songId === NOTE_DRILL_ID ? ("notes" as const) : r.mode, value: r.value };
   const result = await recordPractice(db, me.id, optionalDay.parse(day), event, () => saveRun(db, me.id, r), (before) =>
     earRunAllowed(before, r.songId),
   );
+  // The author passing their own draft in time is what publishes it.
+  if (result && isCommunityId(r.songId) && r.mode === "timed") await publishIfPassed(db, me.id, r.songId);
   revalidatePath("/", "layout");
   return result ? { saved: true, ...result } : { saved: false };
 }
@@ -102,4 +111,26 @@ export async function loadWeeklySummary(day: unknown): Promise<string | null> {
   const parsed = dayInput.safeParse(day);
   if (!me || !parsed.success) return null;
   return weeklySummary(db, me.id, await getLocale(), parsed.data);
+}
+
+export async function saveCommunitySong(input: unknown, id: unknown = null): Promise<{ ok: true; id: string } | { ok: false }> {
+  const me = await currentUser();
+  const parsed = communitySongInput.safeParse(input);
+  if (!me || !parsed.success || songProblems(parsed.data).length > 0) return { ok: false };
+  if (typeof id === "string" && isCommunityId(id)) {
+    const updated = await updateCommunitySong(db, me.id, id, parsed.data);
+    return updated ? { ok: true, id } : { ok: false };
+  }
+  return { ok: true, id: await createCommunitySong(db, me.id, parsed.data) };
+}
+
+export async function reportCommunitySong(input: unknown): Promise<{ hidden: boolean } | null> {
+  const me = await currentUser();
+  const parsed = reportInput.safeParse(input);
+  if (!me || !parsed.success) return null;
+  const song = await findCommunitySong(db, parsed.data.songId);
+  if (!song || song.authorId === me.id) return null;
+  const result = await reportSong(db, me.id, parsed.data.songId, parsed.data.reason, parsed.data.note ?? null);
+  revalidatePath("/community");
+  return result;
 }

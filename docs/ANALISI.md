@@ -134,11 +134,16 @@ L'idea: chi ha imparato un brano lo pubblica per gli altri, con una procedura gu
 4. Il controllo: l'autore lo suona una volta *A tempo* e deve passare. Così ogni brano pubblicato è suonabile davvero.
 5. Pubblicazione: il brano entra nella lezione giusta da solo, perché si sa quali accordi usa.
 
-**Aiutarsi**: segnare "l'ho suonato", proporre una correzione a un accordo (l'autore accetta o no), domande sotto il brano, segnalare un brano.
+**Fatto** (`/community`, `lib/community/*`):
+- La procedura guidata in cinque passi (`components/community/song-editor.tsx`): che brano è (tradizionale per intero, o solo il giro di un brano protetto), titolo e provenienza, battiti e pennata, le battute con gli accordi del percorso e l'ascolto, il riepilogo. Il modulo non ha un campo per il testo e rifiuta una riga di parole anche nel titolo (`looksLikeLyrics`).
+- Il brano nasce come **bozza**, visibile solo all'autore. Diventa pubblico quando l'autore lo supera *A tempo*: `publishIfPassed` guarda i risultati salvati dell'autore, non un bottone. Un brano pubblicato non si modifica più: è quello che gli altri hanno provato.
+- I brani della community si suonano con lo stesso player del catalogo (`/play/c-…`), i risultati finiscono in `practice_runs` con l'id del brano. "Superato da N persone" conta i giocatori diversi che l'hanno passato a tempo, autore escluso.
+- **Segnalazioni** (`song_reports`): testo protetto, accordi sbagliati, offensivo, altro. Al terzo giocatore diverso il brano si nasconde da solo (`REPORTS_TO_HIDE`); l'autore lo vede come nascosto.
+- **Regole pubbliche** su `/terms`: cosa si pubblica, la prova, le segnalazioni, diritto d'autore, rispetto, contatto (`NEXT_PUBLIC_CONTACT_EMAIL`).
 
-**Obblighi** (Digital Services Act, valgono anche per piattaforme piccole che ospitano contenuti degli utenti): un modo per chiunque di segnalare contenuti illeciti, termini d'uso pubblici con le regole di moderazione, un punto di contatto, una motivazione a chi si vede rimuovere un brano e un modo interno per contestarla ([fonte](https://ntplusdiritto.ilsole24ore.com/art/digital-services-act-obblighi-carico-servizi-meno-45-milioni-destinatari-attivi-AEDvlV5C)). Da far verificare a un legale prima di aprire la pubblicazione.
+Da fare: proporre una correzione a un accordo, domande sotto il brano, un modo per contestare una rimozione (per ora: scrivere al contatto). I brani della community non entrano nelle lezioni del percorso: restano nella loro pagina.
 
-Dati: `community_song` (autore, stato: bozza, pubblicato, nascosto; stessa forma di `Song`, validata col catalogo degli accordi), `community_play`, `community_fix`, `community_report`.
+Dati: `community_songs` (autore, stato: bozza, pubblicato, nascosto; stessa forma di `Song`, validata col catalogo degli accordi), `song_reports` (un giocatore, un brano, una volta).
 
 ## 10. Punti per chi aiuta
 
@@ -196,7 +201,7 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 5 | Ripasso mirato e grafico dei progressi | fatto |
 | 6 | Assistente AI: insegnante e riepilogo settimanale | fatto |
 | 7 | Lezione su postura e mani, e guide in PDF | fatto |
-| 8 | Community: procedura guidata, segnalazioni, termini | da fare |
+| 8 | Community: procedura guidata, bozza finché non la superi, segnalazioni, regole | fatto |
 | 9 | Punti per chi aiuta | da fare, dopo la community |
 | 10 | Registrazione settimanale | da fare |
 | 11 | Tecniche e teoria | da fare |
