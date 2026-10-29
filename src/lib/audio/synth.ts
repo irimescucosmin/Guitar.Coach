@@ -25,6 +25,8 @@ export class Synth {
   private noise: AudioBuffer | null = null;
   /** Every source still scheduled or sounding, so Stop can cut them all. */
   private readonly live = new Set<AudioScheduledSourceNode>();
+  /** Until when a guitar note of ours is in the room: what the microphone hears meanwhile proves nothing. */
+  guitarUntil = 0;
 
   constructor(ctx: AudioContext) {
     this.ctx = ctx;
@@ -86,6 +88,7 @@ export class Synth {
   }
 
   private note(midi: number, at: number, gain: number, string: number): void {
+    this.guitarUntil = Math.max(this.guitarUntil, at + PLUCK_SECONDS);
     const src = this.track(this.ctx.createBufferSource());
     src.buffer = this.pluck(midi);
     const g = this.ctx.createGain();
@@ -120,12 +123,17 @@ export class Synth {
     this.note(chord.notes[string]!, at, 0.32, string);
   }
 
-  /** An octave under the guitar's bass note: below what the detector hears. */
+  /**
+   * An octave under the guitar's bass note, as a sine: no harmonics, so
+   * nothing of it lands in the band the detector reads. A triangle wave put
+   * its odd harmonics right on the chord's notes, and the microphone took
+   * the band's bass for the player's strum.
+   */
   bass(chordId: ChordId, at: number, seconds: number): void {
     const chord = CHORDS[chordId];
     const midi = chord.notes[chord.bassString]! - 12;
     const osc = this.track(this.ctx.createOscillator());
-    osc.type = "triangle";
+    osc.type = "sine";
     osc.frequency.value = frequencyFromMidi(midi);
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(0.0001, at);

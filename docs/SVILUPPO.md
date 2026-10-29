@@ -131,7 +131,7 @@ Dopo, `fly deploy` e basta: le migrazioni girano come `release_command` prima ch
 | Sintomo | Causa | Rimedio |
 |---|---|---|
 | e2e o `pnpm shots`: la registrazione non va avanti | limite degli accessi di Better Auth | server avviato con `AUTH_RATE_LIMIT=off` |
-| e2e *A tempo* al 50% | microfono finto sfasato | il test deve stare nel progetto `em-am-timed`, che gira per primo |
+| e2e *A tempo* al 50% | microfono finto sfasato | il test deve stare nel progetto `em-am-timed`, che gira per primo; `em-only.wav` penna due volte a battuta, perché un accordo si giudica sulle pennate |
 | *Serve https* sul bottone del microfono | pagina su http e non su localhost | `localhost:3000`, o `pnpm dev:https` |
 | *Microfono bloccato* | permesso negato una volta | impostazioni del sito nel browser, poi ricarica |
 | Em letto come E | quinta armonica della corda grave | è già gestito da `harmonicWeight`: se torna, serve un test in `detect.test.ts` |

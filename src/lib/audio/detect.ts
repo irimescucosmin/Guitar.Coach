@@ -246,3 +246,51 @@ export function readTuning(hz: number): TuningReading {
   const cents = Math.round(1200 * Math.log2(hz / frequencyFromMidi(STANDARD_TUNING_MIDI[string]!)));
   return { string, cents };
 }
+
+/**
+ * A strum is a jump in energy across many bins at once. Comparing levels
+ * alone misses it: on a chord still ringing, the next strum raises the level
+ * by less than the ratio a level test needs, and the strums run together.
+ * Spectral flux (the positive change of magnitude, bin by bin) sees each
+ * pick, because the ringing bins do not rise and the struck ones do.
+ */
+export function spectralFlux(previousDb: ArrayLike<number>, nowDb: ArrayLike<number>, sampleRate: number, fftSize: number): number {
+  const binHz = sampleRate / fftSize;
+  const lo = Math.max(1, Math.floor(ANALYSIS_LOW_HZ / binHz));
+  const hi = Math.min(nowDb.length - 1, Math.ceil(ANALYSIS_HIGH_HZ / binHz));
+  let flux = 0;
+  for (let i = lo; i <= hi; i++) {
+    const a = 10 ** (previousDb[i]! / 20);
+    const b = 10 ** (nowDb[i]! / 20);
+    if (b > a) flux += b - a;
+  }
+  return flux;
+}
+
+/** Onsets closer than this are one strum: the pick crosses six strings in a few milliseconds, the frames are 16 ms apart. */
+export const ONSET_GAP_MS = 120;
+/** The flux must beat its own recent average by this much: a ringing chord drifts, a strum jumps. */
+export const ONSET_RATIO = 3;
+/** And be loud enough in absolute terms: the room's hiss also fluctuates. */
+export const ONSET_MIN = 0.005;
+
+/** Finds strums in a run of spectra, one frame at a time, with a threshold that follows the signal. */
+export class OnsetDetector {
+  private previous: Float32Array | null = null;
+  private average = 0;
+  private lastAt = -Infinity;
+
+  /** True on the frame a strum starts. */
+  feed(spectrumDb: ArrayLike<number>, sampleRate: number, fftSize: number, now: number): boolean {
+    const current = Float32Array.from(spectrumDb as ArrayLike<number>);
+    const previous = this.previous;
+    this.previous = current;
+    if (!previous) return false;
+    const flux = spectralFlux(previous, current, sampleRate, fftSize);
+    const onset = flux > ONSET_MIN && flux > this.average * ONSET_RATIO && now - this.lastAt > ONSET_GAP_MS;
+    // The average follows the signal, but a strum must not raise the bar for the next one.
+    this.average = onset ? this.average : this.average * 0.9 + flux * 0.1;
+    if (onset) this.lastAt = now;
+    return onset;
+  }
+}

@@ -7,12 +7,11 @@ import { useMicState } from "@/components/chrome/mic-button";
 import { useSettings } from "@/components/providers";
 import { IconCheck } from "@/components/ui/icons";
 import { button } from "@/components/ui/links";
-import { matchHeard } from "@/lib/audio/detect";
+import { StrumJudge } from "@/lib/audio/judge";
 import { engine, SILENCE } from "@/lib/audio/engine";
 import type { ChordId } from "@/lib/music/chords";
 
 /** Same bar as learning a chord: three clean frames after a fresh strum. */
-const CLEAN_FRAMES = 3;
 /** A moment to read the next chord before the microphone listens again. */
 const PAUSE_MS = 900;
 
@@ -28,7 +27,7 @@ export function ChordCheck({ chords, onDone }: { chords: ChordId[]; onDone: (ver
   const [index, setIndex] = useState(0);
   const [verified, setVerified] = useState<ChordId[]>([]);
   const [heard, setHeard] = useState(false);
-  const run = useRef({ armed: false, streak: 0, ignoreUntil: 0 });
+  const run = useRef({ ignoreUntil: 0 });
   // The pause after a clean chord: cancelled if the player leaves or skips meanwhile.
   const pending = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(pending.current), []);
@@ -41,7 +40,7 @@ export function ChordCheck({ chords, onDone }: { chords: ChordId[]; onDone: (ver
     if (index + 1 >= chords.length) onDone(nextVerified);
     else {
       setIndex(index + 1);
-      run.current = { armed: false, streak: 0, ignoreUntil: performance.now() + PAUSE_MS };
+      run.current = { ignoreUntil: performance.now() + PAUSE_MS };
     }
   };
   const advanceRef = useRef(advance);
@@ -53,25 +52,19 @@ export function ChordCheck({ chords, onDone }: { chords: ChordId[]; onDone: (ver
     if (mic !== "on" || !chord || heard) return;
     let id = 0;
     const r = run.current;
+    const judge = new StrumJudge();
     const tick = (now: number) => {
       id = requestAnimationFrame(tick);
       const frame = engine.read();
-      if (!frame) return;
-      if (frame.attack) r.armed = true;
-      if (now < r.ignoreUntil || frame.level < SILENCE) {
-        r.streak = 0;
-        return;
+      if (!frame || now < r.ignoreUntil) return;
+      // A strum judged once, after its onset; the app's own sound and the room give no verdict.
+      const verdict = judge.feed(frame, chord, SILENCE);
+      if (verdict?.kind === "strum" && verdict.match.clean) {
+        engine.synth?.chime();
+        setHeard(true);
+        // Long enough to see the tick, short enough to keep the pace.
+        pending.current = window.setTimeout(() => advanceRef.current(true), 700);
       }
-      if (r.armed && matchHeard(frame, chord).clean) {
-        if (++r.streak >= CLEAN_FRAMES) {
-          r.armed = false;
-          r.streak = 0;
-          engine.synth?.chime();
-          setHeard(true);
-          // Long enough to see the tick, short enough to keep the pace.
-          pending.current = window.setTimeout(() => advanceRef.current(true), 700);
-        }
-      } else r.streak = 0;
     };
     id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);

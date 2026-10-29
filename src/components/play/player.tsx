@@ -474,7 +474,8 @@ function ResultPanel({ session, view, bpm, onMode }: { session: PracticeSession;
       if (result.ready) next = "timed";
     }
   } else if (result.share === null) {
-    headline = t("result.timedNoMic");
+    headline = result.guided ? t("result.timedGuided") : t("result.timedNoMic");
+    if (result.guided) line = t("result.timedGuidedDetail");
   } else {
     headline = t("result.timed", { percent: Math.round(result.share * 100) });
     line = result.passed

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CHORDS, CHORD_IDS, type ChordId } from "@/lib/music/chords";
 import { fixFor } from "@/lib/music/feedback";
 import {
+  OnsetDetector,
   checkableStrings,
   chromaFromSpectrum,
   frequencyFromMidi,
@@ -255,5 +256,50 @@ describe("every string of the chord must sound", () => {
     const all = playedStrings("Em");
     const noG = heardStrings("Em", all.filter((s) => s !== 3));
     expect(noG.silent).toEqual([3]);
+  });
+});
+
+/* Strums are found by spectral flux: a ringing chord does not hide the next pick. */
+
+/** Frames of a signal as the browser's analyser would see them: at time `at`, the last FFT samples. */
+function framesOf(signal: Float32Array, fps = 60): { at: number; spectrum: Float32Array }[] {
+  const hop = Math.round(SAMPLE_RATE / fps);
+  const out: { at: number; spectrum: Float32Array }[] = [];
+  for (let end = FFT; end <= signal.length; end += hop) {
+    out.push({ at: (end / SAMPLE_RATE) * 1000, spectrum: spectrumDb(signal.subarray(end - FFT, end)) });
+  }
+  return out;
+}
+
+/** The same chord strummed at the given times, each strum starting while the last still rings. */
+function strums(id: ChordId, atSeconds: number[], seconds: number): Float32Array {
+  const out = new Float32Array(Math.round(SAMPLE_RATE * seconds));
+  for (const at of atSeconds) {
+    const one = strum(id, SAMPLE_RATE, out.length - Math.round(at * SAMPLE_RATE), 0);
+    const start = Math.round(at * SAMPLE_RATE);
+    for (let i = 0; i < one.length; i++) out[start + i]! += one[i]!;
+  }
+  return out;
+}
+
+describe("strum onsets", () => {
+  it("finds every strum of a chord that keeps ringing, and nothing in the tail", () => {
+    const times = [0.4, 1.3, 2.1];
+    const detector = new OnsetDetector();
+    const found: number[] = [];
+    for (const f of framesOf(strums("G", times, 3.2))) if (detector.feed(f.spectrum, SAMPLE_RATE, FFT, f.at)) found.push(f.at);
+    expect(found).toHaveLength(times.length);
+    found.forEach((ms, i) => {
+      expect(ms).toBeGreaterThanOrEqual(times[i]! * 1000);
+      expect(ms).toBeLessThanOrEqual(times[i]! * 1000 + 150);
+    });
+  });
+
+  it("stays quiet on silence", () => {
+    const detector = new OnsetDetector();
+    const silence = new Float32Array(SAMPLE_RATE * 1);
+    let onsets = 0;
+    for (const f of framesOf(silence)) if (detector.feed(f.spectrum, SAMPLE_RATE, FFT, f.at)) onsets++;
+    expect(onsets).toBe(0);
   });
 });

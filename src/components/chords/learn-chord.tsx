@@ -11,7 +11,7 @@ import { useTransitionHint } from "@/components/play/transition-hint";
 import { useProgress, useSettings } from "@/components/providers";
 import { IconCheck, IconSpeaker } from "@/components/ui/icons";
 import { button, learnHref, taskHref } from "@/components/ui/links";
-import { matchHeard } from "@/lib/audio/detect";
+import { StrumJudge } from "@/lib/audio/judge";
 import { engine, SILENCE } from "@/lib/audio/engine";
 import { CHORDS, stringsForPitchClasses, type ChordId } from "@/lib/music/chords";
 import { fixFor, mutedStrings, openStrings, placementSteps } from "@/lib/music/feedback";
@@ -19,7 +19,6 @@ import { nextTask } from "@/lib/music/path";
 import { frequentNext } from "@/lib/music/transitions";
 
 const GOAL = 3;
-const CLEAN_FRAMES = 3;
 
 export function LearnChord({ chord }: { chord: ChordId }) {
   const t = useTranslations("chords");
@@ -32,7 +31,7 @@ export function LearnChord({ chord }: { chord: ChordId }) {
   const [count, setCount] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [flagged, setFlagged] = useState<number[]>([]);
-  const state = useRef({ armed: true, streak: 0, ignoreUntil: 0, lastFeedbackAt: 0, count: 0 });
+  const state = useRef({ lastFeedbackAt: 0, count: 0 });
   const learnRef = useRef(learn);
   useEffect(() => {
     learnRef.current = learn;
@@ -42,30 +41,24 @@ export function LearnChord({ chord }: { chord: ChordId }) {
     if (mic !== "on") return;
     let id = 0;
     const s = state.current;
+    const judge = new StrumJudge();
     const tick = (now: number) => {
       id = requestAnimationFrame(tick);
       const frame = engine.read();
       if (!frame || s.count >= GOAL) return;
-      if (frame.attack) s.armed = true;
-      if (now < s.ignoreUntil || frame.level < SILENCE) {
-        s.streak = 0;
-        return;
-      }
-      const match = matchHeard(frame, chord);
+      // One verdict per strum, from the moment after the pick: the tail and the room say nothing.
+      const verdict = judge.feed(frame, chord, SILENCE);
+      if (!verdict || verdict.kind === "noise") return;
+      const match = verdict.match;
       if (match.clean) {
-        if (s.armed && ++s.streak >= CLEAN_FRAMES) {
-          s.armed = false;
-          s.streak = 0;
-          s.count += 1;
-          setCount(s.count);
-          setFlagged([]);
-          setFeedback({ kind: "right", chord });
-          engine.synth?.chime();
-          if (s.count >= GOAL) learnRef.current(chord);
-        }
+        s.count += 1;
+        setCount(s.count);
+        setFlagged([]);
+        setFeedback({ kind: "right", chord });
+        engine.synth?.chime();
+        if (s.count >= GOAL) learnRef.current(chord);
         return;
       }
-      s.streak = 0;
       if (now - s.lastFeedbackAt < 350) return;
       s.lastFeedbackAt = now;
       if (match.best !== chord && match.bestScore > 0.75) {
@@ -91,9 +84,8 @@ export function LearnChord({ chord }: { chord: ChordId }) {
   const listen = () => {
     const { ctx, synth } = engine.audio();
     synth.setVolume(settings.volume);
+    // Our own strum cannot count as the player's: the engine marks its frames while it rings.
     synth.strum(chord, ctx.currentTime + 0.05, "down", "all");
-    // Our own strum must not count as the player's.
-    state.current.ignoreUntil = performance.now() + 2200;
   };
 
   const string = (n: number) => tc(`string.s${n as 0}`);

@@ -1,6 +1,6 @@
 "use client";
 
-import { chromaFromSpectrum, rms, smoothChroma } from "./detect";
+import { OnsetDetector, chromaFromSpectrum, rms, smoothChroma } from "./detect";
 import { Synth } from "./synth";
 
 /**
@@ -23,6 +23,10 @@ export interface Frame {
   spectrum: Float32Array;
   sampleRate: number;
   fftSize: number;
+  /** performance.now() of the frame. */
+  now: number;
+  /** A guitar note of ours is in the room (a listen, the guide): the frame proves nothing. */
+  ownSound: boolean;
 }
 
 const FFT_SIZE = 16_384;
@@ -37,7 +41,7 @@ class Engine {
   private spectrum: Float32Array<ArrayBuffer> | null = null;
   private samples: Float32Array<ArrayBuffer> | null = null;
   private chroma: Float32Array = new Float32Array(12);
-  private levelAverage = 0;
+  private readonly onsets = new OnsetDetector();
   private listeners = new Set<() => void>();
 
   audio(): { ctx: AudioContext; synth: Synth } {
@@ -87,6 +91,9 @@ class Engine {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         // The browser's voice processing would erase the very notes we listen for.
+        // Echo cancellation was tried to take our own playback out of the microphone:
+        // Chromium's AEC silenced the whole capture (the e2e microphone heard nothing),
+        // so our own sound is handled by marking the frames instead (ownSound).
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
       // A microphone unplugged or revoked must not look "on" while hearing silence.
@@ -119,11 +126,13 @@ class Engine {
     this.analyser.getFloatTimeDomainData(this.samples);
     this.analyser.getFloatFrequencyData(this.spectrum);
     const level = rms(this.samples);
-    const attack = level > 0.015 && level > this.levelAverage * 1.8;
-    this.levelAverage = this.levelAverage * 0.85 + level * 0.15;
+    const now = performance.now();
+    // A strum is a jump of energy across the bins, which a ringing chord does not hide.
+    const attack = this.onsets.feed(this.spectrum, this.ctx.sampleRate, FFT_SIZE, now) && level > SILENCE;
     if (attack) this.chroma = new Float32Array(12);
     this.chroma = smoothChroma(this.chroma, chromaFromSpectrum(this.spectrum, this.ctx.sampleRate, FFT_SIZE));
-    return { level, chroma: this.chroma, attack, samples: this.samples, spectrum: this.spectrum, sampleRate: this.ctx.sampleRate, fftSize: FFT_SIZE };
+    const ownSound = this.synth !== null && this.ctx.currentTime < this.synth.guitarUntil;
+    return { level, chroma: this.chroma, attack, samples: this.samples, spectrum: this.spectrum, sampleRate: this.ctx.sampleRate, fftSize: FFT_SIZE, now, ownSound };
   }
 
   /** Forget the last chord, when the expected chord changes. */

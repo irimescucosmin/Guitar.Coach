@@ -1,7 +1,8 @@
 "use client";
 
 import { engine, SILENCE, type Frame } from "@/lib/audio/engine";
-import { matchHeard, type ChordMatch } from "@/lib/audio/detect";
+import type { ChordMatch } from "@/lib/audio/detect";
+import { StrumJudge } from "@/lib/audio/judge";
 import { stringsForPitchClasses, CHORDS, type ChordId } from "@/lib/music/chords";
 import { fixFor } from "@/lib/music/feedback";
 import { PASS_SCORE, readyForTimed, type PracticeMode } from "@/lib/music/path";
@@ -29,7 +30,7 @@ export type Feedback =
 export type Result =
   | { mode: "listen" }
   | { mode: "step"; averageMs: number | null; complete: boolean; ready: boolean; isRecord: boolean }
-  | { mode: "timed"; share: number | null; passed: boolean; missedChords: { chord: ChordId; bars: number }[]; isRecord: boolean };
+  | { mode: "timed"; share: number | null; passed: boolean; missedChords: { chord: ChordId; bars: number }[]; isRecord: boolean; guided?: boolean };
 
 export interface View {
   phase: "idle" | "playing" | "done";
@@ -75,7 +76,6 @@ interface StepRun {
   stepStartedAt: number;
   durations: number[];
   statuses: Status[];
-  streak: number;
   ignoreUntil: number;
   slowHinted: boolean;
   lastFeedbackAt: number;
@@ -91,7 +91,6 @@ interface BeatRun {
   statuses: Status[];
   judged: number;
   judgeStart: number;
-  streak: number;
   shownBeat: number;
   lastFeedbackAt: number;
   heardAnything: boolean;
@@ -100,7 +99,6 @@ interface BeatRun {
 
 type Run = StepRun | BeatRun;
 
-const CLEAN_FRAMES = 3;
 /** A strum a moment before the bar line belongs to the new bar. */
 const EARLY_BEATS = 0.3;
 const SLOW_HINT_MS = 9000;
@@ -184,7 +182,7 @@ export class PracticeSession {
       const now = performance.now();
       this.run = {
         kind: "step", index: 0, stepStartedAt: now, durations: [], statuses: this.steps.map(() => ""),
-        streak: 0, ignoreUntil: now + 300, slowHinted: false, lastFeedbackAt: 0, viewPosition: 0,
+        ignoreUntil: now + 300, slowHinted: false, lastFeedbackAt: 0, viewPosition: 0,
       };
       const first = this.steps[0]!.chord;
       this.emit({
@@ -200,7 +198,7 @@ export class PracticeSession {
       this.run = {
         kind: this.mode, startAt: ctx.currentTime + 0.3, beatSeconds: 60 / this.options.bpm, nextBeat: 0,
         totalBeats: beatsPerBar * (this.bars.length + 1), statuses: this.bars.map(() => ""), judged: -1, judgeStart: 0,
-        streak: 0, shownBeat: -2, lastFeedbackAt: 0, heardAnything: false, bpm: this.options.bpm,
+        shownBeat: -2, lastFeedbackAt: 0, heardAnything: false, bpm: this.options.bpm,
       };
       this.emit({ ...this.idleView(), phase: "playing", countIn: beatsPerBar });
       this.timer = window.setInterval(() => this.schedule(), 25);
@@ -309,16 +307,14 @@ export class PracticeSession {
       run.slowHinted = true;
       this.emit({ feedback: { kind: "slowDown" } });
     }
-    if (!frame || now < run.ignoreUntil || frame.level < SILENCE) {
-      run.streak = 0;
-      return;
-    }
-    const match = matchHeard(frame, step.chord);
+    if (!frame || now < run.ignoreUntil) return;
+    const verdict = this.judge.feed(frame, step.chord, SILENCE);
+    if (!verdict || verdict.kind === "noise") return;
+    const match = verdict.match;
     if (match.clean) {
-      if (++run.streak >= CLEAN_FRAMES) this.advance(run, true, now);
+      this.advance(run, true, now);
       return;
     }
-    run.streak = 0;
     if (now - run.stepStartedAt > 1200 && now - run.lastFeedbackAt > 350) {
       const said = this.feedbackFor(match, step.chord);
       if (said) {
@@ -337,10 +333,10 @@ export class PracticeSession {
     }
     run.index++;
     run.stepStartedAt = now;
-    run.streak = 0;
     run.slowHinted = false;
     run.ignoreUntil = now + 250;
     engine.resetChroma();
+    this.judge.reset();
     const right = run.statuses.filter((s) => s === "ok").length;
     const step = this.steps[run.index];
     if (!step) {
@@ -396,31 +392,32 @@ export class PracticeSession {
     }
 
     if (run.kind !== "timed" || !frame) return;
-    if (frame.level >= SILENCE) run.heardAnything = true;
+    // With the guide guitar on, the room holds our chord on every bar: nothing can be judged, the run is practice.
+    if (this.options.guide) return;
     const judged = Math.floor((position - perBar + EARLY_BEATS) / perBar);
     if (judged !== run.judged) {
       this.closeBar(run, run.judged);
       run.judged = judged;
       run.judgeStart = position;
-      run.streak = 0;
       engine.resetChroma();
+      this.judge.reset();
     }
     const bar = this.bars[judged];
-    if (!bar || run.statuses[judged] === "ok" || frame.level < SILENCE) return;
-    const match = matchHeard(frame, bar.chord);
+    if (!bar) return;
+    const verdict = this.judge.feed(frame, bar.chord, SILENCE);
+    if (!verdict || verdict.kind === "noise" || run.statuses[judged] === "ok") return;
+    run.heardAnything = true;
+    const match = verdict.match;
     if (match.clean) {
-      if (++run.streak >= CLEAN_FRAMES) {
-        run.statuses[judged] = "ok";
-        this.emit({
-          right: run.statuses.filter((s) => s === "ok").length,
-          statuses: [...run.statuses],
-          feedback: { kind: "right", chord: bar.chord },
-          flagged: [],
-        });
-      }
+      run.statuses[judged] = "ok";
+      this.emit({
+        right: run.statuses.filter((s) => s === "ok").length,
+        statuses: [...run.statuses],
+        feedback: { kind: "right", chord: bar.chord },
+        flagged: [],
+      });
       return;
     }
-    run.streak = 0;
     if (position - run.judgeStart > 1 && now - run.lastFeedbackAt > 350) {
       const said = this.feedbackFor(match, bar.chord);
       if (said) {
@@ -444,6 +441,11 @@ export class PracticeSession {
     }
     this.closeBar(run, run.judged);
     const right = run.statuses.filter((s) => s === "ok").length;
+    if (this.options.guide) {
+      // Our guitar was in the room: practice, nothing to score or save.
+      this.finish({ right, result: { mode: "timed", share: null, passed: false, missedChords: [], isRecord: false, guided: true } });
+      return;
+    }
     if (!run.heardAnything) {
       this.finish({ right, result: { mode: "timed", share: null, passed: false, missedChords: [], isRecord: false } });
       return;
@@ -471,6 +473,8 @@ export class PracticeSession {
   /* ---------- what the lane draws ---------- */
 
   private lastReport: { chord: ChordId; status: Status }[] = [];
+  /** One verdict per strum: the tail of a chord and the fingers moving between two are not judged. */
+  private readonly judge = new StrumJudge();
 
   /** Every bar or step of the last finished run with its verdict. */
   report(): { chord: ChordId; status: Status }[] {
