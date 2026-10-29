@@ -195,7 +195,7 @@ export const en: typeof it = {
     volume: "Volume",
     record: {
       toggle: "Record the run",
-      hint: "One a week, to listen back to in Progress and compare with the weeks before. It does not count for the score.",
+      hint: "One a week, three minutes at most, to listen back to in Progress and compare with the weeks before. It does not count for the score.",
       recording: "Recording.",
       saving: "Saving the recording...",
       saved: "This week's recording saved.",
@@ -1124,7 +1124,8 @@ export const en: typeof it = {
       done: "Arpeggio of {chord} heard: {count} strings in {seconds} s.",
       record: "Record.",
       heard: "Arpeggios heard:",
-      rule: "The expected string counts: a wrong string does not start over, but does not move on.",
+      rule: "The expected string counts: a wrong string does not start over, but does not move on. The clock starts when the microphone comes on, and after a minute the attempt ends.",
+      timedOut: "A minute without finishing: try again calmly, one string at a time.",
       learnFirst: "The arpeggio needs a learned chord.",
       learnEm: "Learn Em",
     },

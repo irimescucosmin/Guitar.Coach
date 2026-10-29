@@ -19,6 +19,8 @@ import { OPEN_KEYS, PITCH_NAMES, capoFor, taughtChords, transposeName } from "@/
 
 const STABLE_FRAMES = 4;
 const ARPEGGIO_MAX_HZ = 1000;
+/** A minute from the start: past it the attempt is over, an absurd time is not a result. */
+const ARPEGGIO_MAX_MS = 60_000;
 
 /**
  * What comes after the first chords: the strums, the arpeggio, the capo,
@@ -127,8 +129,14 @@ function ArpeggioDrill() {
   const [running, setRunning] = useState(false);
   const [position, setPosition] = useState(0);
   const [done, setDone] = useState<{ ms: number; isRecord: boolean } | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
   const state = useRef({ position: 0, startedAt: 0, last: -1, stable: 0 });
   const heard = arpeggiosHeard(progress);
+
+  // The microphone gone while listening ends the attempt: nothing can be heard.
+  useEffect(() => {
+    if (running && mic !== "on" && mic !== "starting") setRunning(false);
+  }, [running, mic]);
 
   useEffect(() => {
     if (!running || !picked || mic !== "on") return;
@@ -136,6 +144,12 @@ function ArpeggioDrill() {
     const s = state.current;
     const tick = () => {
       id = requestAnimationFrame(tick);
+      if (performance.now() - s.startedAt > ARPEGGIO_MAX_MS) {
+        cancelAnimationFrame(id);
+        setRunning(false);
+        setTimedOut(true);
+        return;
+      }
       const frame = engine.read();
       if (!frame || !engine.ctx || frame.level < SILENCE) {
         s.stable = 0;
@@ -149,7 +163,6 @@ function ArpeggioDrill() {
       if (s.stable !== STABLE_FRAMES) return;
       const next = arpeggioStep(picked, s.position, midi);
       if (next === s.position) return;
-      if (s.position === 0) s.startedAt = performance.now();
       s.position = next;
       setPosition(next);
       if (arpeggioDone(picked, next)) {
@@ -166,9 +179,11 @@ function ArpeggioDrill() {
 
   const start = async () => {
     if (!(await engine.startMic())) return;
-    state.current = { position: 0, startedAt: 0, last: -1, stable: 0 };
+    // The clock runs from here, the microphone on: the time is for all the strings.
+    state.current = { position: 0, startedAt: performance.now(), last: -1, stable: 0 };
     setPosition(0);
     setDone(null);
+    setTimedOut(false);
     setRunning(true);
   };
 
@@ -194,7 +209,7 @@ function ArpeggioDrill() {
           </select>
         </label>
         <button type="button" onClick={() => void start()} disabled={running} className={`${button.brass} h-11 disabled:opacity-50`}>
-          {running ? t("listening") : done ? t("again") : t("start")}
+          {running ? t("listening") : done || timedOut ? t("again") : t("start")}
         </button>
       </div>
       <ol className="m-0 flex list-none flex-wrap gap-2 p-0" aria-label={t("strings")}>
@@ -214,7 +229,7 @@ function ArpeggioDrill() {
           );
         })}
       </ol>
-      {running && mic !== "on" && <p role="status" className="m-0 text-sm font-medium text-warn">{tc("mic.off")}</p>}
+      {timedOut && <p role="status" className="m-0 text-sm font-bold text-bad-ink">{t("timedOut")}</p>}
       {done && (
         <p role="status" className="m-0 font-bold text-good">
           {t("done", { chord: picked, seconds: (done.ms / 1000).toFixed(1), count: notes.length })}

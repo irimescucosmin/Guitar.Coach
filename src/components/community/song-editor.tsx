@@ -174,7 +174,7 @@ export function SongEditor({ id, initial }: { id?: string; initial?: CommunitySo
                       value={chord}
                       aria-label={t("sections.bar", { n: b + 1 })}
                       onChange={(e) => updateSection(i, { bars: section.bars.map((c, k) => (k === b ? (e.target.value as ChordId) : c)) })}
-                      className="h-11 rounded-[var(--radius-field)] border border-line-strong px-2 text-base font-extrabold text-white"
+                      className="h-11 rounded-[var(--radius-field)] border border-line-strong px-2 text-base font-extrabold text-on-primary"
                       style={{ background: `var(--color-chord-${chord})` }}
                     >
                       {PATH_CHORDS.map((c) => <option key={c} value={c}>{c}</option>)}

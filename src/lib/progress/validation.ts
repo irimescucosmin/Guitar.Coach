@@ -74,8 +74,9 @@ export const profileInput = profileShape.transform(narrow);
 
 const knownChords = new Set<string>(CHORD_IDS);
 const knownSongs = new Set<string>(PRACTICE_IDS);
+/** Guest progress comes from before an account existed: it cannot hold community results, so a "c-" key is dropped. */
 const pick = <T,>(record: Record<string, T>, known: Set<string>) =>
-  Object.fromEntries(Object.entries(record).filter(([key]) => known.has(key) || isCommunityId(key)));
+  Object.fromEntries(Object.entries(record).filter(([key]) => known.has(key)));
 
 /**
  * Keys the catalogue no longer knows (a renamed song, a removed chord) are
@@ -125,8 +126,9 @@ export const reportInput = z.object({
 });
 
 /** What comes with the audio of a recording: the run it belongs to and when. The bytes are checked apart. */
+const recordableSong = z.string().refine((id) => SONGS.some((s) => s.id === id) || (isCommunityId(id) && /^c-[a-f0-9]{6,40}$/.test(id)), "not a song");
 export const recordingInput = z.object({
-  songId,
+  songId: recordableSong,
   mode: z.enum(["step", "timed"]),
   share: share.nullable(),
   day: dayInput,

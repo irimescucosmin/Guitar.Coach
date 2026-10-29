@@ -14,7 +14,7 @@ import { earRunAllowed } from "@/lib/music/ear";
 import { isCommunityId, communitySongInput, songProblems } from "@/lib/community/song";
 import { createCommunitySong, findCommunitySong, publishIfPassed, reportSong, updateCommunitySong } from "@/lib/community/repository";
 import { isChordId } from "@/lib/music/chords";
-import type { Progress } from "@/lib/music/path";
+import { PASS_SCORE, type Progress } from "@/lib/music/path";
 
 /**
  * Thin on purpose: check who is calling, validate, delegate to src/lib.
@@ -48,8 +48,8 @@ export async function savePracticeRun(run: unknown, day: unknown = null): Promis
   const result = await recordPractice(db, me.id, optionalDay.parse(day), event, () => saveRun(db, me.id, r), (before) =>
     earRunAllowed(before, r.songId),
   );
-  // The author passing their own draft in time is what publishes it.
-  if (result && isCommunityId(r.songId) && r.mode === "timed") await publishIfPassed(db, me.id, r.songId);
+  // The author passing their own draft in time, with this very run, is what publishes it.
+  if (result && isCommunityId(r.songId) && r.mode === "timed" && r.value >= PASS_SCORE) await publishIfPassed(db, me.id, r.songId);
   revalidatePath("/", "layout");
   return result ? { saved: true, ...result } : { saved: false };
 }

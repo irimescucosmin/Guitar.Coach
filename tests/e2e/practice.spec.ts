@@ -338,7 +338,7 @@ test("a run can be recorded, and the week's recording is heard in Progress", asy
   await signUp(page);
   await page.goto("/play/drill-em-am?mode=step");
   await page.getByLabel("Registra l'esecuzione").check();
-  await expect(page.getByText("Una a settimana, da riascoltare nei Progressi")).toBeVisible();
+  await expect(page.getByText("Una a settimana, al massimo tre minuti")).toBeVisible();
   const uploaded = page.waitForResponse((r) => r.url().endsWith("/api/recordings") && r.request().method() === "POST", { timeout: 90_000 });
   await page.getByRole("button", { name: "Avvia" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Sto registrando." })).toBeVisible({ timeout: 30_000 });

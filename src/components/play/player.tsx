@@ -67,10 +67,12 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
   useEffect(() => setCanRecord(Recorder.supported()), []);
   useEffect(() => {
     const r = recorder.current;
-    if (view.phase === "playing" && recordAudio && mode !== "listen" && engine.stream && !r.recording) {
-      setRecording(r.start(engine.stream) ? "recording" : "failed");
+    if (view.phase === "playing" && recordAudio && mode !== "listen" && recording !== "recording") {
+      setRecording(engine.stream && r.start(engine.stream) ? "recording" : "failed");
     }
-    if (view.phase !== "playing" && r.recording) {
+    // The run over: whatever was recorded goes up, also a file the recorder
+    // ended on its own at the limit or when the microphone went away.
+    if (view.phase !== "playing" && recording === "recording") {
       const result = view.result;
       setRecording("saving");
       void r.stop().then(async (file) => {
@@ -88,7 +90,7 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
         setRecording(ok ? "saved" : "failed");
       });
     }
-  }, [view.phase, view.result, recordAudio, mode, song.id]);
+  }, [view.phase, view.result, recordAudio, recording, mode, song.id]);
   useEffect(() => () => void recorder.current.stop(), []);
 
   // The lane redraws every frame; React is not involved.
@@ -482,7 +484,7 @@ function ResultPanel({ session, view, bpm, onMode }: { session: PracticeSession;
       <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-2">
         <div className="flex items-center gap-3">
           <span className="eyebrow text-brass">{t("result.title")}</span>
-          {isRecord && <span className="rounded-[6px] bg-good px-2 py-0.5 text-sm font-bold text-white">{t("result.record")}</span>}
+          {isRecord && <span className="rounded-[6px] bg-good px-2 py-0.5 text-sm font-bold text-on-primary">{t("result.record")}</span>}
         </div>
         <p className="display m-0 text-[26px] font-extrabold">{headline}</p>
         {line && <p className="m-0 text-base text-on-navy-muted">{line}</p>}

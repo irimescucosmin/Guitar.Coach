@@ -46,4 +46,6 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - Una schermata che salva e poi naviga aspetta il salvataggio: la pagina nuova caricata prima porterebbe progressi vecchi (`answer` nel questionario).
 - Un test e2e che ricarica per vedere un risultato salvato aspetta la risposta di **quella** azione del server (`waitForResponse` sul contenuto del POST): anche `loadToday` posta sulla stessa pagina, e `networkidle` scatta prima che il salvataggio parta.
 - Gli esercizi dell'orecchio nei test e2e: `/ear?seed=N` fissa il giro, e il test calcola le risposte con `earRound` (`answerEarRound`).
+- Il progresso ospite importato all'accesso (`guestProgress`) scarta le chiavi `c-…`: un risultato su un brano della community scritto a mano in `localStorage` pubblicherebbe la bozza e gonfierebbe i punti. Un brano si pubblica solo col giro appena salvato (`r.value >= PASS_SCORE`), non col massimo storico.
+- `/api/recordings` rifiuta sul `content-length` prima di leggere il corpo: `formData()` bufferizza tutto il multipart.
 - `pkill -f "next start"` uccide anche la shell che lo lancia: per fermare il server, `fuser -k 3000/tcp`.

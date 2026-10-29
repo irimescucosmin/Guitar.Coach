@@ -196,7 +196,7 @@ export const it = {
     volume: "Volume",
     record: {
       toggle: "Registra l'esecuzione",
-      hint: "Una a settimana, da riascoltare nei Progressi e confrontare con le settimane prima. Non conta per il punteggio.",
+      hint: "Una a settimana, al massimo tre minuti, da riascoltare nei Progressi e confrontare con le settimane prima. Non conta per il punteggio.",
       recording: "Sto registrando.",
       saving: "Salvo la registrazione...",
       saved: "Registrazione della settimana salvata.",
@@ -1125,7 +1125,8 @@ export const it = {
       done: "Arpeggio di {chord} sentito: {count} corde in {seconds} s.",
       record: "Record.",
       heard: "Arpeggi sentiti:",
-      rule: "Conta la corda attesa: una corda sbagliata non fa ricominciare, ma non manda avanti.",
+      rule: "Conta la corda attesa: una corda sbagliata non fa ricominciare, ma non manda avanti. Il tempo parte quando il microfono si accende, e dopo un minuto il tentativo finisce.",
+      timedOut: "Un minuto senza finire: riprova con calma, una corda alla volta.",
       learnFirst: "Per l'arpeggio serve un accordo imparato.",
       learnEm: "Impara Em",
     },
