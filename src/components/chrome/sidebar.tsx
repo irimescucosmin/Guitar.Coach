@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useSettings } from "@/components/providers";
-import { AppMark, IconBook, IconChart, IconChords, IconTeacher, IconFretboard, IconEar, IconHelp, IconPeople, IconPath, IconSongs, IconToday, IconTuner } from "@/components/ui/icons";
+import { AppMark, IconBook, IconChart, IconChords, IconTeacher, IconFretboard, IconEar, IconHelp, IconPeople, IconPick, IconPath, IconSongs, IconToday, IconTuner } from "@/components/ui/icons";
 import { PATH_HREF, TODAY_HREF } from "@/components/ui/links";
 import { MicStatus } from "./mic-button";
 
@@ -17,6 +17,7 @@ const NAV = [
   { href: "/chords", key: "chords", Icon: IconChords },
   { href: "/ear", key: "ear", Icon: IconEar },
   { href: "/songs", key: "songs", Icon: IconSongs },
+  { href: "/techniques", key: "techniques", Icon: IconPick },
   { href: "/tools", key: "tools", Icon: IconTuner },
   { href: "/coach", key: "coach", Icon: IconTeacher },
   { href: "/community", key: "community", Icon: IconPeople },

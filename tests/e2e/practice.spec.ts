@@ -356,3 +356,29 @@ test("a run can be recorded, and the week's recording is heard in Progress", asy
   expect(res.headers()["content-type"]).toMatch(/^audio\//);
   expect(Number(res.headers()["content-length"])).toBeGreaterThan(1000);
 });
+
+test("the techniques page writes out the strums, works the capo out, and listens for an arpeggio", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/techniques");
+  await expect(page.getByRole("heading", { level: 1, name: "Tecniche" })).toBeVisible();
+  // Nothing learned: a strum is tried in a song once its chords are there, the arpeggio needs a chord.
+  await expect(page.getByText("Per provarla in Skip to My Lou manca un accordo:")).toBeVisible();
+  await expect(page.getByText("Per l'arpeggio serve un accordo imparato.")).toBeVisible();
+  // The capo: G shapes sounding in A is the second fret, and Em sounds as F#m.
+  await page.getByLabel("Forme che suoni").selectOption("7");
+  await page.getByLabel("Tonalità che vuoi sentire").selectOption("9");
+  await expect(page.locator("#capo")).toContainText(/2\s*tasti/);
+  await expect(page.locator("#capo").getByRole("cell", { name: "F#m", exact: true })).toBeVisible();
+  await page.getByLabel("Tonalità che vuoi sentire").selectOption("7");
+  await expect(page.getByText("Stessa tonalità: senza capotasto.")).toBeVisible();
+
+  // With Em learned the arpeggio drill opens on it and names the six strings to play in order.
+  await learnByEar(page, "Em");
+  await page.goto("/techniques#arpeggio");
+  await expect(page.getByLabel("Accordo")).toHaveValue("Em");
+  await page.getByRole("button", { name: "Ascolta l'arpeggio" }).click();
+  const strings = page.getByRole("list", { name: "Corde da suonare" }).getByRole("listitem");
+  await expect(strings).toHaveCount(6);
+  await expect(strings.first()).toHaveAttribute("aria-current", "step");
+  await expect(page.getByRole("button", { name: "Suona le corde in ordine..." })).toBeDisabled();
+});

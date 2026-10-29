@@ -209,3 +209,12 @@ export function IconPeople({ size = 20 }: { size?: number }) {
     </svg>
   );
 }
+
+export function IconPick({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M5.5 7.5c0-2.5 3-4 6.5-4s6.5 1.5 6.5 4c0 5-4 11-6.5 13-2.5-2-6.5-8-6.5-13z" />
+      <path d="M9 8.5c1.5 1 4.5 1 6 0" />
+    </svg>
+  );
+}

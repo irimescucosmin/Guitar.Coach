@@ -1,4 +1,5 @@
 import { MAX_SECONDS } from "@/lib/music/recordings";
+import { ARPEGGIO_IDS } from "@/lib/music/techniques";
 import { z } from "zod";
 import { CHORD_IDS, isChordId } from "@/lib/music/chords";
 import type { Progress } from "@/lib/music/path";
@@ -17,9 +18,10 @@ import { isCommunityId } from "@/lib/community/song";
 
 /**
  * Songs, plus the exercises that record results the same way: lesson 0 (step:
- * ms per note) and the ear levels (timed: share of right answers).
+ * ms per note), the ear levels (timed: share of right answers) and the
+ * arpeggios (step: ms for the chord's strings in order).
  */
-const PRACTICE_IDS = [...SONGS.map((s) => s.id), NOTE_DRILL_ID, ...EAR_IDS];
+const PRACTICE_IDS = [...SONGS.map((s) => s.id), NOTE_DRILL_ID, ...EAR_IDS, ...ARPEGGIO_IDS];
 /** Catalogue ids, or a community song id: the latter is checked against the database by the action. */
 const songId = z.string().refine((id) => PRACTICE_IDS.includes(id) || (isCommunityId(id) && /^c-[a-f0-9-]{6,40}$/.test(id)), "unknown song");
 const chordId = z.enum(CHORD_IDS as [string, ...string[]]);

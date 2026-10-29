@@ -104,3 +104,15 @@ Solo due tipi, mai testi o melodie di opere protette:
 - **Giri di accordi** di canzoni note (gruppo `progression`): solo la sequenza che si strimpella.
 
 Ogni brano ha un ritmo (`down`, `boomChick`, `waltz`, `folk`) e una o più sezioni ripetute. Per aggiungerne uno: comando `/brano` in Claude Code, o la tabella in `CLAUDE.md`.
+
+## 9. Le tecniche
+
+`/techniques` (`lib/music/techniques.ts`, `lib/music/theory.ts`) viene dopo i primi accordi e segue la stessa regola del resto: una tecnica è fatta quando un risultato salvato lo dimostra.
+
+| Tecnica | Cosa la dimostra |
+|---|---|
+| Pennate in giù, boom-chick, folk (giù, giù-su, su-giù-su), valzer | un brano del catalogo con quella pennata superato *A tempo* (`strumProvedBy`); la pagina indica in quale brano provarla, prima quelli con tutti gli accordi imparati |
+| Arpeggio | il microfono sente le corde dell'accordo una alla volta, dalla più grave, nell'ordine (`arpeggioStep`); una corda sbagliata non fa ricominciare ma non manda avanti; il tempo si salva come risultato *step* su `arp-<accordo>`, il più veloce è il record |
+| Palm mute, capotasto, tonalità, power chord e barré | si leggono; niente da spuntare, perché il microfono non li distingue o l'app non li riconosce ancora |
+
+Il capotasto ha un calcolatore: forme in una tonalità, tonalità che si vuole sentire, il tasto (`capoFor`) e cosa suona ogni forma (`transposeName`). La tabella delle tonalità mostra i sei accordi di Sol, Do, Re, La e Mi (`chordsOfKey`), con quelli che l'app insegna nel loro colore e gli altri tratteggiati.

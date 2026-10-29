@@ -114,6 +114,10 @@ Note sulla tastiera (c'è: lezione 0), cosa sono tasto e semitono (c'è), cosa r
 
 Ritmi di pennata in giù e in su (in parte: `folk`), boom-chick (c'è), accenti, palm mute, arpeggi semplici, primo fingerpicking, capotasto, power chord, primo barré con F semplificato.
 
+**Fatto** (`/techniques`, `lib/music/techniques.ts`, `lib/music/theory.ts`): le quattro pennate scritte e ascoltabili, ognuna dimostrata da un brano con quella pennata superato a tempo; l'arpeggio sentito dal microfono corda per corda, in ordine, con il tempo salvato come risultato; palm mute, capotasto (con il calcolatore forme/tonalità/tasto) e la tabella delle tonalità da leggere, senza spunte. Il dettaglio in `docs/PERCORSO.md`, sezione 9.
+
+Da fare: accenti e fingerpicking con pattern (il microfono sente le note singole, quindi si possono verificare come l'arpeggio), power chord e F quando entrano nel riconoscimento degli accordi.
+
 ## 8. Account e presentazione
 
 L'app è gratuita, ma si usa solo con un account: serve a tenere traccia dei progressi, non a far pagare.
@@ -204,4 +208,4 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 8 | Community: procedura guidata, bozza finché non la superi, segnalazioni, regole | fatto |
 | 9 | Punti per chi aiuta, letti dai risultati | fatto |
 | 10 | Registrazione settimanale, da riascoltare nei Progressi | fatto |
-| 11 | Tecniche e teoria | da fare |
+| 11 | Tecniche e teoria: pennate, arpeggio, capotasto, tonalità | fatto |

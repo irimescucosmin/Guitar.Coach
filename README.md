@@ -15,6 +15,7 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
   - *Ascolta*: chitarra guida, basso e batteria;
   - *Passo passo*: il brano aspetta l'accordo giusto;
   - *A tempo*: ogni battuta viene giudicata, il risultato si salva.
+- **Tecniche**: le pennate (in giù, boom-chick, folk, valzer), l'arpeggio sentito dal microfono corda per corda, il capotasto con il calcolatore, perché certi accordi stanno insieme. Una pennata è fatta quando superi a tempo un brano che la usa.
 - **Registrazione della settimana**: mentre suoni un brano puoi registrarti; una a settimana, da riascoltare nei Progressi e confrontare con le settimane prima.
 - **Accordatore** e test dei cambi in un minuto.
 - **Insegnante**: una domanda alla volta a un modello Claude che conosce solo i tuoi risultati nell'app, 20 al giorno; nei Progressi scrive la settimana in due frasi. Serve una chiave API, altrimenti è spento.
