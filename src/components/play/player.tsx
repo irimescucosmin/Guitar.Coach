@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { ChordDiagram } from "@/components/chord-diagram";
 import { useMicState } from "@/components/chrome/mic-button";
 import { useProgress, useSettings } from "@/components/providers";
-import { IconAlert, IconBack, IconCheck, IconPlay, IconStop } from "@/components/ui/icons";
+import { IconAlert, IconBack, IconCheck, IconPause, IconPlay, IconStop } from "@/components/ui/icons";
 import { button, learnHref, playHref } from "@/components/ui/links";
 import { engine } from "@/lib/audio/engine";
 import { Recorder } from "@/lib/audio/recorder";
@@ -190,6 +190,12 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
         {mode === "step" && playing && (
           <button type="button" onClick={() => session.skip()} className={`${button.outline} h-12`}>
             {t("skip")} <span className="text-xs font-normal text-muted">{t("skipKey")}</span>
+          </button>
+        )}
+        {playing && (
+          <button type="button" onClick={() => (view.paused ? session.resume() : session.pause())} className={`${button.outline} h-12 text-base`}>
+            {view.paused ? <IconPlay /> : <IconPause />}
+            {view.paused ? t("resume") : t("pause")}
           </button>
         )}
         <button
@@ -409,19 +415,32 @@ function Structure({ session, view, mode, best }: {
   session: PracticeSession; view: View; mode: PracticeMode; best?: { step?: number; timed?: number };
 }) {
   const t = useTranslations("play");
-  // Steps in step mode, otherwise bars grouped by section pass.
+  // Steps in step mode, otherwise bars grouped by section pass. Every cell knows the bars it stands for.
   const rows = useMemo(() => {
-    if (mode === "step") return [{ label: t("changes"), cells: session.steps.map((s, i) => ({ chord: s.chord, index: i })) }];
-    const out: { label: string; cells: { chord: ChordId; index: number }[] }[] = [];
+    if (mode === "step") {
+      return [{ label: t("changes"), bars: { from: 0, to: session.bars.length - 1 }, cells: session.steps.map((s, i) => ({ chord: s.chord, index: i, from: s.firstBar, to: s.firstBar + s.bars - 1 })) }];
+    }
+    const out: { label: string; bars: { from: number; to: number }; cells: { chord: ChordId; index: number; from: number; to: number }[] }[] = [];
     session.bars.forEach((b, i) => {
       if (b.opensSection || !out.length) {
         const name = t(`section.${b.section}`);
-        out.push({ label: b.pass ? t("pass", { name, pass: b.pass }) : name, cells: [] });
+        out.push({ label: b.pass ? t("pass", { name, pass: b.pass }) : name, bars: { from: i, to: i }, cells: [] });
       }
-      out.at(-1)!.cells.push({ chord: b.chord, index: i });
+      const row = out.at(-1)!;
+      row.bars.to = i;
+      row.cells.push({ chord: b.chord, index: i, from: i, to: i });
     });
     return out;
   }, [session, mode, t]);
+  const range = view.range;
+  const inRange = (from: number, to: number) => !range || (from >= range.from && to <= range.to);
+  // First click picks a part, a second click past it extends it, a click before it starts over.
+  const pick = (from: number, to: number) => {
+    if (!range || from < range.from) session.setRange({ from, to });
+    else if (from > range.to) session.setRange({ from: range.from, to });
+    else if (range.from === from && range.to === to) session.setRange(null);
+    else session.setRange({ from, to });
+  };
 
   return (
     <section aria-labelledby="structure" className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-6 py-5 lg:col-span-2">
@@ -436,19 +455,40 @@ function Structure({ session, view, mode, best }: {
       <div className="flex max-h-64 flex-col gap-1.5 overflow-y-auto">
         {rows.map((row, r) => (
           <div key={r} className="grid grid-cols-[110px_1fr] items-start gap-1.5 text-[13px]">
-            <span className="pt-1.5 font-bold">{row.label}</span>
+            <button type="button" onClick={() => pick(row.bars.from, row.bars.to)} aria-pressed={range !== null && range.from === row.bars.from && range.to === row.bars.to}
+              className="pt-1.5 text-left font-bold underline-offset-2 hover:underline" title={t("part.pickSection")}>
+              {row.label}
+            </button>
             <div className="grid grid-cols-8 gap-1.5">
               {row.cells.map((c) => {
                 const state = c.index === view.position && view.phase === "playing" ? "current" : (view.statuses[c.index] ?? "");
+                const dim = !inRange(c.from, c.to);
                 return (
-                  <span key={c.index} className={`flex h-[30px] items-center justify-center rounded-[7px] font-extrabold ${CELL[state]}`} style={{ color: `var(--color-chord-${c.chord}-ink)` }}>
+                  <button
+                    key={c.index}
+                    type="button"
+                    onClick={() => pick(c.from, c.to)}
+                    aria-label={t("part.pickBar", { chord: c.chord, n: c.from + 1 })}
+                    aria-pressed={!dim && range !== null}
+                    className={`flex h-[30px] items-center justify-center rounded-[7px] font-extrabold ${CELL[state]} ${dim ? "opacity-35" : ""}`}
+                    style={{ color: `var(--color-chord-${c.chord}-ink)` }}
+                  >
                     {c.chord}
-                  </span>
+                  </button>
                 );
               })}
             </div>
           </div>
         ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-3 text-sm">
+        <span className="text-ink-2">{range ? t("part.chosen", { from: range.from + 1, to: range.to + 1 }) : t("part.whole")}</span>
+        {range && <button type="button" onClick={() => session.setRange(null)} className="font-semibold underline underline-offset-2">{t("part.clear")}</button>}
+        <label className="flex cursor-pointer items-center gap-2 font-semibold">
+          <input type="checkbox" checked={view.loop} onChange={(e) => session.setLoop(e.target.checked)} className="size-[18px] accent-[var(--color-brass)]" />
+          {t("part.loop")}
+        </label>
+        {(range || view.loop) && <span className="text-muted">{t("part.practiceOnly")}</span>}
       </div>
     </section>
   );
@@ -470,18 +510,20 @@ function ResultPanel({ session, view, bpm, onMode }: { session: PracticeSession;
     else {
       const bar = ((session.song.beatsPerBar * 60) / bpm).toFixed(1);
       headline = t("result.step", { seconds: (result.averageMs / 1000).toFixed(1) });
-      line = result.ready ? t("result.stepReady", { bpm, bar }) : t("result.stepNotReady", { bpm, bar });
-      if (result.ready) next = "timed";
+      line = result.partial ? t("result.partial") : result.ready ? t("result.stepReady", { bpm, bar }) : t("result.stepNotReady", { bpm, bar });
+      if (result.ready && !result.partial) next = "timed";
     }
   } else if (result.share === null) {
     headline = result.guided ? t("result.timedGuided") : t("result.timedNoMic");
     if (result.guided) line = t("result.timedGuidedDetail");
   } else {
     headline = t("result.timed", { percent: Math.round(result.share * 100) });
-    line = result.passed
-      ? t("result.timedPass")
-      : t("result.timedRetry", { score: Math.round(PASS_SCORE * 100), list: result.missedChords.map((m) => `${m.chord} (${m.bars})`).join(", ") });
-    if (!result.passed) next = "step";
+    line = result.partial
+      ? t("result.partial")
+      : result.passed
+        ? t("result.timedPass")
+        : t("result.timedRetry", { score: Math.round(PASS_SCORE * 100), list: result.missedChords.map((m) => `${m.chord} (${m.bars})`).join(", ") });
+    if (!result.passed && !result.partial) next = "step";
   }
   // A first run is always a "record"; a 0% one is not worth a badge.
   const isRecord = result.mode === "step" ? result.isRecord : result.mode === "timed" ? result.isRecord && (result.share ?? 0) > 0 : false;

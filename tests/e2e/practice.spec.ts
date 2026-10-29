@@ -426,3 +426,23 @@ test("the techniques page writes out the strums, works the capo out, and listens
   await expect(strings.first()).toHaveAttribute("aria-current", "step");
   await expect(page.getByRole("button", { name: "Suona le corde in ordine..." })).toBeDisabled();
 });
+
+test("a part of the song can be practised on its own and paused, and counts as practice, not a record", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/play/drill-em-am?mode=step");
+  // The first change (two bars of Em) alone.
+  await page.getByRole("button", { name: "Battuta 1, Em: prova da qui" }).click();
+  await expect(page.getByText("Solo le battute da 1 a 2.")).toBeVisible();
+  await expect(page.getByText("Una parte, o una ripetizione, è pratica: il record vale sul brano intero.")).toBeVisible();
+  await page.getByRole("button", { name: "Avvia" }).click();
+  // Pause holds the run; resume lets it go on.
+  await page.getByRole("button", { name: "Pausa" }).click();
+  await expect(page.getByRole("button", { name: "Riprendi" })).toBeVisible();
+  await page.getByRole("button", { name: "Riprendi" }).click();
+  await expect(page.getByText(/1\/1 cambi giusti/)).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("Era una parte del brano, o una ripetizione: pratica fatta, il record vale sul brano intero.")).toBeVisible();
+  await expect(page.getByText("Record", { exact: true })).toHaveCount(0);
+  // Back to the whole song.
+  await page.getByRole("button", { name: "Tutto il brano" }).click();
+  await expect(page.getByText("Tutto il brano. Tocca una battuta o una parte per provare solo quella.")).toBeVisible();
+});

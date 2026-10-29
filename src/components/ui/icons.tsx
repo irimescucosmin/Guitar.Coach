@@ -244,3 +244,11 @@ export function IconChevron({ size = 20 }: { size?: number }) {
     </svg>
   );
 }
+
+export function IconPause({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M8 5v14M16 5v14" />
+    </svg>
+  );
+}

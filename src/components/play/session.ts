@@ -29,8 +29,8 @@ export type Feedback =
 
 export type Result =
   | { mode: "listen" }
-  | { mode: "step"; averageMs: number | null; complete: boolean; ready: boolean; isRecord: boolean }
-  | { mode: "timed"; share: number | null; passed: boolean; missedChords: { chord: ChordId; bars: number }[]; isRecord: boolean; guided?: boolean };
+  | { mode: "step"; averageMs: number | null; complete: boolean; ready: boolean; isRecord: boolean; partial?: boolean }
+  | { mode: "timed"; share: number | null; passed: boolean; missedChords: { chord: ChordId; bars: number }[]; isRecord: boolean; guided?: boolean; partial?: boolean };
 
 export interface View {
   phase: "idle" | "playing" | "done";
@@ -53,7 +53,14 @@ export interface View {
   right: number;
   total: number;
   result: Result | null;
+  paused: boolean;
+  /** Bars chosen to practise on their own, inclusive; null is the whole song. */
+  range: { from: number; to: number } | null;
+  loop: boolean;
 }
+
+/** A part of the song, as bar indexes, inclusive. */
+export type Range = { from: number; to: number };
 
 export interface Options {
   bpm: number;
@@ -80,6 +87,11 @@ interface StepRun {
   slowHinted: boolean;
   lastFeedbackAt: number;
   viewPosition: number;
+  /** The steps of this run: a part of the song, or all of it, possibly repeated. */
+  seq: number[];
+  /** Where in `seq` the run is. */
+  at: number;
+  pausedAt: number | null;
 }
 
 interface BeatRun {
@@ -95,6 +107,9 @@ interface BeatRun {
   lastFeedbackAt: number;
   heardAnything: boolean;
   bpm: number;
+  /** The bars of this run in playing order (one pass of the part, or the whole song). */
+  seq: number[];
+  pausedAt: number | null;
 }
 
 type Run = StepRun | BeatRun;
@@ -149,7 +164,86 @@ export class PracticeSession {
       right: 0,
       total: this.mode === "step" ? this.steps.length : this.bars.length,
       result: null,
+      paused: false,
+      range: this.range,
+      loop: this.loop,
     };
+  }
+
+  /* ---------- a part of the song, on repeat ---------- */
+
+  private range: Range | null = null;
+  private loop = false;
+
+  /** Bars to practise on their own; a run in progress is stopped. Null is the whole song. */
+  setRange(range: Range | null): void {
+    const clean = range && range.from <= range.to ? { from: Math.max(0, range.from), to: Math.min(this.bars.length - 1, range.to) } : null;
+    const whole = clean && clean.from === 0 && clean.to === this.bars.length - 1;
+    this.range = whole ? null : clean;
+    this.stop();
+    this.emit({ range: this.range });
+  }
+
+  setLoop(loop: boolean): void {
+    this.loop = loop;
+    this.stop();
+    this.emit({ loop });
+  }
+
+  /** Whether the run is a part of the song or a repeat: practice, never a record. */
+  private get partial(): boolean {
+    return this.range !== null || this.loop;
+  }
+
+  /** The bar sequence of one pass. */
+  private barSeq(): number[] {
+    const from = this.range?.from ?? 0;
+    const to = this.range?.to ?? this.bars.length - 1;
+    return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  }
+
+  /** The steps of one pass: those that start inside the range. */
+  private stepSeq(): number[] {
+    const from = this.range?.from ?? 0;
+    const to = this.range?.to ?? this.bars.length - 1;
+    return this.steps.flatMap((step, i) => (step.firstBar >= from && step.firstBar <= to ? [i] : []));
+  }
+
+  /** The real bar played at pass position `k`, or -1 past the end of a run that does not loop. */
+  private barAt(run: BeatRun, k: number): number {
+    if (k < 0) return -1;
+    if (this.loop) return run.seq[k % run.seq.length]!;
+    return run.seq[k] ?? -1;
+  }
+
+  pause(): void {
+    const run = this.run;
+    if (!run || run.pausedAt !== null) return;
+    if (run.kind === "step") run.pausedAt = performance.now();
+    else {
+      run.pausedAt = engine.ctx!.currentTime;
+      window.clearInterval(this.timer);
+      engine.synth?.silence();
+    }
+    this.emit({ paused: true });
+  }
+
+  resume(): void {
+    const run = this.run;
+    if (!run || run.pausedAt === null) return;
+    if (run.kind === "step") {
+      const now = performance.now();
+      run.stepStartedAt += now - run.pausedAt;
+      run.ignoreUntil = now + 300;
+    } else {
+      const ctx = engine.ctx!;
+      // The clock stood still: the song picks up where it stopped.
+      run.startAt += ctx.currentTime - run.pausedAt;
+      this.timer = window.setInterval(() => this.schedule(), 25);
+    }
+    run.pausedAt = null;
+    this.judge.reset();
+    this.emit({ paused: false });
   }
 
   subscribe(listener: () => void): () => void {
@@ -180,27 +274,30 @@ export class PracticeSession {
 
     if (this.mode === "step") {
       const now = performance.now();
+      const seq = this.stepSeq();
       this.run = {
-        kind: "step", index: 0, stepStartedAt: now, durations: [], statuses: this.steps.map(() => ""),
-        ignoreUntil: now + 300, slowHinted: false, lastFeedbackAt: 0, viewPosition: 0,
+        kind: "step", index: seq[0]!, stepStartedAt: now, durations: [], statuses: this.steps.map(() => ""),
+        ignoreUntil: now + 300, slowHinted: false, lastFeedbackAt: 0, viewPosition: seq[0]!, seq, at: 0, pausedAt: null,
       };
-      const first = this.steps[0]!.chord;
+      const first = this.steps[seq[0]!]!.chord;
       this.emit({
         ...this.idleView(),
         phase: "playing",
         current: first,
-        next: this.steps[1]?.chord ?? null,
-        position: 0,
+        next: this.steps[seq[1] ?? -1]?.chord ?? null,
+        position: seq[0]!,
+        total: seq.length,
         feedback: engine.micState === "on" ? { kind: "play", chord: first } : { kind: "micOff" },
       });
     } else {
       const beatsPerBar = this.song.beatsPerBar;
+      const seq = this.barSeq();
       this.run = {
         kind: this.mode, startAt: ctx.currentTime + 0.3, beatSeconds: 60 / this.options.bpm, nextBeat: 0,
-        totalBeats: beatsPerBar * (this.bars.length + 1), statuses: this.bars.map(() => ""), judged: -1, judgeStart: 0,
-        shownBeat: -2, lastFeedbackAt: 0, heardAnything: false, bpm: this.options.bpm,
+        totalBeats: this.loop ? Infinity : beatsPerBar * (seq.length + 1), statuses: this.bars.map(() => ""), judged: -1, judgeStart: 0,
+        shownBeat: -2, lastFeedbackAt: 0, heardAnything: false, bpm: this.options.bpm, seq, pausedAt: null,
       };
-      this.emit({ ...this.idleView(), phase: "playing", countIn: beatsPerBar });
+      this.emit({ ...this.idleView(), phase: "playing", countIn: beatsPerBar, total: seq.length });
       this.timer = window.setInterval(() => this.schedule(), 25);
       this.schedule();
     }
@@ -213,9 +310,19 @@ export class PracticeSession {
 
   stop(): void {
     this.starting = false;
+    const run = this.run;
+    if (run && engine.synth) engine.synth.silence();
+    // A loop never ends on its own: Stop is its end, with what was heard so far.
+    if (run && this.loop && run.kind === "timed") {
+      this.finishBeats(run);
+      return;
+    }
+    if (run && this.loop && run.kind === "step") {
+      this.finishStep(run, run.statuses.filter((s) => s === "ok").length);
+      return;
+    }
     cancelAnimationFrame(this.raf);
     window.clearInterval(this.timer);
-    if (this.run && engine.synth) engine.synth.silence();
     this.run = null;
     if (this.view.phase === "playing") this.emit(this.idleView());
   }
@@ -251,7 +358,8 @@ export class PracticeSession {
       synth.click(at, beatIndex === 0);
       return;
     }
-    const barIndex = Math.floor((beatIndex - perBar) / perBar);
+    const barIndex = this.barAt(run, Math.floor((beatIndex - perBar) / perBar));
+    if (barIndex < 0) return;
     const beat = (beatIndex - perBar) % perBar;
     const chord = this.bars[barIndex]!.chord;
     const listen = run.kind === "listen";
@@ -278,7 +386,7 @@ export class PracticeSession {
 
   private frame(now: number): void {
     const run = this.run;
-    if (!run) return;
+    if (!run || run.pausedAt !== null) return;
     const frame = engine.micState === "on" ? engine.read() : null;
     if (run.kind === "step") this.stepFrame(run, frame, now);
     else this.beatFrame(run, frame, now);
@@ -331,7 +439,13 @@ export class PracticeSession {
       run.durations.push(now - run.stepStartedAt);
       engine.synth?.chime();
     }
-    run.index++;
+    run.at++;
+    if (run.at >= run.seq.length && this.loop) {
+      // Another pass of the part: the verdicts of the last one go, the times stay.
+      run.at = 0;
+      for (const i of run.seq) run.statuses[i] = "";
+    }
+    run.index = run.seq[run.at] ?? this.steps.length;
     run.stepStartedAt = now;
     run.slowHinted = false;
     run.ignoreUntil = now + 250;
@@ -346,7 +460,7 @@ export class PracticeSession {
     }
     this.emit({
       current: step.chord,
-      next: this.steps[run.index + 1]?.chord ?? null,
+      next: this.steps[run.seq[run.at + 1] ?? (this.loop ? run.seq[0]! : -1)]?.chord ?? null,
       position: run.index,
       statuses: [...run.statuses],
       right,
@@ -356,13 +470,14 @@ export class PracticeSession {
   }
 
   private finishStep(run: StepRun, right: number): void {
-    const complete = run.durations.length === this.steps.length;
+    const complete = run.durations.length === this.steps.length && !this.partial;
     const averageMs = run.durations.length > 0 ? run.durations.reduce((a, b) => a + b, 0) / run.durations.length : null;
+    // A part of the song, or a repeat, is practice: a record is the whole song once.
     const isRecord = complete && averageMs !== null
       ? this.recordRun({ songId: this.song.id, mode: "step", value: Math.round(averageMs) })
       : false;
     const ready = averageMs !== null && readyForTimed(averageMs, this.options.bpm, this.song.beatsPerBar);
-    this.finish({ right, feedback: null, flagged: [], result: { mode: "step", averageMs, complete, ready, isRecord } });
+    this.finish({ right, feedback: null, flagged: [], result: { mode: "step", averageMs, complete, ready, isRecord, partial: this.partial } });
   }
 
   private beatFrame(run: BeatRun, frame: Frame | null, now: number): void {
@@ -377,31 +492,40 @@ export class PracticeSession {
     const whole = Math.floor(position);
     if (whole !== run.shownBeat) {
       run.shownBeat = whole;
-      const bar = position < perBar ? -1 : Math.floor((position - perBar) / perBar);
+      // k counts bars of the run; bar is the real bar of the song it plays.
+      const k = position < perBar ? -1 : Math.floor((position - perBar) / perBar);
+      const bar = this.barAt(run, k);
       const current = this.bars[Math.max(bar, 0)]!;
-      const changeBar = nextChangeAfter(this.bars, Math.max(bar, 0));
+      const nextK = this.nextChangeInRun(run, Math.max(k, 0));
+      const changeBar = nextK < 0 ? -1 : this.barAt(run, nextK);
+      if (this.loop && k >= 0 && k % run.seq.length === 0 && k > 0 && position - perBar - k * perBar < 1) {
+        // A new pass of the part: the verdicts of the last one go.
+        for (const i of run.seq) run.statuses[i] = "";
+      }
       this.emit({
         current: current.chord,
         next: changeBar < 0 ? null : this.bars[changeBar]!.chord,
-        beatsToNext: bar < 0 || changeBar < 0 ? null : perBar + changeBar * perBar - whole,
-        countIn: bar < 0 ? perBar - Math.max(whole, 0) : null,
+        beatsToNext: k < 0 || nextK < 0 ? null : perBar + nextK * perBar - whole,
+        countIn: k < 0 ? perBar - Math.max(whole, 0) : null,
         beat: whole < 0 ? -1 : ((whole % perBar) + perBar) % perBar,
         section: bar < 0 ? null : { name: current.section, pass: current.pass, position: current.position, length: current.passLength },
         position: bar,
+        statuses: [...run.statuses],
       });
     }
 
     if (run.kind !== "timed" || !frame) return;
     // With the guide guitar on, the room holds our chord on every bar: nothing can be judged, the run is practice.
     if (this.options.guide) return;
-    const judged = Math.floor((position - perBar + EARLY_BEATS) / perBar);
-    if (judged !== run.judged) {
-      this.closeBar(run, run.judged);
-      run.judged = judged;
+    const judgedK = Math.floor((position - perBar + EARLY_BEATS) / perBar);
+    if (judgedK !== run.judged) {
+      this.closeBar(run, this.barAt(run, run.judged));
+      run.judged = judgedK;
       run.judgeStart = position;
       engine.resetChroma();
       this.judge.reset();
     }
+    const judged = this.barAt(run, judgedK);
     const bar = this.bars[judged];
     if (!bar) return;
     const verdict = this.judge.feed(frame, bar.chord, SILENCE);
@@ -427,6 +551,18 @@ export class PracticeSession {
     }
   }
 
+  /** The run position of the next bar whose chord differs from the one at `k`, or -1. */
+  private nextChangeInRun(run: BeatRun, k: number): number {
+    const chord = this.bars[this.barAt(run, k)]?.chord;
+    const limit = this.loop ? k + run.seq.length : run.seq.length - 1;
+    for (let j = k + 1; j <= limit; j++) {
+      const bar = this.barAt(run, j);
+      if (bar < 0) return -1;
+      if (this.bars[bar]!.chord !== chord) return j;
+    }
+    return -1;
+  }
+
   private closeBar(run: BeatRun, index: number): void {
     if (index >= 0 && index < this.bars.length && run.statuses[index] !== "ok") {
       run.statuses[index] = "miss";
@@ -439,7 +575,7 @@ export class PracticeSession {
       this.finish({ result: { mode: "listen" } });
       return;
     }
-    this.closeBar(run, run.judged);
+    this.closeBar(run, this.barAt(run, run.judged));
     const right = run.statuses.filter((s) => s === "ok").length;
     if (this.options.guide) {
       // Our guitar was in the room: practice, nothing to score or save.
@@ -450,14 +586,15 @@ export class PracticeSession {
       this.finish({ right, result: { mode: "timed", share: null, passed: false, missedChords: [], isRecord: false } });
       return;
     }
-    const share = right / this.bars.length;
+    const share = right / run.seq.length;
     const misses = new Map<ChordId, number>();
     run.statuses.forEach((s, i) => {
       if (s === "miss") misses.set(this.bars[i]!.chord, (misses.get(this.bars[i]!.chord) ?? 0) + 1);
     });
     const missedChords = [...misses.entries()].map(([chord, bars]) => ({ chord, bars })).sort((a, b) => b.bars - a.bars).slice(0, 3);
-    const isRecord = this.recordRun({ songId: this.song.id, mode: "timed", value: Number(share.toFixed(4)), bpm: run.bpm });
-    this.finish({ right, result: { mode: "timed", share, passed: share >= PASS_SCORE, missedChords, isRecord } });
+    // A part of the song, or a repeat, is practice: a record is the whole song once.
+    const isRecord = this.partial ? false : this.recordRun({ songId: this.song.id, mode: "timed", value: Number(share.toFixed(4)), bpm: run.bpm });
+    this.finish({ right, result: { mode: "timed", share, passed: !this.partial && share >= PASS_SCORE, missedChords, isRecord, partial: this.partial } });
   }
 
   private finish(patch: Partial<View>): void {
@@ -493,7 +630,13 @@ export class PracticeSession {
     }
     const perBar = this.song.beatsPerBar;
     const statuses = run && run.kind !== "step" ? run.statuses : [];
-    const position = run && run.kind !== "step" && engine.ctx ? (engine.ctx.currentTime - run.startAt) / run.beatSeconds : 0;
+    let position = run && run.kind !== "step" && engine.ctx ? (engine.ctx.currentTime - run.startAt) / run.beatSeconds : 0;
+    if (run && run.kind !== "step" && position >= perBar) {
+      // The lane is drawn in song bars: put the run's bar where it sits in the song.
+      const k = Math.floor((position - perBar) / perBar);
+      const bar = this.barAt(run, k);
+      if (bar >= 0) position = perBar + bar * perBar + (position - perBar - k * perBar);
+    }
     return {
       items: this.bars.map((b, i) => ({ chord: b.chord, start: perBar + i * perBar, length: perBar, status: statuses[i] ?? "" })),
       position,

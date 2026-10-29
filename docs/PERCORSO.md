@@ -77,6 +77,10 @@ Dopo *Passo passo* l'app dice se sei pronto per *A tempo*: lo sei quando il camb
 
 Dopo un *A tempo* superato, il prossimo modo di quel brano diventa *Più veloce*: 5 bpm in più.
 
+## 5 bis. Una parte alla volta
+
+Nella *Struttura* si tocca una battuta, o il nome di una parte, per provare solo quella (`setRange`); un secondo tocco più avanti allunga la parte, *Tutto il brano* la toglie. *Ripeti* la manda in loop finché non si preme *Ferma*. *Pausa* ferma l'orologio e l'accompagnamento e *Riprendi* riparte da lì. Una parte, o una ripetizione, è pratica: il risultato si vede ma non si salva e non apre il modo dopo, perché il record vale sul brano intero (`partial`).
+
 ## 6. Cosa dice il microfono
 
 Un accordo si giudica **sulla pennata**, mai sull'aria tra due pennate (`lib/audio/judge.ts`, `StrumJudge`). Una pennata è un salto di energia su molte frequenze insieme (flusso spettrale, `OnsetDetector` in `detect.ts`: un accordo che ancora suona non nasconde la pennata dopo); da lì si ascoltano 450 ms (`WINDOW_MS`), o meno se il suono è già sceso sotto il 30% del picco, si fa la media del cromagramma e si giudica una volta. Così la coda di un accordo che si spegne non diventa "manca il Sol diesis", le dita che si spostano tra due accordi non diventano "accordo sbagliato", e il rumore della stanza non diventa un accordo con note mancanti (sotto `TONAL_MIN` non c'è verdetto). È quello che fanno i sistemi che etichettano gli accordi solo agli eventi di pennata ([Joint Transcription of Acoustic Guitar Strumming Directions and Chords, 2025](https://arxiv.org/pdf/2508.07973)) e quello che fa Essentia con una finestra di cromagrammi invece di un fotogramma ([ChordsDetection](https://essentia.upf.edu/tutorial_tonal_chords.html)).

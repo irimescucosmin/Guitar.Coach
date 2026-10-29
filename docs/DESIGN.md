@@ -64,7 +64,7 @@ Le schermate con la barra laterale stanno nel gruppo `src/app/(app)/`, il cui `l
 
 ### Il brano
 
-Dall'alto: intestazione (indietro, titolo e ritmo, modi, bpm, Avvia/Ferma), *Adesso* largo due terzi con diagramma da 260 px e lettera da 168 px, *Dopo* un terzo con bordo ottone e conto dei battiti, la fascia del microfono, la corsia, poi *Struttura* e *Accompagnamento*. A fine brano un riquadro blu notte con il risultato e il passo successivo.
+Dall'alto: intestazione (indietro, titolo e ritmo, modi, bpm, Pausa/Riprendi e Avvia/Ferma), *Adesso* largo due terzi con diagramma da 260 px e lettera da 168 px, *Dopo* un terzo con bordo ottone e conto dei battiti, la fascia del microfono, la corsia, poi *Struttura* (le battute sono bottoni: toccarne una o una parte la isola, le altre si attenuano; sotto, la parte scelta, *Tutto il brano* e *Ripeti*) e *Accompagnamento*. A fine brano un riquadro blu notte con il risultato e il passo successivo.
 
 ## 4. I pezzi riusabili
 
