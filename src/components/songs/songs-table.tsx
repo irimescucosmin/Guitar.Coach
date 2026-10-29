@@ -29,6 +29,7 @@ export function SongsTable({ community, viewerId }: { community: CommunitySong[]
   const t = useTranslations("songs");
   const tp = useTranslations("play");
   const tc = useTranslations("community");
+  const ts = useTranslations("social");
   const { progress } = useProgress();
   const [filter, setFilter] = useState<Filter>("ready");
   const [query, setQuery] = useState("");
@@ -167,7 +168,12 @@ export function SongsTable({ community, viewerId }: { community: CommunitySong[]
                         : <span className="text-muted">–</span>}
                     </td>
                     <td className="px-5 py-3.5 text-right">
-                      {song.by && song.by.id !== viewerId && <Report songId={song.id} />}
+                      {song.by && song.by.id !== viewerId && (
+                        <>
+                          <Link href={`/messages/with/${song.by.id}`} className="mr-3 text-sm font-semibold text-muted underline underline-offset-2 hover:text-ink">{ts("writeTo", { name: song.by.author })}</Link>
+                          <Report songId={song.id} />
+                        </>
+                      )}
                       {next.kind === "learnFirst" ? (
                         <Link href={learnHref(next.chord)} className="font-bold text-brass-ink underline underline-offset-2">
                           {t("learnFirst", { chord: next.chord })}

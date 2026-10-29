@@ -173,6 +173,22 @@ Modello: Claude Haiku 5.5 (`claude-haiku-5-5`), da 0,10 $ per milione di token i
 
 Da fare: l'aiuto nella pubblicazione dei brani e la moderazione, con la community.
 
+## 11 bis. Notifiche e messaggi
+
+Sopra ogni pagina ci sono la campanella e la busta, con quanto c'è da leggere. Niente polling: i contatori si leggono con la pagina.
+
+**Fatto** (`lib/social/*`, `/notifications`, `/messages`):
+- **Notifiche** (`notifications`): qualcuno ha superato a tempo un tuo brano (una volta per persona per brano), il tuo brano è pubblicato, è stato nascosto, qualcuno ti ha scritto (una riga per conversazione finché non la apri). Aprire la pagina le segna lette; si tengono le ultime 100.
+- **Messaggi** tra due giocatori, dalla riga di un brano pubblicato ("Scrivi a"). Le regole sono in `lib/social/rules.ts`, tutte provate, e il server le applica a ogni invio (`sendMessage`):
+  - niente email, numeri di telefono o link: la conversazione resta nell'app, dove la segnalazione vale; niente insulti evidenti (una lista corta: non è un moderatore, le segnalazioni lo sono);
+  - chi non vuole messaggi li spegne (`messaging_settings`) e nessuno può aprirgli una conversazione;
+  - al massimo 3 messaggi a chi non ha ancora risposto (`UNANSWERED_LIMIT`), 60 al giorno (`MESSAGES_PER_DAY`);
+  - ogni messaggio ricevuto si può segnalare: viene nascosto subito e il testo resta per chi controlla; quando 3 giocatori diversi hanno segnalato la stessa persona (`REPORTERS_TO_MUTE`), quella persona non scrive più a nessuno;
+  - blocco in un clic, in tutte e due le direzioni.
+- Le regole sono scritte in `/terms#messages`.
+
+Da fare: un feed sotto i brani (chi pubblica racconta, gli altri rispondono), con le stesse regole dei messaggi; un posto dove chi controlla vede i messaggi e i brani segnalati (oggi: il database).
+
 ## 12. Guide da scaricare in PDF
 
 Per chi non ha mai preso in mano una chitarra, guide brevi da stampare e tenere sul leggio, scelte in base al percorso di ognuno:
@@ -201,3 +217,4 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 9 | Punti per chi aiuta, letti dai risultati | fatto |
 | 10 | Registrazione settimanale, da riascoltare nei Progressi | fatto |
 | 11 | Tecniche e teoria: pennate, arpeggio, capotasto, tonalità | fatto |
+| 12 | Notifiche in alto e messaggi tra giocatori, con le regole | fatto |

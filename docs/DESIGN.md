@@ -55,10 +55,12 @@ Due eccezioni note:
 | `/songs/new`, `/songs/[id]/edit` | Pubblicare un brano: procedura guidata in cinque passi, una domanda per schermata | `components/community/song-editor.tsx` |
 | `/progress#recordings` | Le registrazioni della settimana, con il lettore audio del browser | `components/progress/recordings.tsx` |
 | `/techniques` | Tecniche: una sezione per tecnica, ancora `#id`; arpeggio col microfono, calcolatore del capotasto, tabella delle tonalità | `components/techniques/techniques-view.tsx` |
+| `/notifications` | La campanella aperta: una riga per fatto, quelle da leggere in ottone | `components/social/notification-list.tsx` |
+| `/messages`, `/messages/[id]` | Le conversazioni e un thread; `/messages/with/[userId]` apre quella con una persona | `components/social/thread.tsx` |
 | `/terms` | Regole della community, pubbliche, senza barra laterale | `app/terms/page.tsx` |
 | `/account` | Accesso a due colonne, fuori dalla barra laterale; `?mode=signup` apre la registrazione | `components/account/account-form.tsx` |
 
-Le schermate con la barra laterale stanno nel gruppo `src/app/(app)/`, il cui `layout.tsx` mette barra e contenuto (largo al massimo 1120 px).
+Le schermate con la barra laterale stanno nel gruppo `src/app/(app)/`, il cui `layout.tsx` mette barra, la riga in alto con campanella e busta (`components/chrome/top-bar.tsx`) e contenuto (largo al massimo 1120 px).
 
 ### Il brano
 

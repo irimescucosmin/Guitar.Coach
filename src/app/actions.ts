@@ -5,13 +5,14 @@ import { db } from "@/db/client";
 import { currentUser } from "@/lib/auth";
 import { importGuestProgress, loadProgress, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun } from "@/lib/progress/repository";
 import { loadToday as todayOf, recordPractice, type Today } from "@/lib/progress/practice";
-import { reportInput, answersInput, changeTestInput, chordInput, dayInput, guestProgress, optionalDay, proofInput, questionInput, runInput } from "@/lib/progress/validation";
+import { blockInput, directMessageInput, messageReportInput, messagingInput, reportInput, answersInput, changeTestInput, chordInput, dayInput, guestProgress, optionalDay, proofInput, questionInput, runInput } from "@/lib/progress/validation";
 import { answerQuestion, weeklySummary, type Answer } from "@/lib/coach/service";
 import { getLocale } from "next-intl/server";
 import { blocksDoneBy, dailyRoutine } from "@/lib/music/routine";
 import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { earRunAllowed } from "@/lib/music/ear";
 import { isCommunityId, communitySongInput, songProblems } from "@/lib/community/song";
+import { markNotificationsRead, notifyOnce, notifyPassed, reportMessage, sendMessage, setAcceptsMessages, setBlocked, type SendResult } from "@/lib/social/repository";
 import { createCommunitySong, findCommunitySong, publishIfPassed, reportSong, updateCommunitySong } from "@/lib/community/repository";
 import { isChordId } from "@/lib/music/chords";
 import { PASS_SCORE, type Progress } from "@/lib/music/path";
@@ -47,8 +48,15 @@ export async function savePracticeRun(run: unknown, day: unknown = null): Promis
   const result = await recordPractice(db, me.id, optionalDay.parse(day), event, () => saveRun(db, me.id, r), (before) =>
     earRunAllowed(before, r.songId),
   );
-  // The author passing their own draft in time, with this very run, is what publishes it.
-  if (result && isCommunityId(r.songId) && r.mode === "timed" && r.value >= PASS_SCORE) await publishIfPassed(db, me.id, r.songId);
+  // The author passing their own draft in time, with this very run, is what publishes it; anyone else passing it is news for the author.
+  if (result && isCommunityId(r.songId) && r.mode === "timed" && r.value >= PASS_SCORE) {
+    const song = await findCommunitySong(db, r.songId);
+    if (song && song.authorId === me.id) {
+      if (await publishIfPassed(db, me.id, r.songId)) await notifyOnce(db, me.id, "songPublished", { songId: song.id, title: song.title }, "songId");
+    } else if (song) {
+      await notifyPassed(db, song.authorId, { songId: song.id, title: song.title, by: me.name });
+    }
+  }
   revalidatePath("/", "layout");
   return result ? { saved: true, ...result } : { saved: false };
 }
@@ -130,6 +138,54 @@ export async function reportCommunitySong(input: unknown): Promise<{ hidden: boo
   const song = await findCommunitySong(db, parsed.data.songId);
   if (!song || song.authorId === me.id) return null;
   const result = await reportSong(db, me.id, parsed.data.songId, parsed.data.reason, parsed.data.note ?? null);
+  if (result.hidden) await notifyOnce(db, song.authorId, "songHidden", { songId: song.id, title: song.title }, "songId");
   revalidatePath("/songs");
   return result;
+}
+
+/* ---------- talking to other players ---------- */
+
+export async function sendDirectMessage(input: unknown): Promise<SendResult> {
+  const me = await currentUser();
+  const parsed = directMessageInput.safeParse(input);
+  if (!me || !parsed.success) return { ok: false, reason: "empty" };
+  const result = await sendMessage(db, me.id, parsed.data.to, me.name, parsed.data.body);
+  revalidatePath("/messages");
+  return result;
+}
+
+export async function reportDirectMessage(input: unknown): Promise<{ hidden: boolean } | null> {
+  const me = await currentUser();
+  const parsed = messageReportInput.safeParse(input);
+  if (!me || !parsed.success) return null;
+  const result = await reportMessage(db, me.id, parsed.data.messageId, parsed.data.reason);
+  revalidatePath("/messages");
+  return result;
+}
+
+export async function blockPlayer(input: unknown): Promise<boolean> {
+  const me = await currentUser();
+  const parsed = blockInput.safeParse(input);
+  if (!me || !parsed.success || parsed.data.userId === me.id) return false;
+  await setBlocked(db, me.id, parsed.data.userId, parsed.data.blocked);
+  revalidatePath("/messages");
+  return true;
+}
+
+export async function setMessaging(input: unknown): Promise<boolean> {
+  const me = await currentUser();
+  const parsed = messagingInput.safeParse(input);
+  if (!me || !parsed.success) return false;
+  await setAcceptsMessages(db, me.id, parsed.data.accepts);
+  revalidatePath("/messages");
+  return true;
+}
+
+/** Opening the bell reads everything in it. */
+export async function readNotifications(): Promise<boolean> {
+  const me = await currentUser();
+  if (!me) return false;
+  await markNotificationsRead(db, me.id);
+  revalidatePath("/", "layout");
+  return true;
 }

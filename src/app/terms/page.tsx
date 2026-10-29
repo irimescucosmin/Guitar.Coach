@@ -8,7 +8,7 @@ export async function generateMetadata() {
   return { title: t("title") };
 }
 
-const SECTIONS = ["what", "proof", "reports", "copyright", "conduct", "contact"] as const;
+const SECTIONS = ["what", "proof", "reports", "copyright", "conduct", "messages", "contact"] as const;
 
 /**
  * The community rules, public: what may be published, what a report does, who
@@ -29,7 +29,7 @@ export default async function TermsPage() {
         <p className="m-0 text-base leading-relaxed text-ink-2">{t("intro")}</p>
       </header>
       {SECTIONS.map((s) => (
-        <section key={s} className="flex flex-col gap-2">
+        <section key={s} id={s} className="flex scroll-mt-6 flex-col gap-2">
           <h2 className="m-0 text-xl font-extrabold">{t(`sections.${s}.title`)}</h2>
           <p className="m-0 leading-relaxed">{t(`sections.${s}.body`)}</p>
           {s === "contact" && contact && (

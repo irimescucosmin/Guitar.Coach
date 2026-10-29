@@ -1,14 +1,21 @@
 import { Sidebar } from "@/components/chrome/sidebar";
+import { TopBar } from "@/components/chrome/top-bar";
+import { db } from "@/db/client";
 import { requireUser } from "@/lib/auth";
+import { unreadMessages, unreadNotifications } from "@/lib/social/repository";
 
-/** Every screen except playing and signing in: the navy sidebar and the page beside it. Signed-in only. */
+/** Every screen except playing and signing in: the navy sidebar, the bar with the bell, and the page. Signed-in only. */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { name: userName } = await requireUser();
+  const me = await requireUser();
+  const [notifications, messages] = await Promise.all([unreadNotifications(db, me.id), unreadMessages(db, me.id)]);
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <Sidebar userName={userName} />
-      <main className="min-w-0 flex-1 px-[max(20px,env(safe-area-inset-left))] pb-14 pt-8 md:px-12 md:pt-10">
-        <div className="mx-auto flex max-w-[1120px] flex-col gap-7">{children}</div>
+      <Sidebar userName={me.name} />
+      <main className="min-w-0 flex-1 px-[max(20px,env(safe-area-inset-left))] pb-14 pt-4 md:px-12 md:pt-5">
+        <div className="mx-auto flex max-w-[1120px] flex-col gap-7">
+          <TopBar unread={{ notifications, messages }} />
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -23,6 +23,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - **Mai un brano con testo o melodia** di un'opera protetta: per quelle solo il giro di accordi, gruppo `progression`.
 - **Niente si spunta a mano.** Un progresso conta solo se il microfono l'ha sentito o se c'è un risultato salvato che lo dimostra. Le attività della routine le segna il server (`recordPractice`); dal browser arrivano solo le prove del microfono (`reportProof`). Niente bottoni "fatto".
 - **Non c'è una sezione community: tutta l'app lo è.** I brani dei giocatori stanno tra i Brani e nel Percorso (`lessonIndexFor`) come quelli del catalogo. Un brano si pubblica da solo quando l'autore lo supera a tempo (`publishIfPassed`): nessun bottone "pubblica". Il modulo non ha un campo per il testo, e `looksLikeLyrics` rifiuta una riga di parole nel titolo.
+- **I messaggi tra giocatori passano da `lib/social/rules.ts`**: ogni rifiuto (contatti, link, insulti, limiti, blocco, muto) è una regola pura con un test, e il server la applica in `sendMessage`. Le schermate mostrano solo il motivo.
 - **L'AI riceve solo fatti dal database.** Il brief dell'insegnante si costruisce in `lib/coach/context.ts` dai risultati salvati, mai da testo libero dell'utente oltre alla domanda; l'unico file che chiama l'API è `lib/coach/model.ts`. Niente chiave nel browser.
 
 ## Dove aggiungere cosa
@@ -50,4 +51,5 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - `/api/recordings` rifiuta sul `content-length` prima di leggere il corpo: `formData()` bufferizza tutto il multipart.
 - Da `src/app/actions.ts` (`"use server"`) escono solo funzioni async: un `export type` lo manda in 500 con Turbopack (`pnpm dev`) e tsc non se ne accorge. `pnpm smoke:dev` (dentro `pnpm check`) lo intercetta.
 - Una pennata sulle tre corde acute di un G ha tutte le note di G: il riconoscimento controlla anche che ogni corda dell'accordo abbia il suo picco (`silentStrings`), tranne quelle che coincidono con un'armonica di una corda più bassa.
+- Se `tsc` dice "union type too complex" o "excessively deep" su `getTranslations`, non è il codice: i messaggi tipati sono oltre i 1200 tasti. Spostare i testi in un componente client con `useTranslations` su un namespace profondo (`social.notifications`), come in `notification-list.tsx`.
 - `pkill -f "next start"` uccide anche la shell che lo lancia: per fermare il server, `fuser -k 3000/tcp`.

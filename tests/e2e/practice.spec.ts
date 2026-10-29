@@ -273,6 +273,7 @@ test("the basics page and the printable sheets are built from the player's own p
 });
 
 test("a published song is a draft until its author passes it in time, then it is among the songs", { tag: "@own-browser" }, async ({ page }) => {
+  test.setTimeout(240_000);
   await signUpQuickly(page);
   // A title of its own: the database may hold songs from earlier runs.
   const title = `Giro di Mi ${Date.now().toString(36)}`;
@@ -338,6 +339,39 @@ test("a published song is a draft until its author passes it in time, then it is
   await theirs.getByRole("button", { name: "Segnala" }).click();
   await theirs.getByRole("button", { name: "Contiene un testo protetto" }).click();
   await expect(theirs.getByText("Grazie, segnalazione ricevuta.")).toBeVisible();
+
+  // The other player passes it in time too: the author hears about it in the bell.
+  await other.goto(`/play/${songId}?mode=timed`);
+  const otherSaved = other.waitForResponse((r) => r.request().method() === "POST" && (r.request().postData() ?? "").includes('"mode":"timed"'), { timeout: 120_000 });
+  await other.getByRole("button", { name: "Avvia" }).click();
+  await expect(other.getByText(/% delle battute con l'accordo giusto/)).toBeVisible({ timeout: 90_000 });
+  await otherSaved;
+  await page.goto("/songs");
+  await expect(page.getByRole("link", { name: /^Notifiche: 2 da leggere/ })).toBeVisible();
+  await page.getByRole("link", { name: /^Notifiche/ }).click();
+  await expect(page.getByText(`Prova ha superato a tempo il tuo brano "${title}".`)).toBeVisible();
+  await expect(page.getByText(`Il tuo brano "${title}" è pubblicato`)).toBeVisible();
+  await page.goto("/songs");
+  await expect(page.getByRole("link", { name: "Notifiche", exact: true })).toBeVisible();
+
+  // A message from the song's row: refused with a contact, sent without; the author sees the envelope and answers.
+  await other.goto("/songs");
+  await other.getByRole("button", { name: /^Tutti/ }).click();
+  await other.getByRole("row").filter({ hasText: title }).getByRole("link", { name: "Scrivi a Prova" }).click();
+  await expect(other.getByRole("heading", { level: 1, name: "Prova" })).toBeVisible();
+  await other.getByLabel("Scrivi un messaggio").fill("scrivimi a prova@example.com");
+  await other.getByRole("button", { name: "Invia" }).click();
+  await expect(other.getByText("Niente email o numeri di telefono: la conversazione resta nell'app.")).toBeVisible();
+  await other.getByLabel("Scrivi un messaggio").fill("Bel giro! A che bpm lo suoni?");
+  await other.getByRole("button", { name: "Invia" }).click();
+  await expect(other.getByRole("list", { name: "Conversazione" })).toContainText("Bel giro! A che bpm lo suoni?");
+  await page.goto("/songs");
+  await page.getByRole("link", { name: /^Messaggi: 1 da leggere/ }).click();
+  await page.locator("a[href^='/messages/']").first().click();
+  await expect(page.getByRole("list", { name: "Conversazione" })).toContainText("Bel giro! A che bpm lo suoni?");
+  await page.getByLabel("Scrivi un messaggio").fill("A 90, per ora.");
+  await page.getByRole("button", { name: "Invia" }).click();
+  await expect(page.getByRole("list", { name: "Conversazione" })).toContainText("A 90, per ora.");
   await fresh.close();
 });
 

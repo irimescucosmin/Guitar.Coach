@@ -1,4 +1,5 @@
 import { MAX_SECONDS } from "@/lib/music/recordings";
+import { MESSAGE_MAX_CHARS } from "@/lib/social/rules";
 import { ARPEGGIO_IDS } from "@/lib/music/techniques";
 import { z } from "zod";
 import { CHORD_IDS, isChordId } from "@/lib/music/chords";
@@ -135,3 +136,12 @@ export const recordingInput = z.object({
   durationMs: z.number().int().min(1000).max(MAX_SECONDS * 1000),
 });
 export type RecordingInput = z.infer<typeof recordingInput>;
+
+/* ---------- talking to other players ---------- */
+
+const userId = z.string().min(1).max(64);
+const uuid = z.string().uuid();
+export const directMessageInput = z.object({ to: userId, body: z.string().max(MESSAGE_MAX_CHARS * 2) });
+export const messageReportInput = z.object({ messageId: uuid, reason: z.enum(["offensive", "spam", "contacts", "other"]) });
+export const blockInput = z.object({ userId, blocked: z.boolean() });
+export const messagingInput = z.object({ accepts: z.boolean() });
