@@ -31,7 +31,8 @@ export function SongsTable({ community, viewerId }: { community: CommunitySong[]
   const tc = useTranslations("community");
   const ts = useTranslations("social");
   const { progress } = useProgress();
-  const [filter, setFilter] = useState<Filter>("ready");
+  // A beginner with no chords yet has nothing "ready": start from everything, so there is something to listen to.
+  const [filter, setFilter] = useState<Filter>(() => (SONGS.some((s) => chordsOf(s).every((c) => progress.learned[c])) ? "ready" : "all"));
   const [query, setQuery] = useState("");
   const mine = community.filter((s) => s.authorId === viewerId && s.status !== "published");
   const rows: Row[] = useMemo(
@@ -146,11 +147,10 @@ export function SongsTable({ community, viewerId }: { community: CommunitySong[]
               {matches.map((song) => {
                 const next = nextModeFor(song, progress);
                 const best = progress.best[song.id];
-                const locked = next.kind === "learnFirst";
                 return (
-                  <tr key={song.id} className={`border-t border-line ${locked ? "bg-subtle/60" : ""}`}>
+                  <tr key={song.id} className="border-t border-line">
                     <td className="px-5 py-3.5">
-                      <span className={`block font-extrabold ${locked ? "text-muted" : ""}`}>{song.title}</span>
+                      <Link href={playHref(song.id, "listen")} className="block font-extrabold underline-offset-2 hover:underline">{song.title}</Link>
                       <span className="text-[13px] text-muted">
                         {song.by ? `${tc("byLine", { origin: (song as CommunitySong).source, author: song.by.author })} (${tc("points.of", { count: song.by.points })})` : tp(`origin.${song.origin}`)}
                       </span>
@@ -175,9 +175,12 @@ export function SongsTable({ community, viewerId }: { community: CommunitySong[]
                         </>
                       )}
                       {next.kind === "learnFirst" ? (
-                        <Link href={learnHref(next.chord)} className="font-bold text-brass-ink underline underline-offset-2">
-                          {t("learnFirst", { chord: next.chord })}
-                        </Link>
+                        <span className="inline-flex flex-wrap items-center justify-end gap-3">
+                          <Link href={playHref(song.id, "listen")} className="inline-flex h-10 items-center rounded-[var(--radius-field)] border border-line-strong px-4 text-sm font-bold">{tp("mode.listen")}</Link>
+                          <Link href={learnHref(next.chord)} className="font-bold text-brass-ink underline underline-offset-2">
+                            {t("learnFirst", { chord: next.chord })}
+                          </Link>
+                        </span>
                       ) : (
                         <Link
                           href={playHref(song.id, next.kind === "step" ? "step" : "timed")}

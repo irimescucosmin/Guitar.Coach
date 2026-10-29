@@ -131,6 +131,7 @@ Dopo, `fly deploy` e basta: le migrazioni girano come `release_command` prima ch
 | Sintomo | Causa | Rimedio |
 |---|---|---|
 | e2e o `pnpm shots`: la registrazione non va avanti | limite degli accessi di Better Auth | server avviato con `AUTH_RATE_LIMIT=off` |
+| Nei Brani decine di "Giro di Mi" uguali | i test e2e pubblicano brani; prima del 29 ottobre giravano sul database su cui si suona | ora `playwright.config.ts` passa `DATABASE_URL_TEST` al server dei test; per pulire il database locale: `psql "$DATABASE_URL" -c "delete from \"user\" where email like '%@example.test'"` |
 | e2e *A tempo* al 50% | microfono finto sfasato | il test deve stare nel progetto `em-am-timed`, che gira per primo; `em-only.wav` penna due volte a battuta, perché un accordo si giudica sulle pennate |
 | *Serve https* sul bottone del microfono | pagina su http e non su localhost | `localhost:3000`, o `pnpm dev:https` |
 | *Microfono bloccato* | permesso negato una volta | impostazioni del sito nel browser, poi ricarica |

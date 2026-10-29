@@ -44,6 +44,8 @@ export async function BasicsView({ print = false }: { print?: boolean }) {
     if (!(DRAWN as readonly string[]).includes(k)) return null;
     const svg = drawing(k);
     const src = rasterPath(k);
+    // A figure not drawn yet is left out: the text stands on its own, a placeholder only says the page is unfinished.
+    if (!svg && !src) return null;
     const alt = t(`${k as (typeof DRAWN)[number]}.figureAlt`);
     const legend = k === "pick" ? [t("figures.thumb"), t("figures.index"), t("figures.tip")] : [];
     return (
@@ -51,13 +53,9 @@ export async function BasicsView({ print = false }: { print?: boolean }) {
         {svg ? (
           // A static file of ours, generated and committed, never anything a visitor sends.
           <div role="img" aria-label={alt} className="[&>svg]:h-auto [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
-        ) : src ? (
-          // eslint-disable-next-line @next/next/no-img-element -- a static file of ours, no optimisation needed
-          <img src={src} alt={alt} width={1024} height={1024} className="h-[240px] w-full object-contain" />
         ) : (
-          <div role="img" aria-label={t("figures.missing")} className="flex h-[240px] w-full items-center justify-center rounded-[var(--radius-control)] border border-dashed border-line-strong bg-sunken p-4 text-center text-sm text-muted">
-            {t("figures.missing")}
-          </div>
+          // eslint-disable-next-line @next/next/no-img-element -- a static file of ours, no optimisation needed
+          <img src={src!} alt={alt} width={1024} height={1024} className="h-[240px] w-full object-contain" />
         )}
         {legend.length > 0 && <figcaption className="text-center text-[13px] text-muted">{legend.join(" · ")}</figcaption>}
       </figure>

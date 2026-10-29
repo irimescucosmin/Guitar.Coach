@@ -40,6 +40,7 @@ export default defineConfig({
         reuseExistingServer: true,
         timeout: 60_000,
         // One new account per test: the sign-up rate limit would refuse the third.
-        env: { AUTH_RATE_LIMIT: "off" },
+        // And every test publishes, writes and reports on its own: the test database, never the one you play on.
+        env: { AUTH_RATE_LIMIT: "off", ...(process.env.DATABASE_URL_TEST ? { DATABASE_URL: process.env.DATABASE_URL_TEST } : {}) },
       },
 });

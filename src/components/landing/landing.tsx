@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ChordDiagram } from "@/components/chord-diagram";
+import { Tuner } from "@/components/tools/tuner";
 import { ChordChip } from "@/components/ui/chord-chip";
 import { AppMark, IconAlert, IconChevron } from "@/components/ui/icons";
 import { button } from "@/components/ui/links";
@@ -79,6 +80,16 @@ export async function Landing({ providers }: { providers: ("google" | "apple")[]
             </div>
             <figcaption className="text-sm text-muted">{t("heroCaption")}</figcaption>
           </figure>
+        </section>
+
+        {/* The one thing a visitor can try before an account: the microphone listening, for real. */}
+        <section aria-labelledby="try" className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1fr_1.2fr]">
+          <div className="flex flex-col gap-3">
+            <h2 id="try" className="display m-0 text-[36px] font-extrabold">{t("tryTitle")}</h2>
+            <p className="m-0 max-w-[52ch] text-base leading-relaxed text-ink-2">{t("tryBody")}</p>
+            <p className="m-0 max-w-[52ch] text-sm text-muted">{t("tryNote")}</p>
+          </div>
+          <Tuner />
         </section>
 
         <section aria-labelledby="why" className="flex flex-col gap-6">

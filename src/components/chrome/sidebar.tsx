@@ -24,7 +24,7 @@ const NAV = [
 ] as const;
 
 /** Navy on every screen but playing and signing in. On a phone it becomes a bar on top. */
-export function Sidebar({ userName }: { userName: string | null }) {
+export function Sidebar({ userName, coach = true }: { userName: string | null; coach?: boolean }) {
   const t = useTranslations("common");
   const pathname = usePathname();
   const { settings, update } = useSettings();
@@ -38,7 +38,8 @@ export function Sidebar({ userName }: { userName: string | null }) {
       </Link>
 
       <nav aria-label={t("navLabel")} className="-mx-1 flex gap-1 overflow-x-auto md:mx-0 md:flex-col">
-        {NAV.map(({ href, key, Icon }) => (
+        {/* The teacher without a model key is a closed door: it stays out of the menu. */}
+        {NAV.filter((n) => coach || n.key !== "coach").map(({ href, key, Icon }) => (
           <Link
             key={href}
             href={href}
