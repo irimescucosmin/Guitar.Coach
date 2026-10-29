@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useProgress, useSettings } from "@/components/providers";
 import { IconAlert, IconCheck, IconSpeaker } from "@/components/ui/icons";
@@ -22,7 +22,7 @@ import {
 type Round = { level: EarLevel; questions: EarQuestion[]; index: number; right: number; picked: string | null };
 
 /** Five levels, each a round of ten questions the synth plays; eight right open the next. */
-export function EarView({ startLevel }: { startLevel?: EarLevel }) {
+export function EarView({ startLevel, seed }: { startLevel?: EarLevel; seed?: number }) {
   const t = useTranslations("ear");
   const { progress, record } = useProgress();
   const open = unlockedLevel(progress);
@@ -32,7 +32,7 @@ export function EarView({ startLevel }: { startLevel?: EarLevel }) {
   const start = (level: EarLevel) => {
     engine.audio(); // the click is the gesture the browser wants before any sound
     setResult(null);
-    setRound({ level, questions: earRound(level, earChords(progress), Date.now() & 0x7fffffff), index: 0, right: 0, picked: null });
+    setRound({ level, questions: earRound(level, earChords(progress), seed ?? Date.now() & 0x7fffffff), index: 0, right: 0, picked: null });
   };
 
   // Arriving from today's routine with a level: open the level list scrolled to it.
@@ -123,21 +123,28 @@ function Question({ round, setRound, onFinish, onQuit }: {
   const tc = useTranslations("common");
   const { settings } = useSettings();
   const q = round.questions[round.index]!;
+  const volume = useRef(settings.volume);
+  useEffect(() => {
+    volume.current = settings.volume;
+  }, [settings.volume]);
 
+  // One question's sounds at a time: whatever still rings or is scheduled is cut first.
   const play = useCallback(() => {
     const { ctx, synth } = engine.audio();
-    synth.setVolume(settings.volume);
+    synth.silence();
+    synth.setVolume(volume.current);
     const gap = q.sounds.some((s) => "chord" in s) ? 1.6 : 1.1;
     q.sounds.forEach((s, i) => {
       const at = ctx.currentTime + 0.1 + i * gap;
       if ("note" in s) synth.single(s.note, at);
       else synth.strum(s.chord, at);
     });
-  }, [q, settings.volume]);
+  }, [q]);
 
-  // Every new question plays once by itself.
+  // Every new question plays once by itself; leaving it stops its sounds.
   useEffect(() => {
     play();
+    return () => engine.synth?.silence();
   }, [play]);
 
   const label = (option: string) => {

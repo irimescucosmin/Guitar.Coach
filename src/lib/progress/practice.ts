@@ -16,11 +16,14 @@ export async function recordPractice(
   day: string | null,
   event: PracticeEvent,
   save: () => Promise<void>,
-): Promise<{ progress: Progress; today: Today | null }> {
-  const before = day ? await loadProgress(db, userId) : null;
+  /** A rule on the progress before saving; false refuses the result (an ear level not open yet). */
+  allowed: (before: Progress) => boolean = () => true,
+): Promise<{ progress: Progress; today: Today | null } | null> {
+  const before = await loadProgress(db, userId);
+  if (!allowed(before)) return null;
   await save();
   let today: Today | null = null;
-  if (day && before) {
+  if (day) {
     const blocks = blocksDoneBy(dailyRoutine(before, day), event);
     if (blocks.length > 0) await markRoutine(db, userId, day, blocks);
     today = await loadToday(db, userId, day);

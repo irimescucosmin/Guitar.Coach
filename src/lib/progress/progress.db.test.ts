@@ -5,7 +5,8 @@ import * as schema from "@/db/schema";
 import { user } from "@/db/schema";
 import type { Profile } from "@/lib/music/profile";
 import { importGuestProgress, loadProgress, loadRoutine, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun, type Database } from "./repository";
-import { guestProgress, profileInput, runInput } from "./validation";
+import { answersInput, guestProgress, optionalDay, profileInput, proofInput, runInput } from "./validation";
+import { localDate } from "@/lib/music/routine";
 import { recordPractice } from "./practice";
 
 const answers: Profile = {
@@ -119,15 +120,34 @@ describe.skipIf(!url)("routine ticked by the server", () => {
     const other = await recordPractice(db, userId, "2026-10-29", { kind: "run", song: "drill-g-d", mode: "step" }, () =>
       saveRun(db, userId, { songId: "drill-g-d", mode: "step", value: 3000 }),
     );
-    expect(other.today?.done).toEqual([]);
+    expect(other!.today?.done).toEqual([]);
     const notes = await recordPractice(db, userId, "2026-10-29", { kind: "run", song: "notes", mode: "notes" }, () =>
       saveRun(db, userId, { songId: "notes", mode: "step", value: 2500 }),
     );
-    expect(notes.today).toEqual({ done: ["new"], streak: 1 });
+    expect(notes!.today).toEqual({ done: ["new"], streak: 1 });
   });
 });
 
 describe("input validation", () => {
+  it("narrows the answers to what can be true", () => {
+    const parsed = profileInput.parse({ ...answers, knowsOpenStrings: false, openStringsHeard: true, verifiedChords: ["G", "A"] });
+    expect(parsed.openStringsHeard).toBe(false);
+    expect(parsed.verifiedChords).toEqual(["G"]);
+  });
+
+  it("keeps old answers where they placed the player: 'I know the open strings' before the check existed", () => {
+    const old: Partial<Profile> = { ...answers };
+    delete old.openStringsHeard;
+    expect(profileInput.parse(old).openStringsHeard).toBe(true);
+    expect(answersInput.safeParse(old).success).toBe(false);
+  });
+
+  it("accepts only a date close to today, and a proof by name", () => {
+    expect(optionalDay.parse("1999-01-01")).toBeNull();
+    expect(proofInput.safeParse({ day: localDate(new Date()), proof: "tuned" }).success).toBe(true);
+    expect(proofInput.safeParse({ day: localDate(new Date()), proof: "song" }).success).toBe(false);
+  });
+
   it("refuses songs that are not in the catalogue", () => {
     expect(runInput.safeParse({ songId: "nope", mode: "step", value: 1000 }).success).toBe(false);
   });

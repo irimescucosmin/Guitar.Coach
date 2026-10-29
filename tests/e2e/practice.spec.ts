@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { earRound } from "../../src/lib/music/ear";
 
 const PASSWORD = "una-password-lunga";
 
@@ -26,6 +27,18 @@ async function signUp(page: Page, name = "Prova"): Promise<string> {
  * The same, through the API: no screens, so the time from the browser's start
  * to the first click stays short. The timed test needs that, see its comment.
  */
+/** Answers a round of the given level and seed, right or wrong on purpose. Starts it from the level card unless told not to. */
+async function answerEarRound(page: Page, level: 1 | 2 | 3 | 4 | 5, seed: number, right: boolean, start = true) {
+  const labels: Record<string, string> = { first: "La prima", second: "La seconda", same: "Uguali", different: "Diversi" };
+  if (start) await page.locator(`#level-${level}`).getByRole("button", { name: /Inizia|Ripeti/ }).click();
+  const questions = earRound(level, ["Em", "Am"], seed);
+  for (const [i, q] of questions.entries()) {
+    const pick = right ? q.answer : q.options.find((o) => o !== q.answer)!;
+    await page.getByRole("group", { name: "Risposte" }).getByRole("button", { name: labels[pick] ?? pick, exact: true }).click();
+    await page.getByRole("button", { name: i === questions.length - 1 ? "Vedi il risultato" : "Avanti" }).click();
+  }
+}
+
 async function signUpQuickly(page: Page): Promise<void> {
   const base = test.info().project.use.baseURL ?? "http://localhost:3000";
   const email = `e2e-quick-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.test`;
@@ -60,6 +73,12 @@ test("timed mode scores the bars and saves a record", { tag: "@own-browser" }, a
   // its Am bars must not. Half right, whatever the timing.
   await signUpQuickly(page);
   await page.goto("/play/drill-em-am?mode=timed");
+  // The result is saved by a server action, a POST to this page carrying the run, sent when it ends.
+  // Other actions post to the same page (today's routine on load): match the run itself.
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === "POST" && (r.request().postData() ?? "").includes('"mode":"timed"'),
+    { timeout: 120_000 },
+  );
   await page.getByRole("button", { name: "Avvia" }).click();
   const result = page.getByText(/% delle battute con l'accordo giusto/);
   await expect(result).toBeVisible({ timeout: 90_000 });
@@ -67,7 +86,8 @@ test("timed mode scores the bars and saves a record", { tag: "@own-browser" }, a
   expect(percent).toBeGreaterThanOrEqual(37);
   expect(percent).toBeLessThanOrEqual(63);
   await expect(page.getByText(/Da ripassare: Am \(\d+\)/)).toBeVisible();
-  // The best result survives a reload: it was saved, not just shown.
+  // The best result survives a reload: it was saved, not just shown. Wait for the save to land first.
+  await saved;
   await page.reload();
   await expect(page.getByText(/Record \d+%/)).toBeVisible();
 });
@@ -149,7 +169,7 @@ test("the questionnaire hears the declared chords and starts the path past them"
     await next.click();
   }
   // "I know the open strings" must be played: the fake microphone plays chords, not single strings.
-  await expect(page.getByRole("heading", { name: "Suona le sei corde a vuoto" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Suona le corde a vuoto che ti chiedo" })).toBeVisible();
   await page.getByRole("button", { name: "Attiva microfono" }).click();
   await page.getByRole("button", { name: "Non riesco, avanti" }).click();
   // The chords it does play are heard and placed.
@@ -175,14 +195,11 @@ test("today's practice ticks only what was proven, and remembers it", async ({ p
   // Nothing to tick by hand.
   await expect(page.getByRole("button", { name: /Segna/ })).toHaveCount(0);
   await expect(page.getByText("0/4")).toBeVisible();
-  // Doing the ear round from the plan is what ticks it.
-  await page.getByRole("link", { name: "Allena l'orecchio" }).click();
-  await page.getByRole("button", { name: "Inizia" }).first().click();
-  for (let i = 0; i < 10; i++) {
-    await page.getByRole("group", { name: "Risposte" }).getByRole("button").first().click();
-    await page.getByRole("button", { name: i === 9 ? "Vedi il risultato" : "Avanti" }).click();
-  }
-  await expect(page.getByText(/giuste su 10\./)).toBeVisible();
+  // Doing the ear round from the plan is what ticks it, and only a round that beats guessing.
+  // A fixed seed: the test cannot hear, so it computes the answers the same way the app does.
+  await page.goto("/ear?level=1&seed=4242");
+  await answerEarRound(page, 1, 4242, true);
+  await expect(page.getByText("10 giuste su 10.")).toBeVisible();
   await page.getByRole("link", { name: "Oggi", exact: true }).click();
   await expect(page.getByText("1/4")).toBeVisible();
   await page.reload();
@@ -190,19 +207,19 @@ test("today's practice ticks only what was proven, and remembers it", async ({ p
   await expect(page.getByText("giorno di fila")).toBeVisible();
 });
 
-test("an ear round of ten questions saves its score and opens the next level", async ({ page }) => {
+test("an ear round saves its score, a passed round opens the next level, a guessed one does not", async ({ page }) => {
   await signUp(page);
-  await page.goto("/ear");
+  await page.goto("/ear?seed=7");
   await expect(page.getByRole("heading", { level: 1, name: "Allena l'orecchio" })).toBeVisible();
   await expect(page.getByText("Si apre con 8 su 10 al livello 1.")).toBeVisible();
-  await page.getByRole("button", { name: "Inizia" }).first().click();
-  // The test cannot hear: it reads the right answer back after a first guess and keeps score honest.
-  for (let i = 0; i < 10; i++) {
-    await expect(page.getByText(`domanda ${i + 1} di 10`)).toBeVisible();
-    await page.getByRole("group", { name: "Risposte" }).getByRole("button").first().click();
-    await page.getByRole("button", { name: i === 9 ? "Vedi il risultato" : "Avanti" }).click();
-  }
-  await expect(page.getByText(/giuste su 10\./)).toBeVisible();
+  // All wrong: saved, nothing opens.
+  await answerEarRound(page, 1, 7, false);
+  await expect(page.getByText("0 giuste su 10.")).toBeVisible();
+  await expect(page.getByText("Si apre con 8 su 10 al livello 1.")).toBeVisible();
+  // All right: level 2 opens, and stays open after a reload.
+  await page.getByRole("button", { name: "Rifai il giro" }).click();
+  await answerEarRound(page, 1, 7, true, false);
+  await expect(page.getByText("Superato: si apre il livello 2.")).toBeVisible();
   await page.reload();
-  await expect(page.getByText(/Record \d+%|Superato/).first()).toBeVisible();
+  await expect(page.getByText("Si apre con 8 su 10 al livello 1.")).toHaveCount(0);
 });

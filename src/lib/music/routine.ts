@@ -1,5 +1,5 @@
 import type { ChordId } from "./chords";
-import { earId, earLevelToPractise, type EarLevel } from "./ear";
+import { EAR_ROUTINE_SCORE, earId, earLevelToPractise, type EarLevel } from "./ear";
 import { LESSONS, nextModeFor, nextTask, type PracticeMode, type Progress, type Task } from "./path";
 import type { DailyMinutes, Style } from "./profile";
 import { SONGS, chordsOf, type Song } from "./songs";
@@ -181,7 +181,7 @@ export function isNearToday(date: string, now: Date): boolean {
  * of the spider's notes heard. The others come with a saved result.
  */
 export type PracticeEvent =
-  | { kind: "run"; song: string; mode: PracticeMode | "notes" }
+  | { kind: "run"; song: string; mode: PracticeMode | "notes"; value?: number }
   | { kind: "learn"; chord: ChordId }
   | { kind: "changes"; pair: string }
   | { kind: "tuned" }
@@ -202,7 +202,8 @@ export function blocksDoneBy(routine: readonly Block[], event: PracticeEvent): B
         return event.kind === "run" && event.song === t.song && event.mode === t.kind ? ["new"] : [];
       }
       case "ear":
-        return event.kind === "run" && event.song === earId(block.level) ? ["ear"] : [];
+        // A round answered at random does not count: it must beat guessing.
+        return event.kind === "run" && event.song === earId(block.level) && (event.value ?? 0) >= EAR_ROUTINE_SCORE ? ["ear"] : [];
       case "changes":
         return event.kind === "changes" && event.pair === pairKey(...block.pair) ? ["changes"] : [];
       case "song":

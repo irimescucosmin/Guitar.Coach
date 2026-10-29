@@ -141,17 +141,33 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
   }, [signedIn]);
 
   /** Results carry today's date; the server answers with today's ticks. */
-  const landed = useCallback((r: Awaited<ReturnType<typeof savePracticeRun>>, date: string) => {
+  // Answers can come back out of order: only the newest request's progress is
+  // applied, and today's ticks only ever grow, so a late answer cannot undo one.
+  const sent = useRef(0);
+  const applied = useRef(0);
+  const nextRequest = useCallback(() => ++sent.current, []);
+  const landed = useCallback((r: Awaited<ReturnType<typeof savePracticeRun>>, date: string, request: number) => {
     if (!r.saved) return;
-    setProgress(r.progress);
-    if (r.today) setToday({ ...r.today, date });
+    if (request >= applied.current) {
+      applied.current = request;
+      setProgress(r.progress);
+    }
+    const t = r.today;
+    if (t)
+      setToday((current) => ({
+        date,
+        streak: Math.max(t.streak, current?.date === date ? current.streak : 0),
+        done: [...new Set([...(current?.date === date ? current.done : []), ...t.done])],
+      }));
   }, []);
 
   const prove = useCallback(
     (proof: "tuned" | "warmup") => {
       if (!signedIn) return;
       const date = localDate(new Date());
-      void reportProof({ day: date, proof }).then((t) => t && setToday({ ...t, date }));
+      void reportProof({ day: date, proof }).then(
+        (t) => t && setToday((current) => ({ date, streak: t.streak, done: [...new Set([...(current?.date === date ? current.done : []), ...t.done])] })),
+      );
     },
     [signedIn],
   );
@@ -170,9 +186,10 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
         return { ...p, learned: { ...p.learned, [chord]: true as const } };
       });
       const date = localDate(new Date());
-      void saveLearnedChord(chord, date).then((r) => landed(r, date));
+      const request = nextRequest();
+      void saveLearnedChord(chord, date).then((r) => landed(r, date, request));
     },
-    [landed],
+    [landed, nextRequest],
   );
 
   const record = useCallback(
@@ -180,10 +197,11 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
       const { progress: next, isRecord } = recordResult(progress, run.songId, run.mode, run.value);
       setProgress(next);
       const date = localDate(new Date());
-      void savePracticeRun(run, date).then((r) => landed(r, date));
+      const request = nextRequest();
+      void savePracticeRun(run, date).then((r) => landed(r, date, request));
       return isRecord;
     },
-    [progress, landed],
+    [progress, landed, nextRequest],
   );
 
   const recordChanges = useCallback(
@@ -193,10 +211,11 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
       const isRecord = previous === undefined || count > previous;
       if (isRecord) setProgress({ ...progress, changes: { ...progress.changes, [pair]: count } });
       const date = localDate(new Date());
-      void saveChanges({ pair, count }, date).then((r) => landed(r, date));
+      const request = nextRequest();
+      void saveChanges({ pair, count }, date).then((r) => landed(r, date, request));
       return isRecord;
     },
-    [progress, landed],
+    [progress, landed, nextRequest],
   );
 
   const answer = useCallback(

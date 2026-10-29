@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CHORDS } from "./chords";
-import { EAR_LEVELS, ROUND_LENGTH, earChords, earId, earLevelToPractise, earRound, isMinor, unlockedLevel } from "./ear";
+import { EAR_LEVELS, ROUND_LENGTH, earChords, earId, earLevelOf, earLevelToPractise, earRound, earRunAllowed, isMinor, unlockedLevel } from "./ear";
 import { EMPTY_PROGRESS, type Progress } from "./path";
 
 const midiOf = (s: { note: number } | { chord: string }) => ("note" in s ? s.note : -1);
@@ -61,5 +61,15 @@ describe("ear training", () => {
     expect(unlockedLevel(with_({ 1: 0.9, 2: 1, 3: 0.8 }))).toBe(4);
     expect(earLevelToPractise(with_({ 1: 0.9, 2: 0.6 }))).toBe(2);
     expect(earLevelToPractise(with_({ 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 }))).toBe(5);
+  });
+
+  it("refuses a result for a level not open yet", () => {
+    const passedOne: Progress = { ...EMPTY_PROGRESS, best: { "ear-1": { timed: 0.9 } } };
+    expect(earRunAllowed(EMPTY_PROGRESS, "ear-1")).toBe(true);
+    expect(earRunAllowed(EMPTY_PROGRESS, "ear-2")).toBe(false);
+    expect(earRunAllowed(passedOne, "ear-2")).toBe(true);
+    expect(earRunAllowed(passedOne, "ear-3")).toBe(false);
+    expect(earRunAllowed(EMPTY_PROGRESS, "drill-em-am")).toBe(true);
+    expect(earLevelOf("ear-6")).toBeNull();
   });
 });

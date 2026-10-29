@@ -88,8 +88,9 @@ describe("routine bookkeeping", () => {
     expect(blocksDoneBy(routine, { kind: "run", song: "drill-em-am", mode: "step" })).toEqual(["new"]);
     expect(blocksDoneBy(routine, { kind: "run", song: "drill-em-am", mode: "listen" })).toEqual([]);
     expect(blocksDoneBy(routine, { kind: "learn", chord: "D" })).toEqual([]);
-    expect(blocksDoneBy(routine, { kind: "run", song: "ear-1", mode: "timed" })).toEqual(["ear"]);
-    expect(blocksDoneBy(routine, { kind: "run", song: "ear-3", mode: "timed" })).toEqual([]);
+    expect(blocksDoneBy(routine, { kind: "run", song: "ear-1", mode: "timed", value: 0.7 })).toEqual(["ear"]);
+    expect(blocksDoneBy(routine, { kind: "run", song: "ear-1", mode: "timed", value: 0.4 })).toEqual([]);
+    expect(blocksDoneBy(routine, { kind: "run", song: "ear-3", mode: "timed", value: 1 })).toEqual([]);
   });
 
   it("knows every pair once, in path order", () => {

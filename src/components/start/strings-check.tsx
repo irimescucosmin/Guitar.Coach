@@ -7,31 +7,38 @@ import { IconCheck } from "@/components/ui/icons";
 import { button } from "@/components/ui/links";
 import { midiFromFrequency, pitchFromSamples } from "@/lib/audio/detect";
 import { engine, SILENCE } from "@/lib/audio/engine";
-import { openStringOf } from "@/lib/music/checks";
+import { isAskedString, openStringOf, stringOrder } from "@/lib/music/checks";
 
 /** The same pitch this many frames in a row before it counts: a pluck settles, noise does not. */
 const STABLE_FRAMES = 6;
 
-/** Proof of "I know the open strings": play them, one at a time, in any order. */
+/**
+ * Proof of "I know the open strings": the app names one string at a time, in
+ * an order nobody can guess, and only that string counts. Plucking all six
+ * without knowing which is which does not pass.
+ */
 export function StringsCheck({ onDone }: { onDone: (heard: boolean) => void }) {
   const t = useTranslations("start.strings");
   const tc = useTranslations("common");
   const mic = useMicState();
-  const [heard, setHeard] = useState<boolean[]>([false, false, false, false, false, false]);
-  const run = useRef({ last: -1, stable: 0 });
+  const [order] = useState(() => stringOrder(Date.now() & 0x7fffffff));
+  const [index, setIndex] = useState(0);
+  const [wrong, setWrong] = useState<number | null>(null);
+  const run = useRef({ last: -1, stable: 0, ignoreUntil: 0 });
   const onDoneRef = useRef(onDone);
   useEffect(() => {
     onDoneRef.current = onDone;
   });
+  const asked = order[index];
 
   useEffect(() => {
-    if (mic !== "on") return;
+    if (mic !== "on" || asked === undefined) return;
     let id = 0;
     const r = run.current;
-    const tick = () => {
+    const tick = (now: number) => {
       id = requestAnimationFrame(tick);
       const frame = engine.read();
-      if (!frame || !engine.ctx || frame.level < SILENCE) {
+      if (!frame || !engine.ctx || now < r.ignoreUntil || frame.level < SILENCE) {
         r.stable = 0;
         return;
       }
@@ -41,33 +48,41 @@ export function StringsCheck({ onDone }: { onDone: (heard: boolean) => void }) {
       r.stable = midi === r.last ? r.stable + 1 : 1;
       r.last = midi;
       if (r.stable !== STABLE_FRAMES) return;
-      const string = openStringOf(midi);
-      if (string >= 0) setHeard((h) => (h[string] ? h : h.map((v, i) => v || i === string)));
+      if (isAskedString(midi, asked)) {
+        engine.synth?.chime();
+        setWrong(null);
+        // The previous string may still ring: give the next one a clean start.
+        r.ignoreUntil = now + 700;
+        setIndex((i) => i + 1);
+      } else if (openStringOf(midi) >= 0) setWrong(openStringOf(midi));
     };
     id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);
-  }, [mic]);
+  }, [mic, asked]);
 
-  const all = heard.every(Boolean);
+  const all = index >= order.length;
   useEffect(() => {
     if (!all) return;
-    engine.synth?.chime();
-    const id = window.setTimeout(() => onDoneRef.current(true), 900);
+    const id = window.setTimeout(() => onDoneRef.current(true), 700);
     return () => window.clearTimeout(id);
   }, [all]);
 
   const broken = mic === "denied" || mic === "unsupported" || mic === "insecure";
+  const name = (s: number) => t(`names.s${s as 0}`);
   return (
     <div className="flex flex-col gap-6">
-      <ol aria-label={t("list")} className="m-0 grid list-none grid-cols-3 gap-3 p-0 sm:grid-cols-6">
-        {heard.map((ok, s) => (
-          <li key={s} className={`flex min-h-20 flex-col items-center justify-center gap-1 rounded-[var(--radius-control)] border-2 px-2 text-center ${ok ? "border-good bg-good-soft text-good-ink" : "border-line bg-surface"}`}>
-            {ok ? <IconCheck /> : <span className="font-mono text-sm text-muted">{6 - s}ª</span>}
-            <span className="text-sm font-bold">{tc(`string.s${s as 0}`)}</span>
-          </li>
-        ))}
-      </ol>
-      <p role="status" className="m-0 text-base font-bold">{all ? t("done") : mic === "on" ? t("play") : ""}</p>
+      <div className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-6">
+        <span className="eyebrow text-muted">{t("progress", { n: Math.min(index + 1, order.length), total: order.length })}</span>
+        <p className="display m-0 text-[34px] font-extrabold">{all ? t("done") : t("ask", { string: name(asked!) })}</p>
+        <div aria-hidden className="flex gap-2">
+          {order.map((_, i) => (
+            <span key={i} className={`flex size-8 items-center justify-center rounded-full ${i < index ? "bg-good text-white" : i === index ? "border-2 border-brass" : "border-2 border-line"}`}>
+              {i < index && <IconCheck size={14} />}
+            </span>
+          ))}
+        </div>
+        <p role="status" className="m-0 min-h-6 text-[15px] font-semibold text-bad-ink">{wrong !== null && !all ? t("wrong", { string: name(wrong) }) : ""}</p>
+      </div>
       {mic !== "on" && !broken && (
         <button type="button" onClick={() => void engine.startMic()} className={`${button.brass} h-[52px] self-start text-[17px]`}>
           {tc(`mic.${mic}`)}

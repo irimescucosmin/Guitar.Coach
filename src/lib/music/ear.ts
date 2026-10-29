@@ -131,3 +131,18 @@ export function isMinor(chord: ChordId): boolean {
   const [root, ...rest] = CHORDS[chord].pitchClasses;
   return rest.some((pc) => (pc - root! + 12) % 12 === 3);
 }
+
+/** The level an ear result is for, or null when the id is not an ear level. */
+export function earLevelOf(id: string): EarLevel | null {
+  const level = Number(/^ear-([1-5])$/.exec(id)?.[1]);
+  return EAR_LEVELS.includes(level as EarLevel) ? (level as EarLevel) : null;
+}
+
+/** A result for a level not yet open is refused: levels open by passing, not by calling. */
+export function earRunAllowed(progress: Progress, id: string): boolean {
+  const level = earLevelOf(id);
+  return level === null || level <= unlockedLevel(progress);
+}
+
+/** A round counts for today's routine when it beats guessing: six right out of ten. */
+export const EAR_ROUTINE_SCORE = 0.6;

@@ -7,8 +7,11 @@ export async function generateMetadata() {
   return { title: t("title") };
 }
 
-export default async function EarPage({ searchParams }: { searchParams: Promise<{ level?: string }> }) {
-  const level = Number((await searchParams).level);
+export default async function EarPage({ searchParams }: { searchParams: Promise<{ level?: string; seed?: string }> }) {
+  const params = await searchParams;
+  const level = Number(params.level);
   const startLevel = EAR_LEVELS.includes(level as EarLevel) ? (level as EarLevel) : undefined;
-  return <EarView startLevel={startLevel} />;
+  // A fixed round, for the end-to-end tests: they cannot hear, so they compute the answers.
+  const seed = Number.isInteger(Number(params.seed)) && params.seed ? Number(params.seed) : undefined;
+  return <EarView startLevel={startLevel} seed={seed} />;
 }

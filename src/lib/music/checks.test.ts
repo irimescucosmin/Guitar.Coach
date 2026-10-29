@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_TUNE, IN_TUNE_READINGS, SPIDER_NOTES, allInTune, isSpiderNote, openStringOf, tuneStep } from "./checks";
+import { EMPTY_TUNE, IN_TUNE_READINGS, SPIDER_NEEDED, SPIDER_NOTES, allInTune, isAskedString, isSpiderNote, openStringOf, stringOrder, tuneStep } from "./checks";
 
 describe("checks", () => {
   it("counts a string tuned only after several readings in a row in tune", () => {
@@ -21,9 +21,11 @@ describe("checks", () => {
     expect(allInTune(s)).toBe(true);
   });
 
-  it("knows the 24 spider notes, frets 1 to 4 of each string", () => {
-    expect(SPIDER_NOTES).toHaveLength(24);
-    expect(new Set(SPIDER_NOTES).size).toBe(24);
+  it("knows the spider notes, frets 1 to 4 of each string, without any open-string note", () => {
+    expect(SPIDER_NOTES).toHaveLength(23);
+    expect(new Set(SPIDER_NOTES).size).toBe(23);
+    expect(isSpiderNote(59)).toBe(false); // G string fret 4 is the open B: a strum would give it away
+    expect(SPIDER_NEEDED).toBeLessThan(SPIDER_NOTES.length);
     expect(isSpiderNote(41)).toBe(true); // F, low E string fret 1
     expect(isSpiderNote(40)).toBe(false); // the open string is not the spider
     expect(isSpiderNote(68)).toBe(true); // G#, high E string fret 4
@@ -33,5 +35,17 @@ describe("checks", () => {
     expect(openStringOf(40)).toBe(0);
     expect(openStringOf(64)).toBe(5);
     expect(openStringOf(52)).toBe(-1);
+  });
+
+  it("asks the open strings in an order that changes, each once", () => {
+    expect([...stringOrder(1)].sort()).toEqual([0, 1, 2, 3, 4, 5]);
+    const orders = new Set([1, 2, 3, 4, 5, 6].map((seed) => stringOrder(seed).join()));
+    expect(orders.size).toBeGreaterThan(1);
+  });
+
+  it("counts only the string that was asked for", () => {
+    expect(isAskedString(45, 1)).toBe(true);
+    expect(isAskedString(45, 2)).toBe(false);
+    expect(isAskedString(57, 1)).toBe(false);
   });
 });

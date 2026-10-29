@@ -39,7 +39,7 @@ Da qui l'app sceglie la lezione di partenza, saltando quelle già padroneggiate,
 
 **Fatto** (`/start`, `lib/music/profile.ts`):
 - un accordo dichiarato conta come imparato solo se il microfono lo sente pulito; chi salta la prova non salta niente;
-- "so le corde a vuoto" va dimostrato suonandole: solo se il microfono sente tutte e sei si salta la lezione 0;
+- "so le corde a vuoto" va dimostrato: l'app chiede una corda per nome alla volta, in ordine casuale, e solo se il microfono sente quella giusta tutte e sei le volte si salta la lezione 0;
 - chi sa le corde a vuoto salta la lezione 0;
 - chi ha già suonato e ha tutti gli accordi di una lezione ne salta anche gli esercizi; un principiante assoluto li fa sempre;
 - dopo 14 giorni il percorso propone di rispondere di nuovo;
@@ -65,7 +65,7 @@ Con 10 minuti si tengono accordatura, accordo nuovo e cambi; con 30 si allungano
 - il cambio da ripassare è una coppia di accordi già imparati che i brani usano davvero: prima quelle mai provate (l'accordo più recente, il cambio più frequente), poi quella con meno cambi puliti al minuto;
 - il brano del giorno ruota ogni giorno tra quelli che si sanno già suonare, prima quelli dello stile scelto, nel modo che serve (*Passo passo* o *A tempo*);
 - un blocco senza niente da fare passa i suoi minuti agli altri, il totale resta quello dichiarato;
-- niente si spunta a mano: le attività del percorso le segna il server dai risultati che salva (accordo imparato, esercizio completato senza saltare, test dei cambi, brano finito, giro dell'orecchio); l'accordatura quando l'accordatore sente le sei corde intonate; il riscaldamento quando il microfono ha sentito almeno 18 delle 24 note del ragno durante il timer;
+- niente si spunta a mano: le attività del percorso le segna il server dai risultati che salva (accordo imparato, esercizio completato senza saltare, test dei cambi, brano finito, giro dell'orecchio); l'accordatura quando l'accordatore sente le sei corde intonate; il riscaldamento quando il microfono ha sentito almeno 17 delle 23 note del ragno durante il timer;
 - giorni di fila, che non si interrompono finché il giorno non è finito;
 - il test dei cambi ora si salva nell'account (`change_tests`), i giorni in `routine_log`.
 
@@ -101,6 +101,8 @@ Punteggi per esercizio, nel grafico dei progressi.
 - 8 su 10 apre il livello dopo; il risultato si salva come le altre prove (`ear-1`... `ear-5`).
 
 Da fare: livelli 6-8 (cambio nel brano, cantare la nota con il microfono, intervalli).
+
+**Limite noto**: i risultati li misura il browser, dove sta il microfono. Il server rifiuta ciò che è impossibile (livelli non aperti, accordi sentiti ma non dichiarati, date lontane da oggi, coppie e brani fuori catalogo) ma non può riascoltare: chi chiama le azioni a mano con valori inventati può falsare i propri progressi. Per un'app gratuita e personale è accettabile; se un giorno ci saranno classifiche o punti scambiabili, servirà una verifica sul server (per esempio l'audio di una prova campione).
 
 ## 6. Teoria minima, quando serve
 

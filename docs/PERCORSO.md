@@ -24,7 +24,8 @@ Ogni nuovo accordo condivide qualcosa con uno già imparato. Un test in `music.t
 Al primo avvio il percorso propone `/start`: nove domande (esperienza, corde a vuoto, accordi conosciuti, tablature, mano, chitarra, tempo al giorno, stile, obiettivo) e una prova al microfono sugli accordi dichiarati. Le risposte stanno in `Progress.profile`.
 
 - Un accordo dichiarato diventa imparato solo se il microfono lo sente pulito (`placedChords`). Chi salta la prova non salta niente.
-- Chi dice di sapere le corde a vuoto le suona una per una: se il microfono le sente tutte e sei (`openStringsHeard`), salta la lezione 0.
+- Chi dice di sapere le corde a vuoto deve suonare quella che l'app chiede per nome, una alla volta, in un ordine sempre diverso (`stringOrder`): solo se le indovina tutte e sei (`openStringsHeard`) salta la lezione 0. Pizzicarle tutte senza sapere quale è quale non basta.
+- Le risposte date prima di questa prova restano dove avevano messo il giocatore: chi aveva detto di sapere le corde non torna alla lezione 0.
 - Chi ha già suonato (non *Mai*) e ha tutti gli accordi di una lezione ne salta anche gli esercizi *Passo passo* e *A tempo* (`skipsDrillsFor`). Un principiante assoluto li fa sempre: i cambi si costruiscono lì.
 - Dopo 14 giorni il percorso propone di rispondere di nuovo (`needsRecheck`).
 
@@ -47,7 +48,8 @@ Con 20 e 30 minuti, 3 minuti di orecchio dopo il riscaldamento, al primo livello
 - **Brano**: uno al giorno tra quelli con tutti gli accordi imparati, prima i ritmi dello stile scelto (`songOfTheDay`).
 - Un blocco senza niente da fare passa i minuti agli altri.
 - Niente si spunta a mano. Le attività del percorso le segna il server quando salva il risultato che le dimostra (`recordPractice` in `lib/progress/practice.ts`, con `blocksDoneBy`), calcolando la routine com'era prima di quel risultato.
-- Accordatura e riscaldamento li verifica il microfono nel browser (`lib/music/checks.ts`): le sei corde ognuna intonata entro 5 cent per 5 letture di fila; almeno 18 delle 24 note del ragno durante il timer. Il browser manda solo la prova (`reportProof`), il server segna il blocco se oggi c'è.
+- Accordatura e riscaldamento li verifica il microfono nel browser (`lib/music/checks.ts`): le sei corde ognuna intonata entro 5 cent per 5 letture di fila; almeno 17 delle 23 note del ragno durante il timer (fuori la nota che è anche una corda a vuoto, il Si: uno strum non deve contare).
+- Il blocco dell'orecchio conta solo con almeno 6 su 10, meglio del tirare a indovinare; un livello non ancora aperto viene rifiutato dal server. Il browser manda solo la prova (`reportProof`), il server segna il blocco se oggi c'è.
 - L'esercizio delle note conta solo senza note saltate; *Passo passo* solo senza cambi saltati.
 - I giorni di fila (`streak`) contano fino a ieri finché oggi non è finito.
 

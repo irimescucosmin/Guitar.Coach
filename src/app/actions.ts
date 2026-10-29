@@ -5,9 +5,10 @@ import { db } from "@/db/client";
 import { currentUser } from "@/lib/auth";
 import { importGuestProgress, loadProgress, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun } from "@/lib/progress/repository";
 import { loadToday as todayOf, recordPractice, type Today } from "@/lib/progress/practice";
-import { changeTestInput, chordInput, dayInput, guestProgress, optionalDay, profileInput, proofInput, runInput } from "@/lib/progress/validation";
+import { answersInput, changeTestInput, chordInput, dayInput, guestProgress, optionalDay, proofInput, runInput } from "@/lib/progress/validation";
 import { blocksDoneBy, dailyRoutine } from "@/lib/music/routine";
 import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
+import { earRunAllowed } from "@/lib/music/ear";
 import { isChordId } from "@/lib/music/chords";
 import type { Progress } from "@/lib/music/path";
 
@@ -26,7 +27,7 @@ export async function saveLearnedChord(input: unknown, day: unknown = null): Pro
   const chord = parsed.data;
   const result = await recordPractice(db, me.id, optionalDay.parse(day), { kind: "learn", chord }, () => markLearned(db, me.id, chord));
   revalidatePath("/", "layout");
-  return { saved: true, ...result };
+  return result ? { saved: true, ...result } : { saved: false };
 }
 
 export async function savePracticeRun(run: unknown, day: unknown = null): Promise<Saved> {
@@ -34,10 +35,12 @@ export async function savePracticeRun(run: unknown, day: unknown = null): Promis
   const parsed = runInput.safeParse(run);
   if (!me || !parsed.success) return { saved: false };
   const r = parsed.data;
-  const event = { kind: "run" as const, song: r.songId, mode: r.songId === NOTE_DRILL_ID ? ("notes" as const) : r.mode };
-  const result = await recordPractice(db, me.id, optionalDay.parse(day), event, () => saveRun(db, me.id, r));
+  const event = { kind: "run" as const, song: r.songId, mode: r.songId === NOTE_DRILL_ID ? ("notes" as const) : r.mode, value: r.value };
+  const result = await recordPractice(db, me.id, optionalDay.parse(day), event, () => saveRun(db, me.id, r), (before) =>
+    earRunAllowed(before, r.songId),
+  );
   revalidatePath("/", "layout");
-  return { saved: true, ...result };
+  return result ? { saved: true, ...result } : { saved: false };
 }
 
 export async function importGuest(progress: unknown): Promise<Saved> {
@@ -51,7 +54,7 @@ export async function importGuest(progress: unknown): Promise<Saved> {
 
 export async function saveAnswers(profile: unknown): Promise<Saved> {
   const me = await currentUser();
-  const parsed = profileInput.safeParse(profile);
+  const parsed = answersInput.safeParse(profile);
   if (!me || !parsed.success) return { saved: false };
   await saveProfile(db, me.id, parsed.data);
   revalidatePath("/", "layout");
@@ -64,7 +67,7 @@ export async function saveChanges(input: unknown, day: unknown = null): Promise<
   if (!me || !parsed.success) return { saved: false };
   const { pair, count } = parsed.data;
   const result = await recordPractice(db, me.id, optionalDay.parse(day), { kind: "changes", pair }, () => saveChangeTest(db, me.id, pair, count));
-  return { saved: true, ...result };
+  return result ? { saved: true, ...result } : { saved: false };
 }
 
 export async function loadToday(day: unknown): Promise<Today | null> {

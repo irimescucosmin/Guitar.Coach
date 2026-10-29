@@ -38,11 +38,10 @@ const chordList = z
   .max(50)
   .transform((list) => [...new Set(list.filter(isChordId))]);
 
-export const profileInput = z.object({
+const profileShape = z.object({
   experience: z.enum(EXPERIENCE),
   knowsOpenStrings: z.boolean(),
-  // Answers saved before the open-string check existed: not heard.
-  openStringsHeard: z.boolean().default(false),
+  openStringsHeard: z.boolean().optional(),
   knownChords: chordList,
   verifiedChords: chordList,
   checked: z.boolean(),
@@ -52,7 +51,20 @@ export const profileInput = z.object({
   style: z.enum(STYLES),
   goal: z.enum(GOALS),
   takenAt: z.iso.datetime(),
-}) satisfies z.ZodType<Profile, unknown>;
+});
+
+/**
+ * The answers, narrowed to what can be true: open strings heard only by someone
+ * who said they know them, chords heard only among the declared ones.
+ * Answers saved before the open-string check existed keep what they placed
+ * then: "I know them" moved the player past lesson 0, and still does.
+ */
+const narrow = (p: z.infer<typeof profileShape>): Profile => ({
+  ...p,
+  openStringsHeard: p.knowsOpenStrings && (p.openStringsHeard ?? true),
+  verifiedChords: p.verifiedChords.filter((c) => p.knownChords.includes(c)),
+});
+export const profileInput = profileShape.transform(narrow);
 
 const knownChords = new Set<string>(CHORD_IDS);
 const knownSongs = new Set<string>(PRACTICE_IDS);
@@ -92,3 +104,6 @@ export const proofInput = z.object({ day: dayInput, proof: z.enum(["tuned", "war
 
 /** Today's date travels with every result, so the server can tick the routine. */
 export const optionalDay = dayInput.nullable().catch(null);
+
+/** New answers from the questionnaire: the open-string check result must be there. */
+export const answersInput = profileShape.extend({ openStringsHeard: z.boolean() }).transform(narrow);

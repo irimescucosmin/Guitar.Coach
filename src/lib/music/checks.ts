@@ -36,12 +36,15 @@ export const allInTune = (state: TuneState) => state.done.every(Boolean);
 
 /**
  * The spider warm-up: index to little finger on frets 1 to 4 of every string.
- * Twenty-four notes, none shared between strings.
+ * Notes an open string also plays are left out (the G string's 4th fret is the
+ * open B): a strum of open strings must not count as warming up. 23 notes.
  */
-export const SPIDER_NOTES: readonly number[] = OPEN_STRINGS_MIDI.flatMap((open) => [1, 2, 3, 4].map((f) => open + f));
+export const SPIDER_NOTES: readonly number[] = OPEN_STRINGS_MIDI.flatMap((open) => [1, 2, 3, 4].map((f) => open + f)).filter(
+  (midi) => !(OPEN_STRINGS_MIDI as readonly number[]).includes(midi),
+);
 
-/** Out of 24: most of the spider, room for a note the microphone missed. */
-export const SPIDER_NEEDED = 18;
+/** Out of 23: most of the spider, room for a note the microphone missed. */
+export const SPIDER_NEEDED = 17;
 
 export function isSpiderNote(midi: number): boolean {
   return SPIDER_NOTES.includes(midi);
@@ -50,4 +53,24 @@ export function isSpiderNote(midi: number): boolean {
 /** The open string a note is, or -1. Exact: an octave off is another string, or a wrong one. */
 export function openStringOf(midi: number): number {
   return OPEN_STRINGS_MIDI.indexOf(midi as (typeof OPEN_STRINGS_MIDI)[number]);
+}
+
+/**
+ * The open-string check asks for one string at a time, by name, in an order
+ * the player cannot guess: plucking all six without knowing them proves nothing.
+ */
+export function stringOrder(seed: number): number[] {
+  const order = [0, 1, 2, 3, 4, 5];
+  let a = seed >>> 0;
+  for (let i = order.length - 1; i > 0; i--) {
+    a = (Math.imul(a ^ (a >>> 15), 2246822507) + 0x9e3779b9) >>> 0;
+    const j = a % (i + 1);
+    [order[i], order[j]] = [order[j]!, order[i]!];
+  }
+  return order;
+}
+
+/** The asked string counts only when that exact open note is heard. */
+export function isAskedString(midi: number, asked: number): boolean {
+  return openStringOf(midi) === asked;
 }

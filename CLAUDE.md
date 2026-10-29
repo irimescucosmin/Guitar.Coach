@@ -40,4 +40,6 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - Il microfono finto di Chromium continua da dove l'hanno lasciato i test precedenti: un test che conta le battute contro l'orologio va nel progetto `em-am-timed` (tag `@own-browser`), che gira per primo, e crea l'account via API (`signUpQuickly`).
 - Ogni test e2e crea un account: il server va avviato con `AUTH_RATE_LIMIT=off`, o Better Auth rifiuta dalla terza registrazione.
 - Una schermata che salva e poi naviga aspetta il salvataggio: la pagina nuova caricata prima porterebbe progressi vecchi (`answer` nel questionario).
+- Un test e2e che ricarica per vedere un risultato salvato aspetta la risposta di **quella** azione del server (`waitForResponse` sul contenuto del POST): anche `loadToday` posta sulla stessa pagina, e `networkidle` scatta prima che il salvataggio parta.
+- Gli esercizi dell'orecchio nei test e2e: `/ear?seed=N` fissa il giro, e il test calcola le risposte con `earRound` (`answerEarRound`).
 - `pkill -f "next start"` uccide anche la shell che lo lancia: per fermare il server, `fuser -k 3000/tcp`.

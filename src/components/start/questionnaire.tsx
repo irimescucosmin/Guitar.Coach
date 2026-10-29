@@ -63,9 +63,11 @@ export function Questionnaire() {
   const questions = steps.filter((s) => s !== "summary" && s !== "check" && s !== "strings").length;
   const set = (patch: Draft) => setDraft((d) => ({ ...d, ...patch }));
   const next = () => setAt((i) => Math.min(i + 1, steps.length - 1));
+  // Going back re-opens only the step you land on: a check passed earlier stays passed.
   const back = () => {
-    setResult(null);
-    setStringsHeard(null);
+    const target = steps[Math.max(at - 1, 0)];
+    if (target === "strings") setStringsHeard(null);
+    if (target === "check") setResult(null);
     setAt((i) => Math.max(i - 1, 0));
   };
 
