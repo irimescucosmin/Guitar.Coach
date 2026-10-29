@@ -48,6 +48,13 @@ const screens = [
   ["learn", "/chords/G"],
   ["tools", "/tools"],
   ["start", "/start"],
+  ["progress", "/progress"],
+  ["basics", "/basics"],
+  ["coach", "/coach"],
+  ["community", "/community"],
+  ["community-new", "/community/new"],
+  ["techniques", "/techniques"],
+  ["terms", "/terms"],
 ];
 for (const [name, path] of screens) {
   await page.goto(base + path);
