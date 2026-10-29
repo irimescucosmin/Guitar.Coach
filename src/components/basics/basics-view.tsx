@@ -28,16 +28,16 @@ export async function BasicsView({ print = false }: { print?: boolean }) {
     const src = figurePath(k);
     const legend = k === "parts" ? Object.values(parts) : k === "pick" ? [t("figures.thumb"), t("figures.index"), t("figures.tip")] : [];
     return (
-      <figure className="m-0 flex flex-col gap-2">
+      <figure className="m-0 flex flex-col gap-2 md:sticky md:top-4">
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element -- a static file of ours, no optimisation needed
-          <img src={src} alt={t(`${k as (typeof DRAWN)[number]}.figureAlt`)} width={1024} height={1024} className="w-full rounded-[var(--radius-control)] bg-surface" />
+          <img src={src} alt={t(`${k as (typeof DRAWN)[number]}.figureAlt`)} width={1024} height={1024} className="h-[240px] w-full object-contain" />
         ) : (
-          <div role="img" aria-label={t("figures.missing")} className="flex aspect-square w-full items-center justify-center rounded-[var(--radius-control)] border border-dashed border-line-strong bg-sunken p-4 text-center text-sm text-muted">
+          <div role="img" aria-label={t("figures.missing")} className="flex h-[240px] w-full items-center justify-center rounded-[var(--radius-control)] border border-dashed border-line-strong bg-sunken p-4 text-center text-sm text-muted">
             {t("figures.missing")}
           </div>
         )}
-        {legend.length > 0 && <figcaption className="text-[13px] text-muted">{legend.join(" · ")}</figcaption>}
+        {legend.length > 0 && <figcaption className="text-center text-[13px] text-muted">{legend.join(" · ")}</figcaption>}
       </figure>
     );
   };
@@ -66,7 +66,7 @@ export async function BasicsView({ print = false }: { print?: boolean }) {
               <span className="font-mono text-sm text-brass-ink">{i + 1}</span>
               <h2 id={`b-${k}`} className="m-0 text-2xl font-extrabold">{t(`${k}.title`)}</h2>
             </div>
-            <div className={`grid gap-6 ${fig ? (k === "parts" ? "md:grid-cols-[1fr_1.1fr]" : "md:grid-cols-[1fr_280px]") : ""}`}>
+            <div className={`grid items-start gap-6 ${fig ? "md:grid-cols-[1fr_280px]" : ""}`}>
               <div className="flex flex-col gap-3">
                 <p className="m-0 text-[15px] leading-relaxed text-ink-2">{t(`${k}.body`)}</p>
                 <ol className="m-0 flex list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-relaxed">
