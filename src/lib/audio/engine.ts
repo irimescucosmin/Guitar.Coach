@@ -27,6 +27,8 @@ class Engine {
   ctx: AudioContext | null = null;
   synth: Synth | null = null;
   micState: MicState = "off";
+  /** The microphone's stream while it is on, for recording. */
+  stream: MediaStream | null = null;
   private analyser: AnalyserNode | null = null;
   private spectrum: Float32Array<ArrayBuffer> | null = null;
   private samples: Float32Array<ArrayBuffer> | null = null;
@@ -87,9 +89,11 @@ class Engine {
       stream.getAudioTracks().forEach((track) =>
         track.addEventListener("ended", () => {
           this.analyser = null;
+          this.stream = null;
           this.setMic("off");
         }),
       );
+      this.stream = stream;
       const analyser = ctx.createAnalyser();
       analyser.fftSize = FFT_SIZE;
       analyser.smoothingTimeConstant = 0.5;

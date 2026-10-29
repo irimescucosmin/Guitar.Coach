@@ -54,6 +54,7 @@ Due eccezioni note:
 | `/help` | Aiuto: problemi comuni per gruppo, ricerca, `#p-<id>` apre un problema; linkato dalla fascia del microfono | `components/help/help-view.tsx` |
 | `/community` | I brani pubblicati dagli altri e i propri; bozze con bordo tratteggiato; segnalazione in riga | `components/community/community-list.tsx` |
 | `/community/new`, `/community/[id]/edit` | Procedura guidata in cinque passi, una domanda per schermata | `components/community/song-editor.tsx` |
+| `/progress#recordings` | Le registrazioni della settimana, con il lettore audio del browser | `components/progress/recordings.tsx` |
 | `/terms` | Regole della community, pubbliche, senza barra laterale | `app/terms/page.tsx` |
 | `/account` | Accesso a due colonne, fuori dalla barra laterale; `?mode=signup` apre la registrazione | `components/account/account-form.tsx` |
 

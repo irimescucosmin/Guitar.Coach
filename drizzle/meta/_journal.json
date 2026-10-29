@@ -36,6 +36,13 @@
       "when": 1793237330344,
       "tag": "0004_community",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793239918354,
+      "tag": "0005_recordings",
+      "breakpoints": true
     }
   ]
 }

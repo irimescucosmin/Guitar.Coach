@@ -11,7 +11,8 @@ let enabled = true;
 vi.mock("./model", () => ({ ask: (...a: [string, string]) => askMock(...a), coachEnabled: () => enabled }));
 vi.mock("server-only", () => ({}));
 
-const { answerQuestion, mondayOf, weeklySummary } = await import("./service");
+const { answerQuestion, weeklySummary } = await import("./service");
+const { mondayOf } = await import("@/lib/music/recordings");
 const url = process.env.DATABASE_URL_TEST;
 
 describe.skipIf(!url)("coach service", () => {

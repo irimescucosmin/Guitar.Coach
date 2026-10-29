@@ -333,3 +333,26 @@ test("a community song is a draft until its author passes it in time, then other
   await expect(theirs.getByText("Grazie, segnalazione ricevuta.")).toBeVisible();
   await fresh.close();
 });
+
+test("a run can be recorded, and the week's recording is heard in Progress", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/play/drill-em-am?mode=step");
+  await page.getByLabel("Registra l'esecuzione").check();
+  await expect(page.getByText("Una a settimana, da riascoltare nei Progressi")).toBeVisible();
+  const uploaded = page.waitForResponse((r) => r.url().endsWith("/api/recordings") && r.request().method() === "POST", { timeout: 90_000 });
+  await page.getByRole("button", { name: "Avvia" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Sto registrando." })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(/8\/8 cambi giusti/)).toBeVisible({ timeout: 60_000 });
+  expect((await uploaded).ok()).toBe(true);
+  await expect(page.getByText("Registrazione della settimana salvata.")).toBeVisible();
+  await page.getByRole("link", { name: "Riascoltala" }).click();
+  await expect(page.getByRole("heading", { name: "Le tue registrazioni" })).toBeVisible();
+  const player = page.locator("audio").first();
+  await expect(player).toHaveAttribute("src", /\/api\/recordings\/[0-9a-f-]{36}$/);
+  // The audio is served to its owner, as the type the browser recorded.
+  const src = await player.getAttribute("src");
+  const res = await page.request.get(src!);
+  expect(res.ok()).toBe(true);
+  expect(res.headers()["content-type"]).toMatch(/^audio\//);
+  expect(Number(res.headers()["content-length"])).toBeGreaterThan(1000);
+});

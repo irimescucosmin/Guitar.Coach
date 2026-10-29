@@ -1,3 +1,4 @@
+import { MAX_SECONDS } from "@/lib/music/recordings";
 import { z } from "zod";
 import { CHORD_IDS, isChordId } from "@/lib/music/chords";
 import type { Progress } from "@/lib/music/path";
@@ -120,3 +121,13 @@ export const reportInput = z.object({
   reason: z.enum(["lyrics", "wrong", "offensive", "other"]),
   note: z.string().trim().max(200).optional(),
 });
+
+/** What comes with the audio of a recording: the run it belongs to and when. The bytes are checked apart. */
+export const recordingInput = z.object({
+  songId,
+  mode: z.enum(["step", "timed"]),
+  share: share.nullable(),
+  day: dayInput,
+  durationMs: z.number().int().min(1000).max(MAX_SECONDS * 1000),
+});
+export type RecordingInput = z.infer<typeof recordingInput>;

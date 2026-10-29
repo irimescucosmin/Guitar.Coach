@@ -13,9 +13,10 @@ import { calendar, changeSeries, practised, reviewList, stepSeries, timedSeries,
 import { PASS_SCORE } from "@/lib/music/path";
 import { localDate } from "@/lib/music/routine";
 import { findSong } from "@/lib/music/songs";
+import { Recordings, type RecordingItem } from "./recordings";
 
 /** How things are going: the week in numbers, what to review, every result over time. */
-export function ProgressView({ history, coach }: { history: History; coach: boolean }) {
+export function ProgressView({ history, coach, recordings }: { history: History; coach: boolean; recordings: RecordingItem[] }) {
   const t = useTranslations("stats");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -151,6 +152,7 @@ export function ProgressView({ history, coach }: { history: History; coach: bool
           <p className="m-0 text-xs text-muted">{t("charts.ear.mark")}</p>
         </ChartCard>
       </div>
+      <Recordings recordings={recordings} />
       <p className="m-0 text-sm text-muted">{tc("appName")} · {t("note")}</p>
     </>
   );

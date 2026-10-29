@@ -10,6 +10,8 @@ import { useProgress, useSettings } from "@/components/providers";
 import { IconAlert, IconBack, IconCheck, IconPlay, IconStop } from "@/components/ui/icons";
 import { button, learnHref, playHref } from "@/components/ui/links";
 import { engine } from "@/lib/audio/engine";
+import { Recorder } from "@/lib/audio/recorder";
+import { localDate } from "@/lib/music/routine";
 import type { ChordId } from "@/lib/music/chords";
 import { PASS_SCORE, type PracticeMode } from "@/lib/music/path";
 import { patternSymbols } from "@/lib/music/patterns";
@@ -55,6 +57,39 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
 
   const view = useSyncExternalStore((cb) => session.subscribe(cb), session.getView, session.getView);
   const playing = view.phase === "playing";
+
+  // The week's recording: the microphone while the run plays, sent with the
+  // run's facts when it ends. Off by default, nothing to do with the score.
+  const [recordAudio, setRecordAudio] = useState(false);
+  const [recording, setRecording] = useState<"idle" | "recording" | "saving" | "saved" | "failed">("idle");
+  const recorder = useRef(new Recorder());
+  const [canRecord, setCanRecord] = useState(false);
+  useEffect(() => setCanRecord(Recorder.supported()), []);
+  useEffect(() => {
+    const r = recorder.current;
+    if (view.phase === "playing" && recordAudio && mode !== "listen" && engine.stream && !r.recording) {
+      setRecording(r.start(engine.stream) ? "recording" : "failed");
+    }
+    if (view.phase !== "playing" && r.recording) {
+      const result = view.result;
+      setRecording("saving");
+      void r.stop().then(async (file) => {
+        if (!file) return setRecording("failed");
+        const form = new FormData();
+        form.set("audio", new File([file.blob], "run", { type: file.blob.type }));
+        form.set("meta", JSON.stringify({
+          songId: song.id,
+          mode: mode === "step" ? "step" : "timed",
+          share: result?.mode === "timed" ? result.share : null,
+          day: localDate(new Date()),
+          durationMs: file.durationMs,
+        }));
+        const ok = await fetch("/api/recordings", { method: "POST", body: form }).then((res) => res.ok).catch(() => false);
+        setRecording(ok ? "saved" : "failed");
+      });
+    }
+  }, [view.phase, view.result, recordAudio, mode, song.id]);
+  useEffect(() => () => void recorder.current.stop(), []);
 
   // The lane redraws every frame; React is not involved.
   useEffect(() => {
@@ -224,6 +259,18 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
               </>
             )}
             {mode !== "step" && <Toggle id="click" label={t("click")} checked={click} onChange={setClick} />}
+            {mode !== "listen" && canRecord && (
+              <>
+                <Toggle id="record" label={t("record.toggle")} checked={recordAudio} onChange={(v) => { setRecordAudio(v); setRecording("idle"); }} />
+                {recordAudio && recording === "idle" && <p className="m-0 text-sm text-muted">{t("record.hint")}</p>}
+                {recording !== "idle" && (
+                  <p role="status" className={`m-0 text-sm font-medium ${recording === "failed" ? "text-bad-ink" : "text-ink-2"}`}>
+                    {t(`record.${recording}`)}
+                    {recording === "saved" && <> <Link href="/progress#recordings" className="font-bold underline underline-offset-2">{t("record.listen")}</Link></>}
+                  </p>
+                )}
+              </>
+            )}
             <label htmlFor="volume" className="flex min-h-9 items-center gap-3 text-[15px]">
               {t("volume")}
               <input id="volume" type="range" min={0} max={1} step={0.05} value={settings.volume}

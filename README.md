@@ -15,6 +15,7 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
   - *Ascolta*: chitarra guida, basso e batteria;
   - *Passo passo*: il brano aspetta l'accordo giusto;
   - *A tempo*: ogni battuta viene giudicata, il risultato si salva.
+- **Registrazione della settimana**: mentre suoni un brano puoi registrarti; una a settimana, da riascoltare nei Progressi e confrontare con le settimane prima.
 - **Accordatore** e test dei cambi in un minuto.
 - **Insegnante**: una domanda alla volta a un modello Claude che conosce solo i tuoi risultati nell'app, 20 al giorno; nei Progressi scrive la settimana in due frasi. Serve una chiave API, altrimenti è spento.
 - **Community**: pubblichi un giro di accordi con una procedura guidata (di un brano protetto solo gli accordi, mai il testo). Resta una bozza finché non lo superi a tempo; poi gli altri lo suonano, e lo possono segnalare. I punti si leggono dai risultati: 10 per brano pubblicato, 5 per ogni giocatore che lo supera.

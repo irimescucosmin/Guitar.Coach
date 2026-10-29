@@ -78,7 +78,7 @@ Con 20 e 30 minuti c'è anche un blocco di 3 minuti per l'orecchio.
 - **Ripasso mirato**: l'app ricorda quali accordi e quali cambi vengono peggio e li ripropone più spesso. **Fatto**: il blocco dei cambi della routine e il riquadro "Da ripassare" dei Progressi.
 - **Misure nel tempo**: cambi al minuto per coppia di accordi, precisione in *A tempo*, bpm massimo pulito. **Fatto**: pagina Progressi (`/progress`, `lib/music/history.ts`) con i numeri della settimana, il calendario delle ultime 12 settimane, i grafici giorno per giorno (cambi al minuto, *Passo passo*, *A tempo* con la linea del 70%, orecchio per livello) e un riquadro "Da ripassare": il cambio mai misurato, il più lento misurato, i brani non ancora superati a tempo, il livello dell'orecchio fermo.
 - **Tempo che sale piano**: si aumenta il bpm solo quando il precedente è pulito. C'è già: dopo un *A tempo* superato il prossimo modo è *Più veloce*.
-- **Registrarsi**: una registrazione a settimana dello stesso brano, da riascoltare e confrontare.
+- **Registrarsi**: una registrazione a settimana dello stesso brano, da riascoltare e confrontare. **Fatto**: nel brano, sotto l'accompagnamento, "Registra l'esecuzione" registra il microfono mentre il giro suona (`lib/audio/recorder.ts`) e lo manda con i fatti del giro a `/api/recordings`; una per settimana per giocatore, la nuova sostituisce quella della stessa settimana, si tengono 26 settimane (`lib/music/recordings.ts`, `lib/recordings/repository.ts`). Si riascoltano nei Progressi, settimana per settimana; la pagina indica il brano registrato di più, da tenere per confrontare. Una registrazione non conta per niente: niente punti, niente spunte.
 - **Serie di giorni** e obiettivi settimanali realistici, senza punizioni se si salta un giorno.
 - **Brani presto**, anche semplificati, per la motivazione. C'è già: dalla lezione 2.
 
@@ -203,5 +203,5 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 7 | Lezione su postura e mani, e guide in PDF | fatto |
 | 8 | Community: procedura guidata, bozza finché non la superi, segnalazioni, regole | fatto |
 | 9 | Punti per chi aiuta, letti dai risultati | fatto |
-| 10 | Registrazione settimanale | da fare |
+| 10 | Registrazione settimanale, da riascoltare nei Progressi | fatto |
 | 11 | Tecniche e teoria | da fare |

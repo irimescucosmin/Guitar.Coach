@@ -1,7 +1,7 @@
 import "server-only";
 import { QUESTIONS_PER_DAY, playerContext, summarySystem, teacherSystem } from "./context";
 import { ask, coachEnabled } from "./model";
-import { dayNumber } from "@/lib/music/routine";
+import { mondayOf } from "@/lib/music/recordings";
 import { countQuestions, latestSummary, loadHistory, loadProgress, saveCoachMessage, type Database } from "@/lib/progress/repository";
 
 /**
@@ -24,13 +24,6 @@ export async function answerQuestion(db: Database, userId: string, locale: strin
   } catch {
     return { ok: false, reason: "failed" };
   }
-}
-
-/** Monday of the week `day` is in, as YYYY-MM-DD. */
-export function mondayOf(day: string): string {
-  const n = dayNumber(day);
-  const monday = n - ((n + 3) % 7);
-  return new Date(monday * 86_400_000).toISOString().slice(0, 10);
 }
 
 /** This week's summary: written once per week, on the first visit, from the numbers. */
