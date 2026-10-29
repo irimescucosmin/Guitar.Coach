@@ -83,6 +83,7 @@ Dopo un *A tempo* superato, il prossimo modo di quel brano diventa *Più veloce*
 - **Sento un altro accordo**: quando un altro accordo somiglia molto di più.
 - **Manca una nota**: il dito da sistemare, la corda e il tasto, e la corda segnata in rosso sul diagramma (`fixFor` in `feedback.ts`).
 - **Corda a vuoto muta**: qualche dito la tocca.
+- **La corda X non ha suonato**: ogni corda dell'accordo deve avere un picco alla sua fondamentale (`silentStrings` in `detect.ts`, soglia `SILENT_BELOW_DB`). Le note da sole non bastano: una pennata sulle tre corde acute di un G ha tutte le note di G, ma non è un G. Si controllano le corde la cui fondamentale non coincide con un'armonica di una corda più bassa (`checkableStrings`): il Sol a vuoto di G è l'ottava del basso e non si distingue da lui, quindi ha il beneficio del dubbio. Due o più corde mute insieme: "la pennata parte dalla corda più grave".
 - In *A tempo* la pennata fino a 0,3 battiti prima della stanghetta appartiene alla battuta nuova (`EARLY_BEATS`).
 
 Nell'esercizio delle note il microfono confronta l'altezza, non la corda: la stessa nota su un'altra corda vale. Dice *più su*, *più giù* o *un'ottava sopra/sotto*.

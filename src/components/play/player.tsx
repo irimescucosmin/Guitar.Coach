@@ -369,6 +369,12 @@ export function FeedbackBanner({ feedback, countIn }: { feedback: Feedback | nul
         help = "buzz";
         break;
       case "freeOpenString": text = t("feedback.openSilent", { string: string(feedback.string) }); detail = t("feedback.freeOpenString"); tone = "warn"; help = "muted"; break;
+      case "strumStrings":
+        text = t("feedback.silent", { count: feedback.strings.length, string: string(feedback.strings[0]!) });
+        detail = t("feedback.strumStrings", { chord: feedback.chord });
+        tone = "warn";
+        help = "wrongStrings";
+        break;
       case "micOff": text = t("feedback.micOff"); break;
       case "slowDown": text = t("feedback.slowDown"); break;
     }

@@ -11,7 +11,7 @@ import { useTransitionHint } from "@/components/play/transition-hint";
 import { useProgress, useSettings } from "@/components/providers";
 import { IconCheck, IconSpeaker } from "@/components/ui/icons";
 import { button, learnHref, taskHref } from "@/components/ui/links";
-import { matchChord } from "@/lib/audio/detect";
+import { matchHeard } from "@/lib/audio/detect";
 import { engine, SILENCE } from "@/lib/audio/engine";
 import { CHORDS, stringsForPitchClasses, type ChordId } from "@/lib/music/chords";
 import { fixFor, mutedStrings, openStrings, placementSteps } from "@/lib/music/feedback";
@@ -51,7 +51,7 @@ export function LearnChord({ chord }: { chord: ChordId }) {
         s.streak = 0;
         return;
       }
-      const match = matchChord(frame.chroma, chord);
+      const match = matchHeard(frame, chord);
       if (match.clean) {
         if (s.armed && ++s.streak >= CLEAN_FRAMES) {
           s.armed = false;
@@ -73,13 +73,15 @@ export function LearnChord({ chord }: { chord: ChordId }) {
         setFlagged([]);
         return;
       }
-      const fix = fixFor(chord, match.missing);
+      const fix = fixFor(chord, match.missing, match.silent);
       if (!fix) return;
-      setFlagged(stringsForPitchClasses(CHORDS[chord], match.missing));
+      setFlagged([...new Set([...stringsForPitchClasses(CHORDS[chord], match.missing), ...match.silent])]);
       setFeedback(
         fix.kind === "pressFinger"
           ? { kind: "pressFinger", chord, note: CHORDS[chord].notes[fix.string]! % 12, finger: fix.finger, string: fix.string, fret: fix.fret }
-          : { kind: "freeOpenString", chord, string: fix.string },
+          : fix.kind === "strumStrings"
+            ? { kind: "strumStrings", chord, strings: fix.strings }
+            : { kind: "freeOpenString", chord, string: fix.string },
       );
     };
     id = requestAnimationFrame(tick);

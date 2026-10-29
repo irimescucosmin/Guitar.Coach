@@ -19,6 +19,10 @@ export interface Frame {
   attack: boolean;
   /** Raw samples, for the tuner. */
   samples: Float32Array;
+  /** Magnitude per bin in dB, for the per-string check. */
+  spectrum: Float32Array;
+  sampleRate: number;
+  fftSize: number;
 }
 
 const FFT_SIZE = 16_384;
@@ -119,7 +123,7 @@ class Engine {
     this.levelAverage = this.levelAverage * 0.85 + level * 0.15;
     if (attack) this.chroma = new Float32Array(12);
     this.chroma = smoothChroma(this.chroma, chromaFromSpectrum(this.spectrum, this.ctx.sampleRate, FFT_SIZE));
-    return { level, chroma: this.chroma, attack, samples: this.samples };
+    return { level, chroma: this.chroma, attack, samples: this.samples, spectrum: this.spectrum, sampleRate: this.ctx.sampleRate, fftSize: FFT_SIZE };
   }
 
   /** Forget the last chord, when the expected chord changes. */

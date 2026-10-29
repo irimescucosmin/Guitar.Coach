@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { CHORDS, CHORD_IDS, type ChordId } from "@/lib/music/chords";
+import { fixFor } from "@/lib/music/feedback";
 import {
+  checkableStrings,
   chromaFromSpectrum,
   frequencyFromMidi,
   matchChord,
+  matchHeard,
   pitchFromSamples,
   readTuning,
 } from "./detect";
@@ -183,5 +186,74 @@ describe("tuner", () => {
     const flat = readTuning(196 * 2 ** (-20 / 1200));
     expect(flat.string).toBe(3);
     expect(flat.cents).toBe(-20);
+  });
+});
+
+/* Every string must sound: a strum that stops short is not the chord, whatever the chroma says. */
+
+function strumStrings(id: ChordId, strings: readonly number[]): Float32Array {
+  const out = new Float32Array(FFT);
+  const random = seeded(7);
+  CHORDS[id].notes.forEach((midi, string) => {
+    if (midi === null || !strings.includes(string)) return;
+    const period = Math.round(SAMPLE_RATE / frequencyFromMidi(midi));
+    const ring = Float32Array.from({ length: period }, random);
+    let index = 0;
+    const offset = string * 500;
+    for (let i = 0; i < 12_000 + FFT; i++) {
+      const a = ring[index]!;
+      const b = ring[(index + 1) % period]!;
+      const at = i + offset - 12_000;
+      if (at >= 0 && at < FFT) out[at]! += 0.25 * a;
+      ring[index] = 0.996 * 0.5 * (a + b);
+      index = (index + 1) % period;
+    }
+  });
+  return out;
+}
+
+const heardStrings = (id: ChordId, strings: readonly number[]) => {
+  const spectrum = spectrumDb(strumStrings(id, strings));
+  return matchHeard({ chroma: chromaFromSpectrum(spectrum, SAMPLE_RATE, FFT), spectrum, sampleRate: SAMPLE_RATE, fftSize: FFT }, id);
+};
+const playedStrings = (id: ChordId) => CHORDS[id].notes.flatMap((n, i) => (n === null ? [] : [i]));
+
+describe("every string of the chord must sound", () => {
+  it("knows which strings can be checked on their own: the ones not sitting on a lower string's harmonic", () => {
+    // G: the open G (3rd string) is the octave of the bass, the high G two octaves: not checkable. The B strings and the D are.
+    expect(checkableStrings("G")).toEqual([0, 1, 2]);
+    expect(checkableStrings("Em")).toEqual([0, 1, 3]);
+    expect(checkableStrings("D")).toEqual([2, 3, 5]);
+    expect(checkableStrings("C")).toEqual([1, 2, 3]);
+  });
+
+  it.each(CHORD_IDS)("hears %s clean with every string, and not with the bass or the top three missing", (id) => {
+    const all = playedStrings(id);
+    expect(heardStrings(id, all).clean).toBe(true);
+    expect(heardStrings(id, all).silent).toEqual([]);
+    const noBass = heardStrings(id, all.slice(1));
+    expect(noBass.silent).toContain(all[0]);
+    expect(noBass.clean).toBe(false);
+    const highOnly = heardStrings(id, all.slice(-3));
+    expect(highOnly.clean).toBe(false);
+    expect(highOnly.silent.length).toBeGreaterThan(0);
+  });
+
+  it("names the strings the strum skipped, lowest first, and sends the player to strum them all", () => {
+    const all = playedStrings("G");
+    const match = heardStrings("G", all.slice(-3)); // D G B high G... only the top three
+    expect(match.missing).toEqual([2]); // the D is gone from the chroma too
+    expect(match.silent).toEqual([0, 1, 2]);
+    expect(fixFor("G", match.missing, match.silent)).toEqual({ kind: "strumStrings", strings: [0, 1, 2] });
+    // One fretted string alone silent is a finger lying flat, as before.
+    expect(fixFor("G", [], [1])).toEqual({ kind: "pressFinger", string: 1, finger: 1, fret: 2 });
+    expect(fixFor("G", [], [])).toBeNull();
+  });
+
+  it("gives a string the benefit of the doubt only when it sits on a harmonic", () => {
+    // Em without its open G (3rd string): the G is no harmonic of E or B, so its silence is heard.
+    const all = playedStrings("Em");
+    const noG = heardStrings("Em", all.filter((s) => s !== 3));
+    expect(noG.silent).toEqual([3]);
   });
 });

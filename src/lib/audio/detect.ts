@@ -74,6 +74,50 @@ function harmonicWeight(peak: { hz: number; amplitude: number }, peaks: readonly
   return 1;
 }
 
+/**
+ * A string whose fundamental is not a harmonic of a lower played string can
+ * be checked on its own: if there is no peak near it, the string did not
+ * sound, whatever the chroma says. A fundamental sitting on a harmonic of a
+ * lower string (the open G of a G chord is the octave of its bass) cannot be
+ * told from that harmonic and gets the benefit of the doubt.
+ */
+export function checkableStrings(chord: ChordId): number[] {
+  const notes = CHORDS[chord].notes;
+  return notes.flatMap((midi, string) => {
+    if (midi === null) return [];
+    const hz = frequencyFromMidi(midi);
+    const covered = notes.slice(0, string).some((lower) => {
+      if (lower === null) return false;
+      const ratio = hz / frequencyFromMidi(lower);
+      const k = Math.round(ratio);
+      return k >= 2 && k <= 8 && Math.abs(ratio - k) < 0.03 * k;
+    });
+    return covered ? [] : [string];
+  });
+}
+
+/** A checkable string this far below the loudest peak did not sound: on a strum every fundamental is within a few tens of dB of the loudest. */
+export const SILENT_BELOW_DB = 45;
+
+/** The chord's strings, among the checkable ones, with no peak at their fundamental. */
+export function silentStrings(spectrumDb: ArrayLike<number>, sampleRate: number, fftSize: number, chord: ChordId): number[] {
+  const binHz = sampleRate / fftSize;
+  const lo = Math.max(1, Math.floor(ANALYSIS_LOW_HZ / binHz));
+  const hi = Math.min(spectrumDb.length - 2, Math.ceil(ANALYSIS_HIGH_HZ / binHz));
+  let maxDb = -Infinity;
+  for (let i = lo; i <= hi; i++) maxDb = Math.max(maxDb, spectrumDb[i]!);
+  if (!Number.isFinite(maxDb)) return checkableStrings(chord);
+  const notes = CHORDS[chord].notes;
+  return checkableStrings(chord).filter((string) => {
+    const hz = frequencyFromMidi(notes[string]!);
+    const from = Math.max(lo, Math.floor((hz * 0.97) / binHz));
+    const to = Math.min(hi, Math.ceil((hz * 1.03) / binHz));
+    let peak = -Infinity;
+    for (let i = from; i <= to; i++) peak = Math.max(peak, spectrumDb[i]!);
+    return peak < maxDb - SILENT_BELOW_DB;
+  });
+}
+
 export interface ChordMatch {
   /** The chord the sound resembles most. */
   best: ChordId;
@@ -83,7 +127,9 @@ export interface ChordMatch {
   missing: number[];
   /** Loud pitch classes the target does not have: a wrong finger or a touched string. */
   extra: number[];
-  /** The target is what is playing, with all its notes. */
+  /** Strings of the target that did not sound at all, when a spectrum was given. */
+  silent: number[];
+  /** The target is what is playing, with all its notes and all its strings. */
   clean: boolean;
 }
 
@@ -100,7 +146,7 @@ function similarity(chroma: ArrayLike<number>, chord: ChordId): number {
   return dot / (Math.sqrt(norm) * Math.sqrt(pcs.length));
 }
 
-export function matchChord(chroma: ArrayLike<number>, target: ChordId): ChordMatch {
+export function matchChord(chroma: ArrayLike<number>, target: ChordId, silent: readonly number[] = []): ChordMatch {
   let best: ChordId = target;
   let bestScore = -1;
   for (const id of CHORD_IDS) {
@@ -114,7 +160,20 @@ export function matchChord(chroma: ArrayLike<number>, target: ChordId): ChordMat
   const missing = pcs.filter((pc) => chroma[pc]! < MISSING_BELOW);
   const extra: number[] = [];
   for (let pc = 0; pc < 12; pc++) if (!pcs.includes(pc) && chroma[pc]! >= EXTRA_ABOVE) extra.push(pc);
-  return { best, bestScore, missing, extra, clean: best === target && missing.length === 0 && bestScore > CLEAN_SCORE };
+  return { best, bestScore, missing, extra, silent: [...silent], clean: best === target && missing.length === 0 && silent.length === 0 && bestScore > CLEAN_SCORE };
+}
+
+/** What the microphone wrapper hands over each frame; a plain shape, so this file stays free of Web Audio. */
+export interface Heard {
+  chroma: ArrayLike<number>;
+  spectrum: ArrayLike<number>;
+  sampleRate: number;
+  fftSize: number;
+}
+
+/** The full verdict on a frame: the chord by its notes, and every checkable string by its own peak. */
+export function matchHeard(heard: Heard, target: ChordId): ChordMatch {
+  return matchChord(heard.chroma, target, silentStrings(heard.spectrum, heard.sampleRate, heard.fftSize, target));
 }
 
 /** Exponential smoothing so one noisy frame does not flip the verdict. */

@@ -42,7 +42,7 @@ Il microfono richiede `localhost` o HTTPS. Dal telefono: `pnpm dev:https`, detta
 ## Controlli
 
 ```bash
-pnpm check     # typecheck, lint, test, build
+pnpm check     # typecheck, lint, test, build, smoke del dev server
 pnpm e2e       # Playwright con il microfono finto di Chromium
 pnpm shots     # screenshot di tutte le schermate in screenshots/, a server avviato
 ```

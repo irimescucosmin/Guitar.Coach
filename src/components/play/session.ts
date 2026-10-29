@@ -1,7 +1,7 @@
 "use client";
 
 import { engine, SILENCE, type Frame } from "@/lib/audio/engine";
-import { matchChord, type ChordMatch } from "@/lib/audio/detect";
+import { matchHeard, type ChordMatch } from "@/lib/audio/detect";
 import { stringsForPitchClasses, CHORDS, type ChordId } from "@/lib/music/chords";
 import { fixFor } from "@/lib/music/feedback";
 import { PASS_SCORE, readyForTimed, type PracticeMode } from "@/lib/music/path";
@@ -22,6 +22,7 @@ export type Feedback =
   | { kind: "heard"; chord: ChordId; heard: ChordId }
   | { kind: "pressFinger"; chord: ChordId; note: number; finger: number; string: number; fret: number }
   | { kind: "freeOpenString"; chord: ChordId; string: number }
+  | { kind: "strumStrings"; chord: ChordId; strings: number[] }
   | { kind: "micOff" }
   | { kind: "slowDown" };
 
@@ -289,9 +290,10 @@ export class PracticeSession {
     if (match.best !== chord && match.bestScore > 0.75) {
       return { feedback: { kind: "heard", chord, heard: match.best }, flagged: [] };
     }
-    const fix = fixFor(chord, match.missing);
+    const fix = fixFor(chord, match.missing, match.silent);
     if (!fix) return null;
-    const flagged = stringsForPitchClasses(CHORDS[chord], match.missing);
+    const flagged = [...new Set([...stringsForPitchClasses(CHORDS[chord], match.missing), ...match.silent])];
+    if (fix.kind === "strumStrings") return { feedback: { kind: "strumStrings", chord, strings: fix.strings }, flagged };
     if (fix.kind === "pressFinger") {
       const note = CHORDS[chord].notes[fix.string]! % 12;
       return { feedback: { kind: "pressFinger", chord, note, finger: fix.finger, string: fix.string, fret: fix.fret }, flagged };
@@ -311,7 +313,7 @@ export class PracticeSession {
       run.streak = 0;
       return;
     }
-    const match = matchChord(frame.chroma, step.chord);
+    const match = matchHeard(frame, step.chord);
     if (match.clean) {
       if (++run.streak >= CLEAN_FRAMES) this.advance(run, true, now);
       return;
@@ -405,7 +407,7 @@ export class PracticeSession {
     }
     const bar = this.bars[judged];
     if (!bar || run.statuses[judged] === "ok" || frame.level < SILENCE) return;
-    const match = matchChord(frame.chroma, bar.chord);
+    const match = matchHeard(frame, bar.chord);
     if (match.clean) {
       if (++run.streak >= CLEAN_FRAMES) {
         run.statuses[judged] = "ok";

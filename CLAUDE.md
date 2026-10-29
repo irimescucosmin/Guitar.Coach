@@ -48,4 +48,6 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - Gli esercizi dell'orecchio nei test e2e: `/ear?seed=N` fissa il giro, e il test calcola le risposte con `earRound` (`answerEarRound`).
 - Il progresso ospite importato all'accesso (`guestProgress`) scarta le chiavi `c-…`: un risultato su un brano della community scritto a mano in `localStorage` pubblicherebbe la bozza e gonfierebbe i punti. Un brano si pubblica solo col giro appena salvato (`r.value >= PASS_SCORE`), non col massimo storico.
 - `/api/recordings` rifiuta sul `content-length` prima di leggere il corpo: `formData()` bufferizza tutto il multipart.
+- Da `src/app/actions.ts` (`"use server"`) escono solo funzioni async: un `export type` lo manda in 500 con Turbopack (`pnpm dev`) e tsc non se ne accorge. `pnpm smoke:dev` (dentro `pnpm check`) lo intercetta.
+- Una pennata sulle tre corde acute di un G ha tutte le note di G: il riconoscimento controlla anche che ogni corda dell'accordo abbia il suo picco (`silentStrings`), tranne quelle che coincidono con un'armonica di una corda più bassa.
 - `pkill -f "next start"` uccide anche la shell che lo lancia: per fermare il server, `fuser -k 3000/tcp`.

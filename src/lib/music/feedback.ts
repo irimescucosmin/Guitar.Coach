@@ -7,11 +7,25 @@ import { CHORDS, stringsForPitchClasses, type ChordId, type Finger } from "./cho
  */
 export type Fix =
   | { kind: "pressFinger"; string: number; finger: Finger; fret: number }
-  | { kind: "freeOpenString"; string: number };
+  | { kind: "freeOpenString"; string: number }
+  /** The strings did not sound at all: the strum skipped them. The lowest one is named. */
+  | { kind: "strumStrings"; strings: number[] };
 
-export function fixFor(chordId: ChordId, missing: readonly number[]): Fix | null {
-  if (missing.length === 0) return null;
+/**
+ * @param missing pitch classes the chroma did not hear
+ * @param silent strings with no peak of their own; with nothing missing in the chroma, the strum skipped them
+ */
+export function fixFor(chordId: ChordId, missing: readonly number[], silent: readonly number[] = []): Fix | null {
   const chord = CHORDS[chordId];
+  // Two or more strings with no sound of their own: the strum stopped short, whatever notes are left.
+  if (silent.length >= 2) return { kind: "strumStrings", strings: [...silent] };
+  if (missing.length === 0) {
+    const [string] = silent;
+    if (string === undefined) return null;
+    // One fretted string alone is a finger lying flat; an open one was skipped or touched.
+    if (chord.frets[string]! > 0) return { kind: "pressFinger", string, finger: chord.fingers[string]!, fret: chord.frets[string]! };
+    return { kind: "strumStrings", strings: [string] };
+  }
   const strings = stringsForPitchClasses(chord, missing);
   const fretted = strings.find((s) => chord.frets[s]! > 0);
   if (fretted !== undefined) {

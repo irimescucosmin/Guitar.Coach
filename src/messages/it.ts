@@ -239,6 +239,8 @@ export const it = {
       pressFinger: "Dito {finger} ({fingerName}) sulla corda {string}, {fret}° tasto: punta del dito, vicino al tasto metallico.",
       openSilent: "Non sento la corda {string} a vuoto.",
       freeOpenString: "Qualche dito la tocca: tieni le dita più in piedi.",
+      silent: "{count, plural, =1 {La corda {string} non ha suonato.} other {Dalla corda {string} in giù non ha suonato niente.}}",
+      strumStrings: "{chord} vuole tutte le sue corde: la pennata parte dalla corda più grave dell'accordo e arriva all'ultima.",
       micOff: "Microfono spento: vai avanti con Avanti o con la barra spaziatrice.",
       slowDown: "Con calma: un dito alla volta guardando il diagramma, poi una pennata lenta.",
     },

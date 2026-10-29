@@ -88,7 +88,7 @@ Le cuffie servono solo con la *Chitarra guida* accesa in *A tempo*: è l'unico s
 | `pnpm lint` | ESLint di Next | ~10 s |
 | `pnpm test` | Vitest: dominio, riconoscimento, messaggi; Postgres se c'è `DATABASE_URL_TEST` | ~3 s |
 | `pnpm build` | build di produzione | ~40 s |
-| `pnpm check` | i quattro sopra in fila | ~1 min |
+| `pnpm check` | i quattro sopra in fila, più `pnpm smoke:dev` (apre una pagina con `next dev`, Turbopack) | ~2 min |
 | `pnpm e2e` | Playwright con microfono finto, avvia `pnpm start` da solo | ~1,5 min |
 
 Prima di `pnpm e2e` la prima volta: `pnpm exec playwright install chromium`, e una `pnpm build` aggiornata (il test usa il server di produzione).
@@ -133,3 +133,5 @@ Dopo, `fly deploy` e basta: le migrazioni girano come `release_command` prima ch
 | Colori della corsia sbagliati | token con `light-dark()` letti senza risolutore | passare da `resolver()` in `highway.ts` |
 | Il server non si ferma | `next start` rimasto in ascolto | `fuser -k 3000/tcp` (non `pkill -f "next start"`) |
 | `relation does not exist` | migrazioni mancanti | `pnpm db:migrate` |
+| Un accordo giusto non viene accettato | una corda grave che il microfono non sente (telefoni che tagliano sotto i 100 Hz) | la corda deve dare un picco entro 45 dB dal più forte (`SILENT_BELOW_DB`); se su un dispositivo non succede mai, serve una registrazione di prova e un test in `detect.test.ts`, non una soglia a occhio |
+| Ogni pagina va in 500 solo con `pnpm dev` | un `export type` da `src/app/actions.ts` (`"use server"`): Turbopack lo trasforma in un export di valore | da `actions.ts` escono solo funzioni async; i tipi si importano dal modulo che li dichiara. `pnpm check` include `pnpm smoke:dev` per accorgersene |

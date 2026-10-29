@@ -7,7 +7,7 @@ import { useMicState } from "@/components/chrome/mic-button";
 import { useSettings } from "@/components/providers";
 import { IconCheck } from "@/components/ui/icons";
 import { button } from "@/components/ui/links";
-import { matchChord } from "@/lib/audio/detect";
+import { matchHeard } from "@/lib/audio/detect";
 import { engine, SILENCE } from "@/lib/audio/engine";
 import type { ChordId } from "@/lib/music/chords";
 
@@ -62,7 +62,7 @@ export function ChordCheck({ chords, onDone }: { chords: ChordId[]; onDone: (ver
         r.streak = 0;
         return;
       }
-      if (r.armed && matchChord(frame.chroma, chord).clean) {
+      if (r.armed && matchHeard(frame, chord).clean) {
         if (++r.streak >= CLEAN_FRAMES) {
           r.armed = false;
           r.streak = 0;

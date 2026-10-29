@@ -238,6 +238,8 @@ export const en: typeof it = {
       pressFinger: "Finger {finger} ({fingerName}) on the {string} string, fret {fret}: fingertip, close to the fret wire.",
       openSilent: "The open {string} string is silent.",
       freeOpenString: "A finger is touching it: keep your fingers more upright.",
+      silent: "{count, plural, =1 {The {string} string did not sound.} other {From the {string} string down nothing sounded.}}",
+      strumStrings: "{chord} wants all its strings: the strum starts from the chord's lowest string and reaches the last one.",
       micOff: "Microphone off: move on with Next or the space bar.",
       slowDown: "Take your time: one finger at a time looking at the diagram, then one slow strum.",
     },
