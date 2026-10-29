@@ -5,7 +5,9 @@ import { db } from "@/db/client";
 import { currentUser } from "@/lib/auth";
 import { importGuestProgress, loadProgress, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun } from "@/lib/progress/repository";
 import { loadToday as todayOf, recordPractice, type Today } from "@/lib/progress/practice";
-import { answersInput, changeTestInput, chordInput, dayInput, guestProgress, optionalDay, proofInput, runInput } from "@/lib/progress/validation";
+import { answersInput, changeTestInput, chordInput, dayInput, guestProgress, optionalDay, proofInput, questionInput, runInput } from "@/lib/progress/validation";
+import { answerQuestion, weeklySummary, type Answer } from "@/lib/coach/service";
+import { getLocale } from "next-intl/server";
 import { blocksDoneBy, dailyRoutine } from "@/lib/music/routine";
 import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { earRunAllowed } from "@/lib/music/ear";
@@ -86,4 +88,18 @@ export async function reportProof(input: unknown): Promise<Today | null> {
   const blocks = blocksDoneBy(dailyRoutine(await loadProgress(db, me.id), day), { kind: proof });
   if (blocks.length > 0) await markRoutine(db, me.id, day, blocks);
   return todayOf(db, me.id, day);
+}
+
+export async function askTeacher(input: unknown): Promise<Answer> {
+  const me = await currentUser();
+  const parsed = questionInput.safeParse(input);
+  if (!me || !parsed.success) return { ok: false, reason: "failed" };
+  return answerQuestion(db, me.id, await getLocale(), parsed.data.day, parsed.data.question);
+}
+
+export async function loadWeeklySummary(day: unknown): Promise<string | null> {
+  const me = await currentUser();
+  const parsed = dayInput.safeParse(day);
+  if (!me || !parsed.success) return null;
+  return weeklySummary(db, me.id, await getLocale(), parsed.data);
 }

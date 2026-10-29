@@ -24,6 +24,7 @@ src/
     audio/      detect.ts puro (croma, confronto accordi, accordatore),
                 synth.ts e engine.ts lato browser (Web Audio)
     progress/   validazione, repository Postgres, caricamento per pagina
+    coach/      l'insegnante: contesto dai fatti (puro), modello, servizio
   db/           schema Drizzle, client, migrate.mjs
   messages/     it.ts e il gemello tipato en.ts
   i18n/         next-intl senza lingua nell'URL (biscotto `locale`)
@@ -54,6 +55,7 @@ Il riconoscimento ascolta tra 75 Hz e 1,1 kHz. Il basso suona un'ottava sotto la
 - Accesso con email e password, e con Google o Apple quando le loro credenziali sono impostate (`socialProviders()` in `lib/auth.ts`).
 - Su Postgres: `chord_mastery`, `practice_runs`, `player_profile` (le risposte al questionario, in JSON validato a ogni lettura), `change_tests` (ogni test dei cambi, il record è il massimo per coppia) e `routine_log` (le attività fatte, per giorno locale del giocatore).
 - Il server segna le attività della routine dai risultati che salva (`lib/progress/practice.ts`); dal browser arrivano solo le prove del microfono per accordatura e riscaldamento (`reportProof`).
+- L'insegnante (`lib/coach`): `context.ts` è puro e costruisce il brief dai risultati; `model.ts` è l'unico file che parla con l'API di Anthropic; `service.ts` conta il limite giornaliero, salva ogni scambio in `coach_messages` e tiene il riepilogo della settimana.
 - Il giorno lo manda il browser, perché "oggi" è quello di chi suona; il server lo accetta solo se dista al massimo un giorno dal suo (`isNearToday`). Ogni prova è una riga, mai sovrascritta: il record è una query (`min` per *Passo passo*, `max` per *A tempo*).
 - Prima che l'account diventasse obbligatorio i progressi stavano nel `localStorage`: al primo accesso entrano nell'account una volta, poi il browser li dimentica.
 

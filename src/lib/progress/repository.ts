@@ -3,7 +3,7 @@ import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { isChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, type Progress } from "@/lib/music/path";
 import * as schema from "@/db/schema";
-import { changeTests, chordMastery, playerProfile, practiceRuns, routineLog } from "@/db/schema";
+import { changeTests, chordMastery, coachMessages, playerProfile, practiceRuns, routineLog } from "@/db/schema";
 import type { BlockId } from "@/lib/music/routine";
 import type { History } from "@/lib/music/history";
 import { placedChords, type Profile } from "@/lib/music/profile";
@@ -154,4 +154,43 @@ export async function loadHistory(db: Database, userId: string, now = new Date()
     changes: changes.map((c) => ({ pair: c.pair, count: c.count, day: day(c.at) })),
     days: days.map((d) => ({ day: d.day, blocks: Number(d.blocks) })),
   };
+}
+
+/** Questions asked on the player's day, for the daily limit. */
+export async function countQuestions(db: Database, userId: string, day: string): Promise<number> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(coachMessages)
+    .where(and(eq(coachMessages.userId, userId), eq(coachMessages.day, day), eq(coachMessages.kind, "question")));
+  return Number(row?.n ?? 0);
+}
+
+export async function saveCoachMessage(
+  db: Database,
+  userId: string,
+  message: { kind: "question" | "summary"; day: string; question: string | null; answer: string },
+): Promise<void> {
+  await db.insert(coachMessages).values({ userId, ...message });
+}
+
+/** The newest summary written on or after `since` (a week's Monday), if any. */
+export async function latestSummary(db: Database, userId: string, since: string): Promise<string | null> {
+  const [row] = await db
+    .select({ answer: coachMessages.answer })
+    .from(coachMessages)
+    .where(and(eq(coachMessages.userId, userId), eq(coachMessages.kind, "summary"), gte(coachMessages.day, since)))
+    .orderBy(desc(coachMessages.createdAt))
+    .limit(1);
+  return row?.answer ?? null;
+}
+
+/** The player's recent questions and answers, newest first. */
+export async function recentQuestions(db: Database, userId: string, limit = 10): Promise<{ question: string; answer: string; day: string }[]> {
+  const rows = await db
+    .select({ question: coachMessages.question, answer: coachMessages.answer, day: coachMessages.day })
+    .from(coachMessages)
+    .where(and(eq(coachMessages.userId, userId), eq(coachMessages.kind, "question")))
+    .orderBy(desc(coachMessages.createdAt))
+    .limit(limit);
+  return rows.map((r) => ({ question: r.question ?? "", answer: r.answer, day: r.day }));
 }

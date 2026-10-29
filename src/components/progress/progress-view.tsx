@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import { loadWeeklySummary } from "@/app/actions";
 import { useLocale, useTranslations } from "next-intl";
 import { LineChart } from "@/components/charts/line-chart";
 import { useProgress } from "@/components/providers";
@@ -14,13 +15,19 @@ import { localDate } from "@/lib/music/routine";
 import { findSong } from "@/lib/music/songs";
 
 /** How things are going: the week in numbers, what to review, every result over time. */
-export function ProgressView({ history }: { history: History }) {
+export function ProgressView({ history, coach }: { history: History; coach: boolean }) {
   const t = useTranslations("stats");
   const tc = useTranslations("common");
   const locale = useLocale();
   const { progress, today } = useProgress();
   const [date, setDate] = useState<string | null>(null);
   useEffect(() => setDate(localDate(new Date())), []);
+  // The week in words, written once per week by the assistant; nothing without a key.
+  const [summary, setSummary] = useState<string | null>(null);
+  useEffect(() => {
+    if (!coach) return;
+    void loadWeeklySummary(localDate(new Date())).then(setSummary);
+  }, [coach]);
   const lists = practised(history);
   const [pair, setPair] = useState(lists.pairs[0] ?? "");
   const [stepSong, setStepSong] = useState(lists.stepSongs[0] ?? "");
@@ -50,6 +57,14 @@ export function ProgressView({ history }: { history: History }) {
         <Tile value={`${learned}/${CHORD_IDS.length}`} label={t("chords")} />
         <Tile value={bestChanges > 0 ? String(bestChanges) : "–"} label={t("changesBest")} />
       </section>
+
+      {summary && (
+        <section aria-labelledby="week-words" className="flex flex-col gap-2 rounded-[var(--radius-card)] bg-navy px-7 py-6 text-on-navy">
+          <span id="week-words" className="eyebrow text-brass">{t("summary.title")}</span>
+          <p className="m-0 text-lg leading-relaxed">{summary}</p>
+          <Link href="/coach" className="self-start text-sm font-bold text-brass underline underline-offset-2">{t("summary.ask")}</Link>
+        </section>
+      )}
 
       <section aria-labelledby="review" className="flex flex-col gap-3 rounded-[var(--radius-card)] border-[3px] border-brass bg-surface p-6">
         <h2 id="review" className="m-0 text-xl font-extrabold">{t("review.title")}</h2>

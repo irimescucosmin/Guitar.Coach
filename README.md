@@ -15,6 +15,7 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
   - *Passo passo*: il brano aspetta l'accordo giusto;
   - *A tempo*: ogni battuta viene giudicata, il risultato si salva.
 - **Accordatore** e test dei cambi in un minuto.
+- **Insegnante**: una domanda alla volta a un modello Claude che conosce solo i tuoi risultati nell'app, 20 al giorno; nei Progressi scrive la settimana in due frasi. Serve una chiave API, altrimenti è spento.
 - **Aiuto**: i problemi tipici (corde che ronzano, dita che fanno male, cambi lenti, plettro, tempo, dolore) con il perché e cosa fare. Quando il microfono segnala un problema, il link porta alla spiegazione.
 - **Mancino**: i diagrammi si specchiano.
 - **Gratis, con account**: l'account serve solo a tenere traccia dei progressi su ogni dispositivo. Email e password, oppure Google o Apple se configurati.

@@ -245,3 +245,12 @@ test("the progress page shows the numbers, what to review and a chart once there
   await expect(page.getByText("Cambio Em ↔ Am: non l'hai ancora misurato.")).toBeVisible();
   await expect(page.getByText("Ancora nessun brano suonato a tempo.")).toBeVisible();
 });
+
+test("the teacher page says plainly when the model is not configured", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/coach");
+  await expect(page.getByRole("heading", { level: 1, name: "Insegnante" })).toBeVisible();
+  await expect(page.getByText(/manca la chiave per il modello/)).toBeVisible();
+  await page.getByRole("link", { name: "Vai all'Aiuto" }).click();
+  await expect(page).toHaveURL(/\/help$/);
+});

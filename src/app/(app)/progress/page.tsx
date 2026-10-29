@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { ProgressView } from "@/components/progress/progress-view";
+import { coachEnabled } from "@/lib/coach/model";
 import { pageHistory } from "@/lib/progress/server";
 
 export async function generateMetadata() {
@@ -8,5 +9,5 @@ export async function generateMetadata() {
 }
 
 export default async function ProgressPage() {
-  return <ProgressView history={await pageHistory()} />;
+  return <ProgressView history={await pageHistory()} coach={coachEnabled()} />;
 }

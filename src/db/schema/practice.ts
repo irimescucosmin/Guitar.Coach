@@ -82,3 +82,25 @@ export const routineLog = pgTable(
   },
   (t) => [primaryKey({ columns: [t.userId, t.day, t.block] })],
 );
+
+/**
+ * Every exchange with the assistant: the daily limit is a count over this
+ * table, and the weekly summary is cached here (kind "summary") so a week is
+ * written once, not on every visit.
+ */
+export const coachMessages = pgTable(
+  "coach_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    kind: text("kind", { enum: ["question", "summary"] }).notNull(),
+    /** The player's own day, "2026-10-29": the limit and the summary are per day. */
+    day: text("day").notNull(),
+    question: text("question"),
+    answer: text("answer").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("coach_messages_user_day_idx").on(t.userId, t.day)],
+);

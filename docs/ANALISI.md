@@ -162,7 +162,15 @@ Con l'API di Claude, solo lato server, solo dove aggiunge qualcosa che le regole
 | Procedura guidata dei brani | da una sequenza di accordi incollata, la struttura in battute e sezioni; scarta qualunque testo | lavoro noioso e soggetto a errori |
 | Moderazione | controllo prima della pubblicazione: niente testo di canzoni, titoli offensivi, accordi incoerenti | primo filtro, poi la segnalazione umana |
 
-Modello: Claude Haiku 5.5 (`claude-haiku-5-5`), 0,10 $ per milione di token in ingresso e 0,50 $ in uscita ([fonte](https://www.llmreference.com/provider/anthropic-api/claude-haiku-5-5)): una risposta dell'insegnante costa una frazione di centesimo. Limite di domande al giorno per account, chiave `ANTHROPIC_API_KEY` solo sul server, risposte in italiano con le stesse regole di tono dei testi dell'app.
+Modello: Claude Haiku 5.5 (`claude-haiku-5-5`), da 0,10 $ per milione di token in ingresso e 0,50 $ in uscita ([Anthropic, modelli](https://platform.claude.com/docs/en/models/overview)): una risposta dell'insegnante costa una frazione di centesimo.
+
+**Fatto** (`/coach`, `lib/coach/*`): l'insegnante e il riepilogo settimanale nei Progressi.
+- Il modello riceve solo fatti dal database (`playerContext`): accordi sentiti, lezione, giorni, record della settimana contro la precedente, cosa ripassare. Non quello che il giocatore racconta.
+- Il brief gli vieta di inventare funzioni dell'app, di giudicare oltre i numeri, e di dare consigli medici oltre a "fermati e senti un medico".
+- 20 domande al giorno per account, ogni scambio salvato (`coach_messages`); il riepilogo si scrive una volta a settimana e si rilegge dalla tabella.
+- Chiave `ANTHROPIC_API_KEY` solo sul server; senza chiave le due funzioni sono spente e le schermate rimandano all'Aiuto.
+
+Da fare: l'aiuto nella pubblicazione dei brani e la moderazione, con la community.
 
 ## 12. Guide da scaricare in PDF
 
@@ -184,7 +192,7 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 3 | Routine giornaliera, giorni di fila, test dei cambi nell'account | fatto |
 | 4 | Orecchio musicale, livelli 1-5; niente più spunte a mano, tutto verificato | fatto |
 | 5 | Ripasso mirato e grafico dei progressi | fatto |
-| 6 | Assistente AI: insegnante e riepilogo settimanale | da fare |
+| 6 | Assistente AI: insegnante e riepilogo settimanale | fatto |
 | 7 | Lezione su postura e mani, e guide in PDF | da fare |
 | 8 | Community: procedura guidata, segnalazioni, termini | da fare |
 | 9 | Punti per chi aiuta | da fare, dopo la community |

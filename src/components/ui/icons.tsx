@@ -47,6 +47,15 @@ export function IconChart({ size = 20 }: { size?: number }) {
   );
 }
 
+export function IconTeacher({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M4 5h16v10H9l-4 4v-4H4z" />
+      <path d="M8 9h8M8 12h5" />
+    </svg>
+  );
+}
+
 export function IconPath({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base}>

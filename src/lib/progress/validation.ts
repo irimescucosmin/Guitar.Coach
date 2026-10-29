@@ -5,6 +5,7 @@ import { EAR_IDS } from "@/lib/music/ear";
 import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { EXPERIENCE, GOALS, GUITARS, MINUTES, STYLES, TAB_READING, type Profile } from "@/lib/music/profile";
 import { PAIR_KEYS, isNearToday } from "@/lib/music/routine";
+import { QUESTION_MAX_CHARS } from "@/lib/coach/context";
 import { SONGS } from "@/lib/music/songs";
 
 /**
@@ -107,3 +108,6 @@ export const optionalDay = dayInput.nullable().catch(null);
 
 /** New answers from the questionnaire: the open-string check result must be there. */
 export const answersInput = profileShape.extend({ openStringsHeard: z.boolean() }).transform(narrow);
+
+/** A question for the teacher: short, on the player's day. */
+export const questionInput = z.object({ day: dayInput, question: z.string().trim().min(2).max(QUESTION_MAX_CHARS) });
