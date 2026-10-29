@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { importGuest, loadToday, reportProof, saveAnswers, saveChanges, saveLearnedChord, savePracticeRun, type Today } from "@/app/actions";
+import { importGuest, loadToday, reportProof, saveAnswers, saveChanges, saveLearnedChord, savePracticeRun } from "@/app/actions";
+import type { Today } from "@/lib/progress/practice";
 import type { ChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, recordResult, type Progress } from "@/lib/music/path";
 import { placedChords, type Profile } from "@/lib/music/profile";

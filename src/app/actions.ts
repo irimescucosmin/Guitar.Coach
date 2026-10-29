@@ -22,7 +22,6 @@ import { PASS_SCORE, type Progress } from "@/lib/music/path";
  */
 
 type Saved = { saved: true; progress: Progress; today: Today | null } | { saved: false };
-export type { Today };
 
 export async function saveLearnedChord(input: unknown, day: unknown = null): Promise<Saved> {
   const me = await currentUser();
