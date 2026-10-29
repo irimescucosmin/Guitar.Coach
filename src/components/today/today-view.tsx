@@ -16,7 +16,7 @@ import { SPIDER_NEEDED, SPIDER_NOTES, isSpiderNote } from "@/lib/music/checks";
 const SPIDER_MAX_HZ = 1000;
 /** Same note this many frames before it counts. */
 const STABLE_FRAMES = 4;
-import { PASS_SCORE, type Task } from "@/lib/music/path";
+import { PASS_SCORE, lessonStates, type Task } from "@/lib/music/path";
 import { dailyRoutine, localDate, type Block } from "@/lib/music/routine";
 import { findSong } from "@/lib/music/songs";
 
@@ -30,6 +30,8 @@ export function TodayView() {
   useEffect(() => setDate(localDate(new Date())), []);
 
   if (!date) return null;
+  // Someone who never played and has no chord yet starts from how to hold the guitar.
+  const firstTime = progress.profile?.experience === "never" && !Object.values(progress.learned).some(Boolean);
   const routine = dailyRoutine(progress, date);
   const done = today?.date === date ? today.done : [];
   const minutes = routine.reduce((sum, b) => sum + b.minutes, 0);
@@ -52,6 +54,8 @@ export function TodayView() {
       </header>
 
       {!progress.profile && <FirstRun />}
+      {firstTime && <BasicsFirst />}
+      <PathStrip />
 
       <div aria-hidden className="h-2.5 overflow-hidden rounded-full bg-sunken">
         <div className="h-full rounded-full bg-brass transition-[width]" style={{ width: `${(finished / routine.length) * 100}%` }} />
@@ -72,6 +76,51 @@ export function TodayView() {
       </ol>
       <p className="m-0 text-sm text-muted">{t("auto")}</p>
     </>
+  );
+}
+
+/** Before the first chord: ten minutes on how to hold the guitar and the hands. Read, not ticked. */
+function BasicsFirst() {
+  const t = useTranslations("today.basicsFirst");
+  return (
+    <section className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-[var(--radius-card)] border-[3px] border-brass bg-surface px-6 py-5">
+      <div className="flex min-w-0 flex-[1_1_360px] flex-col gap-1">
+        <h2 className="m-0 text-xl font-extrabold">{t("title")}</h2>
+        <p className="m-0 text-[15px] leading-relaxed text-ink-2">{t("body")}</p>
+      </div>
+      <Link href="/basics" className={`${button.brass} h-12`}>{t("go")}</Link>
+    </section>
+  );
+}
+
+/** Where the day sits on the path: the lessons in a row, the current one named, the whole path one click away. */
+function PathStrip() {
+  const t = useTranslations("today.path");
+  const tp = useTranslations("path");
+  const { progress } = useProgress();
+  const states = lessonStates(progress);
+  const current = states.findIndex((s) => !s.complete);
+  const at = current < 0 ? states.length - 1 : current;
+  const state = states[at]!;
+  return (
+    <section aria-label={t("label")} className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-[var(--radius-card)] border border-line bg-surface px-6 py-4">
+      <ol className="m-0 flex list-none items-center gap-1.5 p-0" aria-label={t("lessons")}>
+        {states.map((s, i) => (
+          <li key={s.lesson.id} title={tp(`lessonTitle.${s.lesson.id}`)}
+            className={`flex size-8 items-center justify-center rounded-full font-mono text-sm font-semibold ${
+              s.complete ? "bg-good text-on-primary" : i === at ? "bg-brass text-on-brass" : "border border-line-strong text-muted"
+            }`}>
+            {s.complete ? <IconCheck size={14} /> : i}
+          </li>
+        ))}
+      </ol>
+      <span className="min-w-0 flex-1 text-[15px]">
+        {current < 0
+          ? t("allDone")
+          : t("current", { n: at, title: tp(`lessonTitle.${state.lesson.id}`), done: state.done, total: state.total })}
+      </span>
+      <Link href="/path" className="text-sm font-bold underline underline-offset-2">{t("all")}</Link>
+    </section>
   );
 }
 

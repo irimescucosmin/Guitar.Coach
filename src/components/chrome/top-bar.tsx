@@ -1,16 +1,21 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { IconBell, IconMail } from "@/components/ui/icons";
+import { IconBell, IconMail, IconTuner } from "@/components/ui/icons";
 
 /** Above every page: the bell and the envelope, with what is unread. The counts are read when the page is. */
-export async function TopBar({ unread }: { unread: { notifications: number; messages: number } }) {
-  const [tn, tm] = await Promise.all([getTranslations("social.notifications"), getTranslations("social.messages")]);
+export async function TopBar({ unread, show }: { unread: { notifications: number; messages: number }; show: { bell: boolean; mail: boolean } }) {
+  const [tn, tm, tc] = await Promise.all([getTranslations("social.notifications"), getTranslations("social.messages"), getTranslations("common")]);
+  // The bell and the envelope appear once there is something in them: a beginner meets the music first.
   const items = [
-    { href: "/notifications", label: tn("title"), count: unread.notifications, Icon: IconBell },
-    { href: "/messages", label: tm("title"), count: unread.messages, Icon: IconMail },
+    ...(show.bell ? [{ href: "/notifications", label: tn("title"), count: unread.notifications, Icon: IconBell }] : []),
+    ...(show.mail ? [{ href: "/messages", label: tm("title"), count: unread.messages, Icon: IconMail }] : []),
   ];
   return (
     <div className="flex items-center justify-end gap-1">
+      <Link href="/tools" className="mr-2 inline-flex h-11 items-center gap-2 rounded-[var(--radius-field)] px-3 text-sm font-bold text-ink-2 hover:bg-subtle hover:text-ink">
+        <IconTuner size={20} />
+        {tc("nav.tools")}
+      </Link>
       {items.map(({ href, label, count, Icon }) => (
         <Link key={href} href={href} aria-label={count > 0 ? `${label}: ${tn("unread", { count })}` : label} className="relative flex size-11 items-center justify-center rounded-[var(--radius-field)] text-ink-2 hover:bg-subtle hover:text-ink">
           <Icon size={22} />

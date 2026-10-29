@@ -34,7 +34,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 | Un brano | `SONGS` in `src/lib/music/songs.ts` e in una lezione di `src/lib/music/path.ts` (un test pretende che ogni brano stia in una lezione e non usi accordi non ancora insegnati) |
 | Un ritmo | `StrumPattern` e `guitarEvents` in `src/lib/music/patterns.ts` |
 | Una tecnica | `TECHNIQUES` in `src/lib/music/techniques.ts` con cosa la dimostra, i testi in `techniques.<id>` |
-| Una schermata | `src/app/(app)/` con la voce in `NAV` di `components/chrome/sidebar.tsx`, testi in `messages`; fuori dal gruppo, `requireUser()` in cima alla pagina |
+| Una schermata | `src/app/(app)/` sotto una delle cinque voci di `NAV` in `components/chrome/sidebar.tsx` (nel suo `also`, non una voce nuova), testi in `messages`; fuori dal gruppo, `requireUser()` in cima alla pagina |
 | Una tabella | `src/db/schema/`, poi `pnpm db:generate` |
 
 ## Insidie già pagate

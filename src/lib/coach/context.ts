@@ -19,7 +19,7 @@ export const QUESTIONS_PER_DAY = 20;
 const taskLine = (task: Task | null): string => {
   if (!task) return "the whole path is complete";
   switch (task.kind) {
-    case "notes": return "lesson 0, the notes on the fretboard (find-the-note drill)";
+    case "notes": return "the notes on the fretboard (find-the-note drill)";
     case "learn": return `learn the ${task.chord} chord`;
     case "step": return `${findSong(task.song)?.title ?? task.song}, step by step`;
     case "timed": return `${findSong(task.song)?.title ?? task.song}, in time (needs ${Math.round(PASS_SCORE * 100)}% of bars right)`;

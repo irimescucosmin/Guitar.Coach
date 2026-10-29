@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { HelpView } from "@/components/help/help-view";
+import { coachEnabled } from "@/lib/coach/model";
 
 export async function generateMetadata() {
   const t = await getTranslations("help");
@@ -7,5 +8,5 @@ export async function generateMetadata() {
 }
 
 export default function HelpPage() {
-  return <HelpView />;
+  return <HelpView coach={coachEnabled()} />;
 }

@@ -40,13 +40,15 @@ describe("profile and placement", () => {
     expect(placedChords(p)).toEqual(["Em"]);
   });
 
-  it("starts a complete beginner from lesson 0", () => {
-    expect(nextTask(placed(base))).toEqual({ kind: "notes", lesson: "notes" });
+  it("starts a complete beginner from the first chord", () => {
+    expect(nextTask(placed(base))).toEqual({ kind: "learn", lesson: "emAm", chord: "Em" });
   });
 
-  it("skips lesson 0 only when the microphone heard the open strings", () => {
-    expect(nextTask(placed({ ...base, knowsOpenStrings: true }))).toEqual({ kind: "notes", lesson: "notes" });
-    expect(nextTask(placed({ ...base, knowsOpenStrings: true, openStringsHeard: true }))).toEqual({ kind: "learn", lesson: "emAm", chord: "Em" });
+  it("skips the notes lesson only when the microphone heard the open strings", () => {
+    const pastTwoLessons: Pick<Progress, "learned" | "best"> = { learned: { Em: true, Am: true, G: true, D: true }, best: { "drill-em-am": { step: 2000, timed: 0.9 }, "drill-g-d": { step: 2000, timed: 0.9 } } };
+    const at = (p: Profile) => nextTask({ ...placed(p), ...pastTwoLessons, profile: p });
+    expect(at({ ...base, knowsOpenStrings: true })).toEqual({ kind: "notes", lesson: "notes" });
+    expect(at({ ...base, knowsOpenStrings: true, openStringsHeard: true })).toEqual({ kind: "learn", lesson: "c", chord: "C" });
   });
 
   it("still asks a beginner who knows Em and Am for the drills", () => {

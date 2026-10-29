@@ -24,10 +24,15 @@ export interface Lesson {
   songs: readonly string[];
 }
 
+/**
+ * A sound first, the theory after: a beginner's first lesson is a chord (Em,
+ * two fingers), the second gives the first songs (G and D), and only then the
+ * names of the notes on the fretboard, when there is something to name.
+ */
 export const LESSONS: readonly Lesson[] = [
-  { id: "notes", newChords: [], drill: NOTE_DRILL_ID, songs: [] },
   { id: "emAm", newChords: ["Em", "Am"], drill: "drill-em-am", songs: [] },
   { id: "gD", newChords: ["G", "D"], drill: "drill-g-d", songs: ["skip-to-my-lou", "tom-dooley", "down-in-the-valley", "clementine"] },
+  { id: "notes", newChords: [], drill: NOTE_DRILL_ID, songs: [] },
   { id: "c", newChords: ["C"], drill: "drill-g-c-d",
     songs: ["will-the-circle", "oh-susanna", "camptown-races", "coming-round-the-mountain", "when-the-saints", "swing-low", "michael-row", "auld-lang-syne", "scarborough-fair", "red-river-valley", "home-on-the-range", "amazing-grace", "ring-of-fire", "wagon-wheel", "country-roads", "jolene"] },
   { id: "dm", newChords: ["Dm"], drill: "drill-dm-c", songs: ["drunken-sailor"] },
@@ -177,6 +182,15 @@ export type NextMode =
   | { kind: "timed" }
   /** Passed in time: the next thing is the same song a little faster. */
   | { kind: "faster" };
+
+/**
+ * Whether this player has passed any song in time. Writing a song for others
+ * starts here: whoever has not played one through yet would publish a draft
+ * they cannot pass, and the button would only get in the way of the path.
+ */
+export function hasPassedASong(progress: Progress): boolean {
+  return Object.values(progress.best).some((b) => (b?.timed ?? 0) >= PASS_SCORE);
+}
 
 /** What a song asks for next, given what this player has done. */
 export function nextModeFor(song: Song, progress: Progress): NextMode {

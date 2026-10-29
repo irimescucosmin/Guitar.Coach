@@ -10,7 +10,7 @@ import { HELP_GROUPS, PROBLEMS, type Problem } from "@/lib/help/problems";
 const fold = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
 /** Common problems, grouped by what the player hears or feels, each with why and what to do. */
-export function HelpView() {
+export function HelpView({ coach = false }: { coach?: boolean }) {
   const t = useTranslations("help");
   const [query, setQuery] = useState("");
   // A link like /help#p-buzz opens that problem.
@@ -50,6 +50,13 @@ export function HelpView() {
             className="min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none" />
         </label>
       </header>
+
+      {coach && (
+        <Link href="/coach" className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-card)] border border-line bg-surface px-5 py-4 hover:border-ink">
+          <span className="font-extrabold">{t("coach.title")}</span>
+          <span className="text-[15px] text-ink-2">{t("coach.body")}</span>
+        </Link>
+      )}
 
       {!query && (
         <nav aria-label={t("eyebrow")} className="flex flex-wrap gap-2">

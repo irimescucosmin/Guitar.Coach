@@ -7,7 +7,7 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
 - **Questionario** al primo avvio: qualche domanda e una prova al microfono sugli accordi che dici di sapere; il percorso parte da dove sei davvero.
 - **Oggi**: la pratica del giorno sui minuti che hai: accordatura, riscaldamento, prossimo passo, il cambio che ti viene peggio, un brano. Niente si spunta a mano: ogni attività la segna il microfono o il risultato salvato. Conta i giorni di fila.
 - **Orecchio musicale**: cinque livelli, dall'alto o basso a riconoscere gli accordi che conosci.
-- **Percorso** a lezioni, dalla 0 (le note sulla tastiera) alla 5 (E e A). In alto c'è sempre un solo prossimo passo.
+- **Percorso** a lezioni, dalla 0 (Em e Am, un suono il primo giorno) alla 5 (E e A); le note sulla tastiera sono la lezione 2. In alto c'è sempre un solo prossimo passo, e la striscia delle lezioni sta in Oggi, la pagina di casa.
 - **Le basi** per chi parte da zero: come si tiene la chitarra, le mani, il plettro, come si legge un diagramma; e tre guide da stampare o salvare in PDF, costruite sul tuo percorso: le basi, la scheda della lezione in corso, la settimana.
 - **Tastiera**: le quattro regole per trovare le note, la mappa fino al 12° tasto, e un esercizio col microfono che dice se la nota è giusta, più su o più giù.
 - **Impara un accordo**: diagramma, dita una alla volta, ascolto, tre pennate pulite sentite dal microfono. Se manca una nota, indica il dito e la corda.

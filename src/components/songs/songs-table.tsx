@@ -10,7 +10,7 @@ import { button, learnHref, playHref } from "@/components/ui/links";
 import { reportCommunitySong } from "@/app/actions";
 import { authorScore } from "@/lib/community/points";
 import { type CommunitySong } from "@/lib/community/song";
-import { nextModeFor } from "@/lib/music/path";
+import { hasPassedASong, nextModeFor } from "@/lib/music/path";
 import { patternSymbols } from "@/lib/music/patterns";
 import { SONGS, chordsOf, type Song } from "@/lib/music/songs";
 
@@ -68,7 +68,11 @@ export function SongsTable({ community, viewerId }: { community: CommunitySong[]
           <h1 className="display m-0 text-[40px] font-extrabold leading-tight">{t("title")}</h1>
           <p className="m-0 text-base text-ink-2">{t("intro")}</p>
         </div>
-        <Link href="/songs/new" className={`${button.brass} h-12`}>{tc("new")}</Link>
+        {hasPassedASong(progress) || mine.length > 0 ? (
+          <Link href="/songs/new" className={`${button.brass} h-12`}>{tc("new")}</Link>
+        ) : (
+          <p className="m-0 max-w-[32ch] text-[15px] text-muted">{tc("newLater")}</p>
+        )}
       </header>
 
       {mine.length > 0 && (

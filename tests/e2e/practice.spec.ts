@@ -146,11 +146,12 @@ test("signing out leaves no trace of the account on screen", async ({ page }) =>
   await expect(page).toHaveURL(/\/account$/);
 });
 
-test("the path starts from the notes, and the fretboard page teaches them", async ({ page }) => {
+test("the path starts from a sound, Em and Am, and the fretboard page teaches the notes later", async ({ page }) => {
   await signUp(page);
   await page.goto("/path");
-  await expect(page.getByRole("heading", { name: "Le note sulla tastiera" }).first()).toBeVisible();
-  await page.getByRole("link", { name: "Tastiera", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Em e Am" }).first()).toBeVisible();
+  await page.getByRole("link", { name: "Impara", exact: true }).click();
+  await page.getByRole("link", { name: /Le note sulla tastiera/ }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Le note sulla tastiera" })).toBeVisible();
   await page.getByRole("button", { name: /^Sol/ }).click();
   await expect(page.getByText(/Il Sol \(G\) sta in \d+ punti/)).toBeVisible();
@@ -178,12 +179,13 @@ test("the questionnaire hears the declared chords and starts the path past them"
   // The chords it does play are heard and placed.
   await expect(page.getByRole("heading", { name: "Suona gli accordi che conosci" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ecco da dove parti" })).toBeVisible({ timeout: 60_000 });
-  // Not proven, not skipped: lesson 0 stays. Em and Am were heard: lesson 1 is behind.
-  await expect(page.getByText("Lezione 0: Le note sulla tastiera")).toBeVisible();
+  // Em and Am were heard: lesson 0 is behind, the path starts from G and D.
+  await expect(page.getByText("Lezione 1: G e D")).toBeVisible();
   await page.getByRole("button", { name: "Inizia il percorso" }).click();
+  // Today is home: the path starts from the answers, saved in the account, not only on screen.
+  await expect(page).toHaveURL(/\/today/);
+  await page.goto("/path");
   await expect(page.getByText("Il percorso parte dalle tue risposte.")).toBeVisible();
-  // Saved in the account, not only on screen.
-  await page.reload();
   await expect(page.getByText("Completata")).toBeVisible();
 });
 
@@ -265,10 +267,10 @@ test("the basics page and the printable sheets are built from the player's own p
   await page.goto("/basics");
   await expect(page.getByRole("heading", { level: 1, name: "Le basi" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Come si legge un diagramma" })).toBeVisible();
-  // Lesson 0 on the sheet: the open strings, no chords yet.
+  // Lesson 0 on the sheet: Em and Am, finger by finger.
   await page.goto("/print/lesson");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Lezione 0");
-  await expect(page.getByText("Le sei corde a vuoto, dalla più grossa")).toBeVisible();
+  await expect(page.getByText(/^Dito 2 \(medio\)/).first()).toBeVisible();
   await page.goto("/print/week?from=2026-10-29");
   await expect(page.getByRole("heading", { level: 1, name: "La settimana" })).toBeVisible();
   await expect(page.getByText("giovedì 29 ottobre")).toBeVisible();
@@ -280,8 +282,10 @@ test("a published song is a draft until its author passes it in time, then it is
   await signUpQuickly(page);
   // A title of its own: the database may hold songs from earlier runs.
   const title = `Giro di Mi ${Date.now().toString(36)}`;
+  // Writing a song for others opens once a song is passed in time; the page is still there.
   await page.goto("/songs");
-  await page.getByRole("link", { name: "Pubblica un brano" }).click();
+  await expect(page.getByText("Quando avrai superato un brano a tempo")).toBeVisible();
+  await page.goto("/songs/new");
   const next = page.getByRole("button", { name: "Avanti", exact: true });
   // Step 1: what it is. Step 2: title and source; a line of lyrics is refused.
   await expect(page.getByRole("heading", { name: "Che brano è?" })).toBeVisible();
@@ -370,7 +374,9 @@ test("a published song is a draft until its author passes it in time, then it is
   await expect(other.getByRole("list", { name: "Conversazione" })).toContainText("Bel giro! A che bpm lo suoni?");
   await page.goto("/songs");
   await page.getByRole("link", { name: /^Messaggi: 1 da leggere/ }).click();
-  await page.locator("a[href^='/messages/']").first().click();
+  await expect(page.getByRole("heading", { level: 1, name: "Messaggi" })).toBeVisible();
+  await page.locator("main a[href^='/messages/']").first().click();
+  await expect(page).toHaveURL(/\/messages\/[0-9a-f-]+$/, { timeout: 15_000 });
   await expect(page.getByRole("list", { name: "Conversazione" })).toContainText("Bel giro! A che bpm lo suoni?");
   await page.getByLabel("Scrivi un messaggio").fill("A 90, per ora.");
   await page.getByRole("button", { name: "Invia" }).click();

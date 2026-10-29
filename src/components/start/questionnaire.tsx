@@ -8,7 +8,7 @@ import { ChordDiagram } from "@/components/chord-diagram";
 import { useProgress, useSettings } from "@/components/providers";
 import { ChordChip } from "@/components/ui/chord-chip";
 import { AppMark, IconBack, IconCheck } from "@/components/ui/icons";
-import { PATH_HREF, button } from "@/components/ui/links";
+import { TODAY_HREF, button } from "@/components/ui/links";
 import { CHORD_IDS, type ChordId } from "@/lib/music/chords";
 import { LESSONS, currentLessonIndex, nextTask, type Progress } from "@/lib/music/path";
 import {
@@ -96,7 +96,7 @@ export function Questionnaire() {
     setSaving(true);
     if (draft.leftHanded !== undefined) update({ leftHanded: draft.leftHanded });
     await answer(profile);
-    router.push(PATH_HREF);
+    router.push(TODAY_HREF);
   };
 
   const answered: Record<Step, boolean> = {
@@ -208,7 +208,7 @@ export function Questionnaire() {
         <div className="mx-auto hidden h-2 w-[320px] max-w-[40vw] overflow-hidden rounded-full bg-sunken sm:block" aria-hidden>
           <div className="h-full rounded-full bg-brass transition-[width]" style={{ width: `${(qIndex / steps.length) * 100}%` }} />
         </div>
-        <Link href={PATH_HREF} className="ml-auto text-sm font-semibold text-muted hover:text-ink sm:ml-0">{t("later")}</Link>
+        <Link href={TODAY_HREF} className="ml-auto text-sm font-semibold text-muted hover:text-ink sm:ml-0">{t("later")}</Link>
       </header>
 
       <main className="flex flex-1 justify-center px-5 pb-12 pt-10">

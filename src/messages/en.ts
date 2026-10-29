@@ -6,7 +6,7 @@ export const en: typeof it = {
     appName: "Guitar.Coach",
     tagline: "Acoustic guitar, one chord at a time.",
     navLabel: "Sections",
-    nav: { basics: "Basics", coach: "Teacher", progress: "Progress", today: "Today", path: "Path", fretboard: "Fretboard", chords: "Chords", ear: "Ear", songs: "Songs", tools: "Tuner", help: "Help", techniques: "Techniques" },
+    nav: { learn: "Learn", basics: "Basics", coach: "Teacher", progress: "Progress", today: "Today", path: "Path", fretboard: "Fretboard", chords: "Chords", ear: "Ear", songs: "Songs", tools: "Tuner", help: "Help", techniques: "Techniques" },
     signIn: "Sign in",
     chord: {
       Em: "E minor",
@@ -105,7 +105,7 @@ export const en: typeof it = {
     recheckGo: "Take the questionnaire again",
   },
   fretboard: {
-    eyebrow: "Lesson 0 · The basics",
+    eyebrow: "Lesson 2 · The notes",
     title: "The notes on the fretboard",
     intro: "Four rules are enough to find any note. There are seven notes, they repeat in a circle, and every fret raises them one step.",
     rules: "The four rules",
@@ -276,6 +276,18 @@ export const en: typeof it = {
     },
   },
   today: {
+    basicsFirst: {
+      title: "First of all: how to hold the guitar",
+      body: "Ten minutes on how to sit, where the hands go and how to read a chord box. Then the first chord, Em: two fingers.",
+      go: "The basics",
+    },
+    path: {
+      label: "The path",
+      lessons: "The lessons",
+      current: "Lesson {n}, {title}: {done} of {total} tasks done.",
+      allDone: "Path complete: every lesson is done.",
+      all: "The whole path",
+    },
     title: "Today",
     summary: "{minutes} minutes, {count, plural, one {# activity} other {# activities}}, in this order.",
     done: "done",
@@ -590,6 +602,7 @@ export const en: typeof it = {
     note: "The answers are written by an AI model from your results: twenty questions a day, and for pain that stays the doctor always comes before the app.",
   },
   help: {
+    coach: { title: "Ask the teacher", body: "One question at a time about what you are playing: it answers looking at your results." },
     title: "Help",
     eyebrow: "Common problems",
     intro: "The problems almost everyone meets at the start, with why they happen and what to do. None of them means the guitar is not for you: they all have a fix, and it is almost always simpler than it looks.",
@@ -599,7 +612,7 @@ export const en: typeof it = {
     fix: "What to do",
     goTo: "In the app",
     warn: "If you feel tingling, numbness or pain that stays: stop and see a doctor.",
-    sources: "The advice comes from teachers' guides, luthiers and a medical study of guitarists: the list of sources is in the app's documentation.",
+    sources: "The advice comes from teachers' guides, luthiers and a medical study of guitarists.",
     groups: { sound: "The sound", hands: "The hands", changes: "Changes", strumming: "The strumming hand", time: "Timing", guitar: "The guitar", practice: "How to practise" },
     app: { learn: "Learn a chord", tuner: "Tuner", changes: "Change test", today: "Today's practice", play: "Play", songs: "Songs", fretboard: "Fretboard" },
     p: {
@@ -813,7 +826,7 @@ export const en: typeof it = {
     openStrings: {
       question: "Do you know the names of the six open strings?",
       help: "From the thickest to the thinnest. You need them to tune and to read chord boxes.",
-      yes: { title: "Yes", body: "E, A, D, G, B, E. In a moment you play them one by one: if the microphone hears them, you skip lesson 0." },
+      yes: { title: "Yes", body: "E, A, D, G, B, E. In a moment you play them one by one: if the microphone hears them, you skip the notes lesson." },
       no: { title: "No, or not sure", body: "That is where we start: a few minutes are enough." },
     },
     chords: {
@@ -865,14 +878,14 @@ export const en: typeof it = {
     strings: {
       eyebrow: "Microphone check",
       title: "Play the open strings I ask for",
-      intro: "One at a time, without touching the fretboard, in the order I say. If you get all six, you skip lesson 0.",
+      intro: "One at a time, without touching the fretboard, in the order I say. If you get all six, you skip the notes lesson.",
       progress: "String {n} of {total}",
       ask: "Play the {string} string",
       wrong: "That is the {string} string: not the one I asked for.",
       names: { s0: "low E", s1: "A", s2: "D", s3: "G", s4: "B", s5: "high E" },
-      done: "All six right: you skip lesson 0.",
+      done: "All six right: you skip the notes lesson.",
       cannot: "Can't, next",
-      help: "If you can't get them all, no problem: lesson 0 teaches them in a few minutes.",
+      help: "If you can't get them all, no problem: the notes lesson teaches them in a few minutes.",
     },
     check: {
       eyebrow: "Microphone check",
@@ -1013,6 +1026,7 @@ export const en: typeof it = {
     title: "Songs from other players",
     intro: "Everyone publishes the progressions they can play and tries the others'. Chords and structure only: a traditional song in full, of a protected song only the progression. A song appears to others when its author passes it in time, so nobody publishes something that cannot be played.",
     new: "Publish a song",
+    newLater: "Once you pass a song in time you can write one of your own for others.",
     mine: "Your songs not published yet",
     hiddenNote: "Hidden after reports, pending a check.",
     published: "Published by the community",
@@ -1246,5 +1260,31 @@ export const en: typeof it = {
       },
     },
     writeTo: "Write to {name}",
+  },
+  learn: {
+    title: "Learn",
+    intro: "The pages that teach, in the order you need them. The brass one is the one to open now; the rest is here when you need it.",
+    now: "Now",
+    pages: {
+      basics: { title: "The basics", when: "First of all", body: "How to sit, where the hands go, how to hold the pick, how to read a chord box." },
+      chords: { title: "Chords", when: "Lessons 0, 1, 3, 4, 5", body: "The path's eight chords, one at a time: the fingers, how it sounds, three clean strums heard by the microphone." },
+      fretboard: { title: "The notes on the fretboard", when: "Lesson 2", body: "The names of the notes on the strings and frets: why G is called Sol in Italian, and where to find it." },
+      ear: { title: "Ear", when: "A few minutes a day", body: "Telling sounds apart: which note is higher, which string it is, which chord you hear." },
+      techniques: { title: "Techniques", when: "After the first chords", body: "Strums, the arpeggio, the capo, why some chords go together." },
+    },
+    wordsTitle: "The words",
+    wordsIntro: "The ones you find in the app, explained once.",
+    words: {
+      chord: { term: "Chord", def: "Several notes played together, pressing the strings with a few fingers. It has a name: Em, G, D." },
+      box: { term: "Chord box", def: "The drawing of a chord: strings vertical, frets horizontal, dots with the finger's number." },
+      fret: { term: "Fret", def: "The space between two metal bars on the neck. Counted from the headstock: the 1st is the nearest." },
+      nut: { term: "Nut", def: "The pale bar at the top of the neck, where the strings run to the headstock. A capo is a tool clamped across the neck." },
+      strum: { term: "Strum", def: "The right hand's stroke across the strings, with a pick or the fingers, down or up." },
+      bar: { term: "Bar", def: "A group of beats, usually four (one-two-three-four). In the app a chord lasts at least one bar." },
+      change: { term: "Change", def: "Going from one chord to the next. Changes per minute count how many clean ones you make in sixty seconds." },
+      letters: { term: "A, B, C, D, E, F, G", def: "Note names: in Italian A is La, B is Si, C is Do, D is Re, E is Mi, F is Fa, G is Sol. Chords are written this way; an m after the letter means minor (Em is E minor)." },
+      semitone: { term: "Semitone", def: "The distance from one fret to the next: the smallest step between two notes on the guitar." },
+      octave: { term: "Octave", def: "The same note higher or lower: twelve frets up on the same string." },
+    },
   },
 };

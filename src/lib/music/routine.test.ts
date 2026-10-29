@@ -27,7 +27,7 @@ describe("daily routine", () => {
     const blocks = dailyRoutine({ ...EMPTY_PROGRESS, profile: profile(20) }, "2026-10-29");
     expect(blocks.map((b) => b.id)).toEqual(["tune", "warmup", "ear", "new"]);
     expect(blocks[2]).toMatchObject({ id: "ear", minutes: 3, level: 1 });
-    expect(blocks[3]).toMatchObject({ id: "new", minutes: 14, task: { kind: "notes" } });
+    expect(blocks[3]).toMatchObject({ id: "new", minutes: 14, task: { kind: "learn", chord: "Em" } });
   });
 
   it("keeps ten minutes to tuning, the new step and one change", () => {

@@ -5,6 +5,7 @@ import {
   EMPTY_PROGRESS,
   LESSONS,
   PASS_SCORE,
+  hasPassedASong,
   lessonIndexFor,
   lessonStates,
   nextModeFor,
@@ -88,6 +89,12 @@ describe("songs", () => {
 });
 
 describe("path", () => {
+  it("knows when a player has passed a song in time", () => {
+    expect(hasPassedASong(EMPTY_PROGRESS)).toBe(false);
+    expect(hasPassedASong({ learned: {}, best: { x: { step: 30, timed: PASS_SCORE - 0.01 } } })).toBe(false);
+    expect(hasPassedASong({ learned: {}, best: { x: { timed: PASS_SCORE } } })).toBe(true);
+  });
+
   it("covers every song in the catalogue exactly once", () => {
     const used = LESSONS.filter((l) => l.id !== "notes").flatMap((l) => [l.drill, ...l.songs]);
     expect(new Set(used).size).toBe(used.length);
@@ -104,14 +111,14 @@ describe("path", () => {
     }
   });
 
-  it("starts with the notes on the neck, then the first chord", () => {
-    expect(nextTask(EMPTY_PROGRESS)).toEqual({ kind: "notes", lesson: "notes" });
-    const afterNotes = recordResult(EMPTY_PROGRESS, "notes", "step", 4000).progress;
-    expect(nextTask(afterNotes)).toEqual({ kind: "learn", lesson: "emAm", chord: "Em" });
+  it("starts with a sound: the first chord, then the first songs, the notes only after", () => {
+    expect(nextTask(EMPTY_PROGRESS)).toEqual({ kind: "learn", lesson: "emAm", chord: "Em" });
+    expect(LESSONS.map((l) => l.id)).toEqual(["emAm", "gD", "notes", "c", "dm", "eA"]);
+    expect(LESSONS[1]!.songs.length).toBeGreaterThan(0);
   });
 
   it("moves to step mode, then timed, then the next lesson", () => {
-    let p: Progress = { learned: { Em: true, Am: true }, best: { notes: { step: 4000 } } };
+    let p: Progress = { learned: { Em: true, Am: true }, best: {} };
     expect(nextTask(p)).toMatchObject({ kind: "step", song: "drill-em-am" });
     p = recordResult(p, "drill-em-am", "step", 3000).progress;
     expect(nextTask(p)).toMatchObject({ kind: "timed", song: "drill-em-am" });
@@ -120,7 +127,6 @@ describe("path", () => {
     p = recordResult(p, "drill-em-am", "timed", 0.9).progress;
     expect(nextTask(p)).toEqual({ kind: "learn", lesson: "gD", chord: "G" });
     expect(lessonStates(p)[0]!.complete).toBe(true);
-    expect(lessonStates(p)[1]!.complete).toBe(true);
   });
 
   it("keeps the best result: fastest step, highest timed score", () => {
@@ -150,8 +156,8 @@ describe("path", () => {
 
 describe("where a published song lands", () => {
   it("is the first lesson by which all its chords are taught", () => {
-    expect(lessonIndexFor(["Em", "Am"])).toBe(1);
-    expect(lessonIndexFor(["G", "D", "Em"])).toBe(2);
+    expect(lessonIndexFor(["Em", "Am"])).toBe(0);
+    expect(lessonIndexFor(["G", "D", "Em"])).toBe(1);
     expect(lessonIndexFor(["C", "G"])).toBe(3);
     expect(lessonIndexFor(["A", "D"])).toBe(5);
     expect(lessonIndexFor(["Em", "Am", "C", "G", "D", "Dm", "E", "A"])).toBe(5);

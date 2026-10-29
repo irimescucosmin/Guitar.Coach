@@ -30,6 +30,9 @@ export function Thread({ me, other, messages, blockedByMe, blocked }: { me: stri
   const [sending, setSending] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
   const [reported, setReported] = useState<Set<string>>(new Set());
+  // What was just sent shows at once; the refresh brings the same message back from the server.
+  const [sent, setSent] = useState<ThreadMessage[]>([]);
+  const shown = [...messages, ...sent.filter((s) => !messages.some((m) => m.id === s.id))];
   const when = (iso: string) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
   const send = async () => {
@@ -38,6 +41,7 @@ export function Thread({ me, other, messages, blockedByMe, blocked }: { me: stri
     const r = await sendDirectMessage({ to: other.id, body });
     setSending(false);
     if (!r.ok) return setRefused(t(`refused.${r.reason}`));
+    setSent((list) => [...list, { id: r.id, senderId: me, body, hidden: false, at: new Date().toISOString() }]);
     setBody("");
     router.refresh();
   };
@@ -63,8 +67,8 @@ export function Thread({ me, other, messages, blockedByMe, blocked }: { me: stri
       </header>
 
       <ol className="m-0 flex list-none flex-col gap-2 p-0" aria-label={t("thread")}>
-        {messages.length === 0 && <li className="text-sm text-muted">{t("start", { name: other.name })}</li>}
-        {messages.map((m) => {
+        {shown.length === 0 && <li className="text-sm text-muted">{t("start", { name: other.name })}</li>}
+        {shown.map((m) => {
           const mine = m.senderId === me;
           return (
             <li key={m.id} className={`flex max-w-[75%] flex-col gap-1 rounded-[var(--radius-control)] px-4 py-3 ${mine ? "self-end bg-navy text-on-navy" : "self-start border border-line bg-surface"}`}>

@@ -8,7 +8,7 @@ describe("coach context", () => {
     const text = playerContext(EMPTY_PROGRESS, EMPTY_HISTORY, "2026-10-29");
     expect(text).toContain("Has not answered the questionnaire yet.");
     expect(text).toContain("none yet");
-    expect(text).toContain("lesson 0");
+    expect(text).toContain("Lesson 0 of 5 (emAm)");
     expect(text).toContain("Practice days this week: 0 of 7");
   });
 

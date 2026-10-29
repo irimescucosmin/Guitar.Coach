@@ -10,12 +10,14 @@ Un principiante con la chitarra acustica: non conosce ancora gli accordi né le 
 
 | # | Lezione | Accordi nuovi | Esercizio | Perché in quest'ordine |
 |---|---|---|---|---|
-| 0 | Le note sulla tastiera | nessuno | trova le note (`notes`) | prima i nomi: Mi La Re Sol Si Mi, e le prime note sulle corde acute |
-| 1 | Em e Am | Em, Am | `drill-em-am` | stessa forma spostata di una corda |
-| 2 | G e D | G, D | `drill-g-d` | l'anulare si sposta di una sola corda |
+| 0 | Em e Am | Em, Am | `drill-em-am` | due dita, stessa forma spostata di una corda: un suono al primo giorno |
+| 1 | G e D | G, D | `drill-g-d` | l'anulare si sposta di una sola corda; sblocca i primi quattro brani |
+| 2 | Le note sulla tastiera | nessuno | trova le note (`notes`) | i nomi Mi La Re Sol Si Mi quando le mani sanno già fare quattro accordi |
 | 3 | C e i giri country | C | `drill-g-c-d` | da Am a C indice e medio restano fermi |
 | 4 | Dm | Dm | `drill-dm-c` | stessa zona di D |
 | 5 | E e A | E, A | `drill-e-a` | E è la forma di Am spostata verso il basso |
+
+Prima un suono, poi la teoria: chi inizia vuole sentire un accordo il primo giorno, e i nomi delle note si ricordano meglio quando ci sono già accordi a cui attaccarli.
 
 Ogni nuovo accordo condivide qualcosa con uno già imparato. Un test in `music.test.ts` pretende che nessun brano di una lezione usi accordi non ancora insegnati.
 
@@ -24,8 +26,8 @@ Ogni nuovo accordo condivide qualcosa con uno già imparato. Un test in `music.t
 Al primo avvio il percorso propone `/start`: nove domande (esperienza, corde a vuoto, accordi conosciuti, tablature, mano, chitarra, tempo al giorno, stile, obiettivo) e una prova al microfono sugli accordi dichiarati. Le risposte stanno in `Progress.profile`.
 
 - Un accordo dichiarato diventa imparato solo se il microfono lo sente pulito (`placedChords`). Chi salta la prova non salta niente.
-- Chi dice di sapere le corde a vuoto deve suonare quella che l'app chiede per nome, una alla volta, in un ordine sempre diverso (`stringOrder`): solo se le indovina tutte e sei (`openStringsHeard`) salta la lezione 0. Pizzicarle tutte senza sapere quale è quale non basta.
-- Le risposte date prima di questa prova restano dove avevano messo il giocatore: chi aveva detto di sapere le corde non torna alla lezione 0.
+- Chi dice di sapere le corde a vuoto deve suonare quella che l'app chiede per nome, una alla volta, in un ordine sempre diverso (`stringOrder`): solo se le indovina tutte e sei (`openStringsHeard`) salta la lezione delle note. Pizzicarle tutte senza sapere quale è quale non basta.
+- Le risposte date prima di questa prova restano dove avevano messo il giocatore: chi aveva detto di sapere le corde non torna alla lezione delle note.
 - Chi ha già suonato (non *Mai*) e ha tutti gli accordi di una lezione ne salta anche gli esercizi *Passo passo* e *A tempo* (`skipsDrillsFor`). Un principiante assoluto li fa sempre: i cambi si costruiscono lì.
 - Dopo 14 giorni il percorso propone di rispondere di nuovo (`needsRecheck`).
 
@@ -61,7 +63,7 @@ Sempre questi, in quest'ordine, perché ognuno prepara il successivo:
 2. **Passo passo** sull'esercizio: il brano aspetta l'accordo giusto. Fatto alla prima prova completa.
 3. **A tempo** sull'esercizio: fatto quando almeno il 70% delle battute ha l'accordo giusto (`PASS_SCORE`).
 
-La lezione 0 ha un compito solo: completare l'esercizio delle note.
+La lezione delle note (la 2) ha un compito solo: completare l'esercizio delle note.
 
 In alto nel percorso c'è sempre un solo prossimo passo, il primo compito non fatto (`nextTask`). Un compito è fatto quando lo hai fatto tu, o quando il questionario ti ha messo oltre (`isDone`).
 

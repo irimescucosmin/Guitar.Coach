@@ -41,8 +41,8 @@ Da qui l'app sceglie la lezione di partenza, saltando quelle già padroneggiate,
 
 **Fatto** (`/start`, `lib/music/profile.ts`):
 - un accordo dichiarato conta come imparato solo se il microfono lo sente pulito; chi salta la prova non salta niente;
-- "so le corde a vuoto" va dimostrato: l'app chiede una corda per nome alla volta, in ordine casuale, e solo se il microfono sente quella giusta tutte e sei le volte si salta la lezione 0;
-- chi sa le corde a vuoto salta la lezione 0;
+- "so le corde a vuoto" va dimostrato: l'app chiede una corda per nome alla volta, in ordine casuale, e solo se il microfono sente quella giusta tutte e sei le volte si salta la lezione delle note;
+- chi sa le corde a vuoto salta la lezione delle note;
 - chi ha già suonato e ha tutti gli accordi di una lezione ne salta anche gli esercizi; un principiante assoluto li fa sempre;
 - dopo 14 giorni il percorso propone di rispondere di nuovo;
 - risposte salvate nell'account (`player_profile`).
@@ -108,7 +108,7 @@ Da fare: livelli 6-8 (cambio nel brano, cantare la nota con il microfono, interv
 
 ## 6. Teoria minima, quando serve
 
-Note sulla tastiera (c'è: lezione 0), cosa sono tasto e semitono (c'è), cosa rende un accordo maggiore o minore, il capotasto e come cambia la tonalità, la lettura delle tablature e dei simboli ritmici. Sempre collegata a quello che si sta suonando.
+Note sulla tastiera (c'è: lezione 2, dopo i primi quattro accordi), cosa sono tasto e semitono (c'è), cosa rende un accordo maggiore o minore, il capotasto e come cambia la tonalità, la lettura delle tablature e dei simboli ritmici. Sempre collegata a quello che si sta suonando.
 
 ## 7. Tecniche dopo i primi accordi
 
@@ -200,7 +200,7 @@ Per chi non ha mai preso in mano una chitarra, guide brevi da stampare e tenere 
 
 Generate dall'app con i dati dell'account (lezione, accordi, routine), non file fissi: la scheda di chi è alla lezione 2 non è quella di chi è alla 4.
 
-**Fatto**: tre pagine di stampa (`/print/basics`, `/print/lesson`, `/print/week`), senza barra laterale, con il bottone *Stampa o salva in PDF* che apre la finestra di stampa del browser: il PDF lo fa il browser, l'app non ha un servizio a parte e le guide restano sempre aggiornate. *Prima di iniziare* e *Accordare* sono dentro *Le basi*. La scheda della lezione mostra gli accordi con le dita, i cambi, i compiti e i brani; per la lezione 0 le corde a vuoto. Il foglio della settimana ha sette giorni di routine con le caselle. Manca: i diagrammi specchiati per i mancini sulle schede stampate.
+**Fatto**: tre pagine di stampa (`/print/basics`, `/print/lesson`, `/print/week`), senza barra laterale, con il bottone *Stampa o salva in PDF* che apre la finestra di stampa del browser: il PDF lo fa il browser, l'app non ha un servizio a parte e le guide restano sempre aggiornate. *Prima di iniziare* e *Accordare* sono dentro *Le basi*. La scheda della lezione mostra gli accordi con le dita, i cambi, i compiti e i brani; per la lezione delle note le corde a vuoto. Il foglio della settimana ha sette giorni di routine con le caselle. Manca: i diagrammi specchiati per i mancini sulle schede stampate.
 
 ## 13. Ordine di sviluppo
 

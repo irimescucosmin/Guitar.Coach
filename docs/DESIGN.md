@@ -37,20 +37,21 @@ Due eccezioni note:
 | Rotta | Schermata | Componente principale |
 |---|---|---|
 | `/` | Presentazione (modo Persuade): la hero mostra con i pezzi veri dell'app una corda che non suona segnata in rosso e l'accordo dopo; poi perché esiste, come funziona, tre cose dentro, i quattro brani della lezione 2 con il catalogo ripiegato sotto, gratis. Niente eyebrow sopra l'h1. Chi ha fatto l'accesso va su `/today` | `components/landing/landing.tsx` |
-| `/today` | Oggi: la routine del giorno, blocchi numerati con minuti e azione, giorni di fila. La pagina dopo l'accesso | `components/today/today-view.tsx` |
+| `/today` | Oggi, la casa: per chi non ha mai suonato un riquadro verso *Le basi*, la striscia delle lezioni (`PathStrip`), la routine del giorno a blocchi numerati con minuti e azione, giorni di fila. La pagina dopo l'accesso e dopo il questionario | `components/today/today-view.tsx` |
 | `/progress` | Progressi: numeri, da ripassare, calendario, grafici con tooltip e tabella | `components/progress/progress-view.tsx`, `components/charts/line-chart.tsx` |
 | `/basics` | Le basi: otto argomenti; quattro figure generate (`public/figures`, da `pnpm figures`, con la lista `mustShow` da controllare a occhio) in colonna da 280 px, più il diagramma spiegato (`components/basics/figures.tsx`) | `components/basics/basics-view.tsx` |
 | `/print/basics`, `/print/lesson`, `/print/week` | Guide da stampare, una colonna, bottone di stampa in alto; `@media print` in `globals.css` | `app/print/*`, `components/print/*` |
-| `/path` | Percorso: prossimo passo, numeri, lezioni, compiti, brani della lezione | `components/path/path-view.tsx` |
-| `/fretboard` | Lezione 0: regole, mappa delle note, esercizio col microfono, nomi | `components/fretboard/*` |
+| `/path` | Percorso: prossimo passo, numeri, lezioni, compiti, brani della lezione; si apre dalla striscia di Oggi | `components/path/path-view.tsx` |
+| `/learn` | Impara: le cinque pagine per imparare (basi, accordi, tastiera, orecchio, tecniche), quella del momento in ottone, e le parole della chitarra spiegate | `components/learn/learn-hub.tsx` |
+| `/fretboard` | Lezione 2: regole, mappa delle note, esercizio col microfono, nomi | `components/fretboard/*` |
 | `/ear` | Orecchio: cinque livelli, giri di dieci domande; `?level=N` evidenzia il livello di oggi | `components/ear/ear-view.tsx` |
 | `/chords` | Gli otto accordi nell'ordine del percorso | `components/chords/chord-grid.tsx` |
 | `/chords/[chord]` | Impara un accordo: dita, tre pennate pulite, verso dove si va | `components/chords/learn-chord.tsx` |
-| `/songs` (catalogo e brani pubblicati dai giocatori in una tabella; le proprie bozze sopra) | Brani: filtri, ricerca, prossimo modo | `components/songs/songs-table.tsx` |
+| `/songs` (catalogo e brani pubblicati dai giocatori in una tabella; le proprie bozze sopra) | Brani: filtri, ricerca, prossimo modo. *Pubblica un brano* compare dopo il primo brano superato a tempo (`hasPassedASong`); prima, una riga dice quando | `components/songs/songs-table.tsx` |
 | `/play/[songId]?mode=` | Il brano a schermo pieno, senza barra laterale | `components/play/player.tsx` |
-| `/tools` | Accordatore e test dei cambi; `?a=G&b=D#changes` sceglie la coppia | `components/tools/*` |
+| `/tools` | Accordatore e test dei cambi; `?a=G&b=D#changes` sceglie la coppia. L'accordatore è anche nella presentazione, libero senza account, e nella riga in alto | `components/tools/*` |
 | `/start` | Questionario: una domanda per schermata, prova al microfono, riepilogo | `components/start/*` |
-| `/coach` | Insegnante: una domanda, una risposta, le domande precedenti; spento senza chiave | `components/coach/coach-view.tsx` |
+| `/coach` | Insegnante: una domanda, una risposta, le domande precedenti; si apre da Aiuto e da Progressi solo quando c'è la chiave | `components/coach/coach-view.tsx` |
 | `/help` | Aiuto: problemi comuni per gruppo, ricerca, `#p-<id>` apre un problema; linkato dalla fascia del microfono | `components/help/help-view.tsx` |
 | `/songs/new`, `/songs/[id]/edit` | Pubblicare un brano: procedura guidata in cinque passi, una domanda per schermata | `components/community/song-editor.tsx` |
 | `/progress#recordings` | Le registrazioni della settimana, con il lettore audio del browser | `components/progress/recordings.tsx` |
@@ -60,7 +61,9 @@ Due eccezioni note:
 | `/terms` | Regole della community, pubbliche, senza barra laterale | `app/terms/page.tsx` |
 | `/account` | Accesso a due colonne, fuori dalla barra laterale; `?mode=signup` apre la registrazione | `components/account/account-form.tsx` |
 
-Le schermate con la barra laterale stanno nel gruppo `src/app/(app)/`, il cui `layout.tsx` mette barra, la riga in alto con campanella e busta (`components/chrome/top-bar.tsx`) e contenuto (largo al massimo 1120 px).
+Le schermate con la barra laterale stanno nel gruppo `src/app/(app)/`, il cui `layout.tsx` mette barra, la riga in alto (`components/chrome/top-bar.tsx`) e contenuto (largo al massimo 1120 px).
+
+La barra ha cinque voci: **Oggi**, **Impara**, **Brani**, **Progressi**, **Aiuto**. Le altre pagine stanno sotto una di queste e la accendono (`also` in `NAV`): Percorso sotto Oggi; basi, accordi, tastiera, orecchio e tecniche sotto Impara; il brano sotto Brani; l'insegnante sotto Aiuto. La riga in alto ha l'accordatore sempre, la campanella solo quando c'è una notifica, la busta solo quando c'è una conversazione: chi inizia non vede la parte sociale prima di averne bisogno. I punti in Progressi compaiono con il primo brano superato a tempo.
 
 ### Il brano
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { PATH_HREF, TODAY_HREF, button } from "@/components/ui/links";
+import { TODAY_HREF, button } from "@/components/ui/links";
 import { authClient } from "@/lib/auth-client";
 
 const field = "h-12 rounded-[var(--radius-field)] border border-line-strong bg-surface px-3.5 text-base text-ink";
@@ -45,7 +45,7 @@ export function AccountForm({ userName, locale, providers, initialMode = "signIn
           <p className="m-0 text-base text-ink-2">{t("signedInAs", { name: userName })}</p>
         </div>
         {languagePicker}
-        <Link href={PATH_HREF} className={`${button.brass} h-[52px] text-[17px]`}>{t("toPath")}</Link>
+        <Link href={TODAY_HREF} className={`${button.brass} h-[52px] text-[17px]`}>{t("toPath")}</Link>
         <Link href="/start" className={`${button.outline} h-12`}>{t("retake")}</Link>
         <button type="button" disabled={pending} className={`${button.outline} h-12`}
           onClick={() => startTransition(async () => { await authClient.signOut(); router.refresh(); })}>

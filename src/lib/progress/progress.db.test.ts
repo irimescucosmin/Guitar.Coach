@@ -124,15 +124,13 @@ describe.skipIf(!url)("routine ticked by the server", () => {
   });
 
   it("ticks today's next step when the result that proves it is saved, and nothing for an unrelated one", async () => {
-    // A new player's next step is lesson 0: the note drill.
+    // A new player's next step is the first chord of the path: Em.
     const other = await recordPractice(db, userId, "2026-10-29", { kind: "run", song: "drill-g-d", mode: "step" }, () =>
       saveRun(db, userId, { songId: "drill-g-d", mode: "step", value: 3000 }),
     );
     expect(other!.today?.done).toEqual([]);
-    const notes = await recordPractice(db, userId, "2026-10-29", { kind: "run", song: "notes", mode: "notes" }, () =>
-      saveRun(db, userId, { songId: "notes", mode: "step", value: 2500 }),
-    );
-    expect(notes!.today).toEqual({ done: ["new"], streak: 1 });
+    const em = await recordPractice(db, userId, "2026-10-29", { kind: "learn", chord: "Em" }, () => markLearned(db, userId, "Em"));
+    expect(em!.today).toEqual({ done: ["new"], streak: 1 });
   });
 });
 

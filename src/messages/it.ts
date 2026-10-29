@@ -7,7 +7,7 @@ export const it = {
     appName: "Guitar.Coach",
     tagline: "Chitarra acustica, un accordo alla volta.",
     navLabel: "Sezioni",
-    nav: { basics: "Le basi", coach: "Insegnante", progress: "Progressi", today: "Oggi", path: "Percorso", fretboard: "Tastiera", chords: "Accordi", ear: "Orecchio", songs: "Brani", tools: "Accordatore", help: "Aiuto", techniques: "Tecniche" },
+    nav: { learn: "Impara", basics: "Le basi", coach: "Insegnante", progress: "Progressi", today: "Oggi", path: "Percorso", fretboard: "Tastiera", chords: "Accordi", ear: "Orecchio", songs: "Brani", tools: "Accordatore", help: "Aiuto", techniques: "Tecniche" },
     signIn: "Accedi",
     chord: {
       Em: "Mi minore",
@@ -106,7 +106,7 @@ export const it = {
     recheckGo: "Rifai il questionario",
   },
   fretboard: {
-    eyebrow: "Lezione 0 · Le basi",
+    eyebrow: "Lezione 2 · Le note",
     title: "Le note sulla tastiera",
     intro: "Bastano quattro regole per trovare qualsiasi nota. Le note sono sette, si ripetono in cerchio, e ogni tasto le alza di un passo.",
     rules: "Le quattro regole",
@@ -277,6 +277,18 @@ export const it = {
     },
   },
   today: {
+    basicsFirst: {
+      title: "Prima di tutto: come si tiene la chitarra",
+      body: "Dieci minuti su come sederti, dove vanno le mani e come si legge un diagramma. Poi il primo accordo, Em: due dita.",
+      go: "Le basi",
+    },
+    path: {
+      label: "Il percorso",
+      lessons: "Le lezioni",
+      current: "Lezione {n}, {title}: {done} di {total} compiti fatti.",
+      allDone: "Percorso completato: tutte le lezioni sono fatte.",
+      all: "Tutto il percorso",
+    },
     title: "Oggi",
     summary: "{minutes} minuti, {count, plural, one {# attività} other {# attività}}, in quest'ordine.",
     done: "fatte",
@@ -591,6 +603,7 @@ export const it = {
     note: "Le risposte le scrive un modello di intelligenza artificiale a partire dai tuoi risultati: venti domande al giorno, e per il dolore che resta vale sempre il medico, non l'app.",
   },
   help: {
+    coach: { title: "Chiedi all'insegnante", body: "Una domanda alla volta su quello che stai suonando: risponde guardando i tuoi risultati." },
     title: "Aiuto",
     eyebrow: "Problemi comuni",
     intro: "I problemi che quasi tutti incontrano all'inizio, con il perché e cosa fare. Nessuno è un segno che la chitarra non fa per te: hanno tutti una soluzione, e quasi sempre è più semplice di quanto sembri.",
@@ -600,7 +613,7 @@ export const it = {
     fix: "Cosa fare",
     goTo: "Nell'app",
     warn: "Se senti formicolio, intorpidimento o un dolore che resta: fermati e senti un medico.",
-    sources: "I consigli vengono da guide di insegnanti, liutai e da uno studio medico sui chitarristi: l'elenco delle fonti è nella documentazione dell'app.",
+    sources: "I consigli vengono da guide di insegnanti, liutai e da uno studio medico sui chitarristi.",
     groups: { sound: "Il suono", hands: "Le mani", changes: "I cambi", strumming: "La mano destra", time: "Il tempo", guitar: "La chitarra", practice: "Come esercitarsi" },
     app: { learn: "Impara un accordo", tuner: "Accordatore", changes: "Test dei cambi", today: "Pratica di oggi", play: "Suona", songs: "Brani", fretboard: "Tastiera" },
     p: {
@@ -814,7 +827,7 @@ export const it = {
     openStrings: {
       question: "Sai il nome delle sei corde a vuoto?",
       help: "Dalla più grossa alla più sottile. Servono per accordare e per leggere i diagrammi.",
-      yes: { title: "Sì", body: "Mi, La, Re, Sol, Si, Mi. Tra poco le suoni una per una: se il microfono le sente, salti la lezione 0." },
+      yes: { title: "Sì", body: "Mi, La, Re, Sol, Si, Mi. Tra poco le suoni una per una: se il microfono le sente, salti la lezione delle note." },
       no: { title: "No, o non sono sicuro", body: "Si parte da lì: bastano pochi minuti." },
     },
     chords: {
@@ -866,14 +879,14 @@ export const it = {
     strings: {
       eyebrow: "Prova al microfono",
       title: "Suona le corde a vuoto che ti chiedo",
-      intro: "Una alla volta, senza toccare la tastiera, nell'ordine che ti dico. Se le riconosci tutte e sei, la lezione 0 la salti.",
+      intro: "Una alla volta, senza toccare la tastiera, nell'ordine che ti dico. Se le riconosci tutte e sei, la lezione delle note la salti.",
       progress: "Corda {n} di {total}",
       ask: "Suona il {string}",
       wrong: "Questo è il {string}: non è la corda che ti ho chiesto.",
       names: { s0: "Mi grave", s1: "La", s2: "Re", s3: "Sol", s4: "Si", s5: "Mi cantino" },
-      done: "Tutte e sei giuste: la lezione 0 la salti.",
+      done: "Tutte e sei giuste: la lezione delle note la salti.",
       cannot: "Non riesco, avanti",
-      help: "Se non le riconosci tutte, nessun problema: la lezione 0 te le insegna in pochi minuti.",
+      help: "Se non le riconosci tutte, nessun problema: la lezione delle note te le insegna in pochi minuti.",
     },
     check: {
       eyebrow: "Prova al microfono",
@@ -1014,6 +1027,7 @@ export const it = {
     title: "I brani degli altri",
     intro: "Qui ognuno pubblica i giri che sa suonare e prova quelli degli altri. Solo accordi e struttura: un brano tradizionale per intero, di un brano protetto solo il giro. Un brano appare agli altri quando chi l'ha scritto lo supera a tempo: così nessuno pubblica qualcosa che non si può suonare.",
     new: "Pubblica un brano",
+    newLater: "Quando avrai superato un brano a tempo potrai scriverne uno tuo per gli altri.",
     mine: "I tuoi brani non ancora pubblicati",
     hiddenNote: "Nascosto dopo le segnalazioni, in attesa di un controllo.",
     published: "Pubblicati dalla community",
@@ -1247,5 +1261,31 @@ export const it = {
       },
     },
     writeTo: "Scrivi a {name}",
+  },
+  learn: {
+    title: "Impara",
+    intro: "Le pagine che insegnano, nell'ordine in cui servono. Quella in ottone è quella da aprire adesso; il resto lo trovi qui quando ti serve.",
+    now: "Adesso",
+    pages: {
+      basics: { title: "Le basi", when: "Prima di tutto", body: "Come ti siedi, dove vanno le mani, come tieni il plettro, come si legge un diagramma." },
+      chords: { title: "Accordi", when: "Lezioni 0, 1, 3, 4, 5", body: "Gli otto accordi del percorso, uno alla volta: le dita, l'ascolto, tre pennate pulite sentite dal microfono." },
+      fretboard: { title: "Le note sulla tastiera", when: "Lezione 2", body: "I nomi delle note sulle corde e sui tasti: perché G si chiama Sol, e dove trovarlo." },
+      ear: { title: "Orecchio", when: "Pochi minuti al giorno", body: "Riconoscere i suoni: quale nota è più acuta, quale corda è, quale accordo stai sentendo." },
+      techniques: { title: "Tecniche", when: "Dopo i primi accordi", body: "Le pennate, l'arpeggio, il capotasto, perché certi accordi stanno insieme." },
+    },
+    wordsTitle: "Le parole",
+    wordsIntro: "Quelle che trovi nell'app, spiegate una volta.",
+    words: {
+      chord: { term: "Accordo", def: "Più note suonate insieme, premendo le corde con alcune dita. Ha un nome: Em, G, D." },
+      box: { term: "Diagramma", def: "Il disegno di un accordo: le corde in verticale, i tasti in orizzontale, i pallini con il numero del dito." },
+      fret: { term: "Tasto", def: "Lo spazio tra due barrette di metallo sul manico. Si contano dalla paletta: il 1° è il più vicino." },
+      nut: { term: "Capotasto", def: "La barretta chiara in cima al manico, dove le corde passano verso la paletta. Anche il nome di un attrezzo che si stringe sul manico." },
+      strum: { term: "Pennata", def: "Il colpo della mano destra sulle corde, col plettro o con le dita, in giù o in su." },
+      bar: { term: "Battuta", def: "Un gruppo di battiti, di solito quattro (uno-due-tre-quattro). Nell'app un accordo dura almeno una battuta." },
+      change: { term: "Cambio", def: "Il passaggio da un accordo all'altro. I cambi al minuto misurano quanti ne fai puliti in sessanta secondi." },
+      letters: { term: "A, B, C, D, E, F, G", def: "I nomi delle note in inglese: A è La, B è Si, C è Do, D è Re, E è Mi, F è Fa, G è Sol. Gli accordi si scrivono così; la m dopo la lettera vuol dire minore (Em è Mi minore)." },
+      semitone: { term: "Semitono", def: "La distanza tra un tasto e quello accanto: la più piccola tra due note sulla chitarra." },
+      octave: { term: "Ottava", def: "La stessa nota più acuta o più grave: dodici tasti più su sulla stessa corda." },
+    },
   },
 };

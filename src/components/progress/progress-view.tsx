@@ -10,7 +10,7 @@ import { button, changesHref, playHref } from "@/components/ui/links";
 import { CHORD_IDS } from "@/lib/music/chords";
 import { EAR_LEVELS, UNLOCK_SCORE, earId } from "@/lib/music/ear";
 import { calendar, changeSeries, practised, reviewList, stepSeries, timedSeries, weekSummary, type History } from "@/lib/music/history";
-import { PASS_SCORE } from "@/lib/music/path";
+import { PASS_SCORE, hasPassedASong } from "@/lib/music/path";
 import { localDate } from "@/lib/music/routine";
 import { findSong } from "@/lib/music/songs";
 import { Recordings, type RecordingItem } from "./recordings";
@@ -154,6 +154,7 @@ export function ProgressView({ history, coach, recordings, score }: { history: H
           <p className="m-0 text-xs text-muted">{t("charts.ear.mark")}</p>
         </ChartCard>
       </div>
+      {(score.points > 0 || hasPassedASong(progress)) && (
       <section aria-label={tcm("points.label")} className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[var(--radius-card)] border border-line bg-surface px-5 py-4">
         <span className="flex items-baseline gap-2">
           <span className="font-mono text-3xl font-semibold">{score.points}</span>
@@ -167,6 +168,7 @@ export function ProgressView({ history, coach, recordings, score }: { history: H
         )}
         <Link href="/songs/new" className="text-sm font-bold underline underline-offset-2">{tcm("new")}</Link>
       </section>
+      )}
 
       <Recordings recordings={recordings} />
       <p className="m-0 text-sm text-muted">{tc("appName")} · {t("note")}</p>

@@ -12,7 +12,7 @@ const WHY = ["hear", "next", "play"] as const;
 const STEPS = ["answer", "shape", "time"] as const;
 const INSIDE = ["path", "tuner", "hint"] as const;
 /** The lesson whose songs a visitor plays first: two chords, four songs. */
-const FIRST_SONGS_LESSON = 2;
+const FIRST_SONGS_LESSON = LESSONS.findIndex((l) => l.id === "gD");
 /** The open B string of a G chord: the one a finger lying flat touches first. */
 const FLAGGED_STRING = 4;
 
