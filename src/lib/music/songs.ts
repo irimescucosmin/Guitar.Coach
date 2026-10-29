@@ -1,9 +1,11 @@
 import type { ChordId } from "./chords";
+import { SUNG } from "./lyrics";
 
 /**
- * The catalogue. Only chords and structure live here, never lyrics or melody:
- * traditional songs are public domain, the "progression" group carries only the
- * chord sequence of well-known songs, which is what a guitarist strums.
+ * The catalogue. Traditional songs are public domain and come with their
+ * words (lyrics.ts), laid bar by bar over the chords; the "progression" group
+ * carries only the chord sequence of well-known songs, which is what a
+ * guitarist strums: never their words or melody.
  *
  * Practice versions: one chord per bar, a bar is `beatsPerBar` beats.
  */
@@ -15,6 +17,11 @@ export interface Section {
   name: "loop" | "verse" | "chorus";
   bars: readonly ChordId[];
   repeat: number;
+  /**
+   * What is sung over each bar, one row per repeat: only for songs in the
+   * public domain (`SUNG` in lyrics.ts). A protected song never has words.
+   */
+  words?: readonly (readonly string[])[];
 }
 
 export interface Song {
@@ -29,6 +36,13 @@ export interface Song {
 }
 
 const twice = (name: Section["name"], bars: readonly ChordId[]): Section => ({ name, bars, repeat: 2 });
+
+/** A traditional song as it is sung: its sections, bars and words from lyrics.ts. */
+function sung(id: string): Section[] {
+  const parts = SUNG[id];
+  if (!parts) throw new Error(`No words for ${id}`);
+  return parts.map((p) => ({ name: p.name, bars: p.bars, repeat: p.words.length, words: p.words }));
+}
 
 export const SONGS: readonly Song[] = [
   // Exercises: one change, repeated until it stops being a decision.
@@ -45,44 +59,41 @@ export const SONGS: readonly Song[] = [
 
   // Traditional, public domain.
   { id: "skip-to-my-lou", title: "Skip to My Lou", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "down",
-    sections: [twice("verse", ["G", "G", "D", "D", "G", "G", "D", "G"]), twice("chorus", ["G", "G", "D", "D", "G", "G", "D", "G"])] },
+    sections: sung("skip-to-my-lou") },
   { id: "tom-dooley", title: "Tom Dooley", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("chorus", ["G", "G", "D", "D", "D", "D", "G", "G"]), twice("verse", ["G", "G", "D", "D", "D", "D", "G", "G"])] },
+    sections: sung("tom-dooley") },
   { id: "down-in-the-valley", title: "Down in the Valley", origin: "traditional", group: "traditional", beatsPerBar: 3, pattern: "waltz",
-    sections: [{ name: "verse", bars: ["G", "G", "G", "D", "D", "D", "D", "G"], repeat: 3 }] },
+    sections: sung("down-in-the-valley") },
   { id: "will-the-circle", title: "Will the Circle Be Unbroken", origin: "hymn", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("verse", ["G", "G", "C", "G", "G", "G", "D", "G"]), twice("chorus", ["G", "G", "C", "G", "G", "G", "D", "G"])] },
+    sections: sung("will-the-circle") },
   { id: "oh-susanna", title: "Oh! Susanna", origin: "foster", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("verse", ["G", "G", "G", "D", "G", "G", "D", "G"]), { name: "chorus", bars: ["C", "C", "G", "D", "G", "G", "D", "G"], repeat: 1 }] },
+    sections: sung("oh-susanna") },
   { id: "red-river-valley", title: "Red River Valley", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("verse", ["G", "G", "G", "G", "D", "D", "D", "D", "G", "G", "C", "C", "D", "D", "G", "G"])] },
+    sections: sung("red-river-valley") },
   { id: "home-on-the-range", title: "Home on the Range", origin: "traditional", group: "traditional", beatsPerBar: 3, pattern: "waltz",
-    sections: [
-      { name: "verse", bars: ["G", "G", "C", "C", "G", "G", "D", "D", "G", "G", "C", "C", "G", "D", "G", "G"], repeat: 1 },
-      { name: "chorus", bars: ["D", "D", "G", "G", "G", "G", "D", "D", "G", "G", "C", "C", "G", "D", "G", "G"], repeat: 1 },
-    ] },
+    sections: sung("home-on-the-range") },
   { id: "amazing-grace", title: "Amazing Grace", origin: "hymn", group: "traditional", beatsPerBar: 3, pattern: "waltz",
-    sections: [twice("verse", ["G", "G", "C", "G", "G", "G", "D", "D", "G", "G", "C", "G", "G", "D", "G", "G"])] },
+    sections: sung("amazing-grace") },
   { id: "drunken-sailor", title: "Drunken Sailor", origin: "shanty", group: "traditional", beatsPerBar: 4, pattern: "down",
-    sections: [twice("verse", ["Dm", "Dm", "C", "C", "Dm", "Dm", "C", "Dm"]), twice("chorus", ["Dm", "Dm", "C", "C", "Dm", "Dm", "C", "Dm"])] },
+    sections: sung("drunken-sailor") },
   { id: "camptown-races", title: "Camptown Races", origin: "foster", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("verse", ["G", "G", "D", "G", "G", "G", "D", "G"]), twice("chorus", ["G", "C", "G", "D", "G", "C", "D", "G"])] },
+    sections: sung("camptown-races") },
   { id: "clementine", title: "Oh My Darling, Clementine", origin: "traditional", group: "traditional", beatsPerBar: 3, pattern: "waltz",
-    sections: [twice("verse", ["G", "G", "G", "D", "D", "G", "D", "G"]), twice("chorus", ["G", "G", "G", "D", "D", "G", "D", "G"])] },
+    sections: sung("clementine") },
   { id: "coming-round-the-mountain", title: "She'll Be Coming 'Round the Mountain", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("verse", ["G", "G", "G", "G", "G", "G", "D", "D", "G", "G", "C", "C", "G", "D", "G", "G"])] },
+    sections: sung("coming-round-the-mountain") },
   { id: "when-the-saints", title: "When the Saints Go Marching In", origin: "spiritual", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("verse", ["G", "G", "G", "G", "G", "G", "D", "D", "G", "G", "C", "C", "G", "D", "G", "G"])] },
+    sections: sung("when-the-saints") },
   { id: "swing-low", title: "Swing Low, Sweet Chariot", origin: "spiritual", group: "traditional", beatsPerBar: 4, pattern: "folk",
-    sections: [twice("chorus", ["G", "C", "G", "D", "G", "C", "D", "G"]), twice("verse", ["G", "C", "G", "D", "G", "C", "D", "G"])] },
+    sections: sung("swing-low") },
   { id: "michael-row", title: "Michael, Row the Boat Ashore", origin: "spiritual", group: "traditional", beatsPerBar: 4, pattern: "folk",
-    sections: [{ name: "verse", bars: ["G", "C", "G", "G", "Em", "Am", "D", "G"], repeat: 4 }] },
+    sections: sung("michael-row") },
   { id: "auld-lang-syne", title: "Auld Lang Syne", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "folk",
-    sections: [twice("verse", ["G", "D", "G", "C", "G", "Em", "D", "G"]), twice("chorus", ["G", "D", "G", "C", "G", "Em", "D", "G"])] },
+    sections: sung("auld-lang-syne") },
   { id: "scarborough-fair", title: "Scarborough Fair", origin: "traditional", group: "traditional", beatsPerBar: 3, pattern: "waltz",
-    sections: [{ name: "verse", bars: ["Am", "Am", "G", "Am", "C", "Am", "D", "Am", "Am", "C", "G", "Am", "G", "Am", "G", "Am"], repeat: 3 }] },
+    sections: sung("scarborough-fair") },
   { id: "tom-dooley-in-a", title: "Tom Dooley, in La", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
-    sections: [twice("chorus", ["A", "A", "E", "E", "E", "E", "A", "A"]), twice("verse", ["A", "A", "E", "E", "E", "E", "A", "A"])] },
+    sections: sung("tom-dooley-in-a") },
 
   // Chord progressions of well-known songs. No lyrics, no melody.
   { id: "wagon-wheel", title: "Wagon Wheel", origin: "chordsOnly", group: "progression", beatsPerBar: 4, pattern: "folk",
@@ -107,6 +118,8 @@ export function chordsOf(song: Song): ChordId[] {
 
 export interface Bar {
   chord: ChordId;
+  /** What is sung over this bar: undefined for a song without words, "" for a bar only strummed. */
+  words?: string;
   section: Section["name"];
   /** 1-based repetition of its section, 0 when the section plays once. */
   pass: number;
@@ -122,6 +135,7 @@ export function barsOf(song: Song): Bar[] {
     Array.from({ length: section.repeat }, (_, r) =>
       section.bars.map((chord, i) => ({
         chord,
+        ...(section.words ? { words: section.words[r]?.[i] ?? "" } : {}),
         section: section.name,
         pass: section.repeat > 1 ? r + 1 : 0,
         opensSection: i === 0,
@@ -156,4 +170,37 @@ export function nextChangeAfter(bars: readonly Bar[], from: number): number {
     if (bars[i]!.chord !== current) return i;
   }
   return -1;
+}
+
+/** One line of words as it is shown while playing: four bars of one section pass. */
+export interface LyricLine {
+  first: number;
+  last: number;
+  /** Per bar, the words ready to read: syllable hyphens joined, and whether the word runs on into the next bar. */
+  parts: { bar: number; text: string; runsOn: boolean }[];
+}
+
+const BARS_PER_LINE = 4;
+
+/**
+ * The lines of a song with words: four bars each, never across two sections,
+ * and only the lines where something is sung. A song without words has none.
+ */
+export function lyricLines(bars: readonly Bar[]): LyricLine[] {
+  const lines: LyricLine[] = [];
+  let current: LyricLine | null = null;
+  bars.forEach((bar, i) => {
+    if (bar.words === undefined) return;
+    if (!current || bar.opensSection || (bar.position - 1) % BARS_PER_LINE === 0) {
+      current = { first: i, last: i, parts: [] };
+      lines.push(current);
+    }
+    const raw = bar.words.trim();
+    const runsOn = raw.endsWith("-");
+    // "A-ma-zing" reads "Amazing"; "Doo-" keeps its hyphen out and runs into "ley".
+    const text = (runsOn ? raw.slice(0, -1) : raw).replace(/(\p{L})-(?=\p{L})/gu, "$1");
+    current.last = i;
+    current.parts.push({ bar: i, text, runsOn });
+  });
+  return lines.filter((l) => l.parts.some((p) => p.text !== ""));
 }

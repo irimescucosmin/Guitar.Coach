@@ -452,3 +452,14 @@ test("a part of the song can be practised on its own and paused, and counts as p
   await page.getByRole("button", { name: "Tutto il brano" }).click();
   await expect(page.getByText("Tutto il brano. Tocca una battuta o una parte per provare solo quella.")).toBeVisible();
 });
+
+test("a traditional song shows its words under the chords, a chord progression never does", async ({ page }) => {
+  await signUpQuickly(page);
+  await page.goto("/play/amazing-grace?mode=listen");
+  const words = page.getByRole("region", { name: "Testo" });
+  await expect(words).toContainText("Amazing grace! How sweet the sound that");
+  await expect(words).toContainText("saved a wretch like me!");
+  await page.goto("/play/wagon-wheel?mode=listen");
+  await expect(page.getByRole("heading", { level: 1, name: "Wagon Wheel" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Testo" })).toHaveCount(0);
+});

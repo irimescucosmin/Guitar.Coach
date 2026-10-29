@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CHORDS, CHORD_IDS, alternateBassString, stringsForPitchClasses } from "./chords";
-import { SONGS, barsOf, chordsOf, findSong, nextChangeAfter, stepsOf } from "./songs";
+import { SONGS, barsOf, chordsOf, findSong, lyricLines, nextChangeAfter, stepsOf } from "./songs";
+import { SUNG } from "./lyrics";
 import {
   EMPTY_PROGRESS,
   LESSONS,
@@ -79,6 +80,53 @@ describe("songs", () => {
     const steps = stepsOf(barsOf(findSong("drill-em-am")!));
     expect(steps.map((s) => s.chord)).toEqual(["Em", "Am", "Em", "Am", "Em", "Am", "Em", "Am"]);
     expect(steps[1]).toEqual({ chord: "Am", firstBar: 2, bars: 2 });
+  });
+
+  it("have words only when they are public domain, one line per bar on every repeat", () => {
+    const traditional = SONGS.filter((s) => s.group === "traditional").map((s) => s.id).sort();
+    expect(Object.keys(SUNG).sort()).toEqual(traditional);
+    for (const song of SONGS) {
+      for (const section of song.sections) {
+        if (song.group !== "traditional") {
+          expect(section.words, song.id).toBeUndefined();
+          continue;
+        }
+        expect(section.name, song.id).not.toBe("loop");
+        expect(section.words, song.id).toHaveLength(section.repeat);
+        for (const row of section.words!) {
+          expect(row, song.id).toHaveLength(section.bars.length);
+          for (const w of row) expect(w, song.id).not.toMatch(/[\u2013\u2014]/);
+        }
+      }
+      const bars = barsOf(song);
+      if (song.group === "traditional") {
+        expect(bars.length, song.id).toBeGreaterThanOrEqual(16);
+        expect(bars.length, song.id).toBeLessThanOrEqual(48);
+        expect(bars.some((b) => b.words), song.id).toBe(true);
+      } else expect(bars.every((b) => b.words === undefined), song.id).toBe(true);
+    }
+  });
+
+  it("put the words under the bar they are sung on", () => {
+    const bars = barsOf(findSong("tom-dooley")!);
+    expect(bars[0]).toMatchObject({ chord: "G", words: "Hang down your head, Tom" });
+    expect(bars[3]).toMatchObject({ chord: "D", words: "cry;" });
+    // The verse is only strummed: its rights are contested.
+    expect(bars.slice(8, 16).every((b) => b.words === "")).toBe(true);
+  });
+
+  it("show the words four bars to a line, syllables joined, strummed lines left out", () => {
+    const lines = lyricLines(barsOf(findSong("tom-dooley")!));
+    // Chorus, strummed verse, chorus: four sung lines, none from the verse.
+    expect(lines).toHaveLength(4);
+    expect(lines[0]).toMatchObject({ first: 0, last: 3 });
+    expect(lines[0]!.parts[1]).toEqual({ bar: 1, text: "Dooley,", runsOn: false });
+    expect(lines[2]!.first).toBe(16);
+    const grace = lyricLines(barsOf(findSong("amazing-grace")!));
+    expect(grace[0]!.parts[0]!.text).toBe("Amazing");
+    const runsOn = grace.flatMap((l) => l.parts).find((p) => p.runsOn)!;
+    expect(runsOn.text).toBe("fears re");
+    expect(lyricLines(barsOf(findSong("wagon-wheel")!))).toEqual([]);
   });
 
   it("find the next change, skipping repeats of the same chord", () => {

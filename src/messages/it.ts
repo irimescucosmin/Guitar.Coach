@@ -165,6 +165,7 @@ export const it = {
     note: "Gli accordi tratteggiati non li hai ancora imparati. Dei brani famosi c'è solo il giro di accordi, senza testo né melodia.",
   },
   play: {
+    lyrics: "Testo",
     back: "Brani",
     origin: {
       exercise: "Esercizio",

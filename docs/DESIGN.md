@@ -67,7 +67,7 @@ La barra ha cinque voci: **Oggi**, **Impara**, **Brani**, **Progressi**, **Aiuto
 
 ### Il brano
 
-Dall'alto: intestazione (indietro, titolo e ritmo, modi, bpm, Pausa/Riprendi e Avvia/Ferma), *Adesso* largo due terzi con diagramma da 260 px e lettera da 168 px, *Dopo* un terzo con bordo ottone e conto dei battiti, la fascia del microfono, la corsia, poi *Struttura* (le battute sono bottoni: toccarne una o una parte la isola, le altre si attenuano; sotto, la parte scelta, *Tutto il brano* e *Ripeti*) e *Accompagnamento*. A fine brano un riquadro blu notte con il risultato e il passo successivo.
+Dall'alto: intestazione (indietro, titolo e ritmo, modi, bpm, Pausa/Riprendi e Avvia/Ferma), *Adesso* largo due terzi con diagramma da 260 px e lettera da 168 px, *Dopo* un terzo con bordo ottone e conto dei battiti, per i brani tradizionali il *Testo* (la riga che si suona, con la parola della battuta in ottone, e la riga dopo; `components/play/lyrics.tsx`), la fascia del microfono, la corsia, poi *Struttura* (le battute sono bottoni: toccarne una o una parte la isola, le altre si attenuano; sotto, la parte scelta, *Tutto il brano* e *Ripeti*) e *Accompagnamento*. A fine brano un riquadro blu notte con il risultato e il passo successivo.
 
 ## 4. I pezzi riusabili
 

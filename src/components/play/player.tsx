@@ -17,6 +17,7 @@ import { PASS_SCORE, type PracticeMode } from "@/lib/music/path";
 import { patternSymbols } from "@/lib/music/patterns";
 import { chordsOf, type Song } from "@/lib/music/songs";
 import { drawHighway } from "./highway";
+import { Lyrics } from "./lyrics";
 import { PracticeSession, type Feedback, type Status, type View } from "./session";
 import { TransitionHint } from "./transition-hint";
 
@@ -249,6 +250,8 @@ export function Player({ song, initialMode, origin }: { song: Song; initialMode:
           </section>
           <NextCard view={view} mode={mode} leftHanded={settings.leftHanded} diagramTitle={diagramTitle} />
         </div>
+
+        <Lyrics bars={session.bars} bar={mode === "step" ? (session.steps[view.position]?.firstBar ?? -1) : view.position} />
 
         <FeedbackBanner feedback={view.feedback} countIn={view.countIn} />
 

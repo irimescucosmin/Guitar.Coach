@@ -164,6 +164,7 @@ export const en: typeof it = {
     note: "Dashed chords are the ones you have not learned yet. Famous songs come as the chord progression only, no lyrics or melody.",
   },
   play: {
+    lyrics: "Words",
     back: "Songs",
     origin: {
       exercise: "Drill",

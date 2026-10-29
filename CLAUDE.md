@@ -20,7 +20,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - **`src/lib/audio/detect.ts` è puro** anche lui: ogni soglia del riconoscimento si prova con uno spettro sintetico o con una pennata Karplus-Strong passata da FFT (`detect.test.ts`). Una soglia cambiata senza un test che la giustifica non entra.
 - **Ciò che arriva dal browser si confronta con il catalogo** (`src/lib/progress/validation.ts`), mai creduto.
 - **Colori e raggi solo dai token** in `src/app/globals.css` (`--color-ink`, `--color-chord-Em`, `--radius-field`). Il blocco `@theme` è `static`: il canvas della corsia legge i token per nome e Tailwind toglierebbe quelli non usati da una classe.
-- **Mai un brano con testo o melodia** di un'opera protetta: per quelle solo il giro di accordi, gruppo `progression`.
+- **Mai un brano con testo o melodia** di un'opera protetta: per quelle solo il giro di accordi, gruppo `progression`. I brani tradizionali hanno il testo in `src/lib/music/lyrics.ts` (`SUNG`), una riga di parole per battuta; una strofa dai diritti incerti si lascia senza parole (`""`), come quella di *Tom Dooley*.
 - **Niente si spunta a mano.** Un progresso conta solo se il microfono l'ha sentito o se c'è un risultato salvato che lo dimostra. Le attività della routine le segna il server (`recordPractice`); dal browser arrivano solo le prove del microfono (`reportProof`). Niente bottoni "fatto".
 - **Non c'è una sezione community: tutta l'app lo è.** I brani dei giocatori stanno tra i Brani e nel Percorso (`lessonIndexFor`) come quelli del catalogo. Un brano si pubblica da solo quando l'autore lo supera a tempo (`publishIfPassed`): nessun bottone "pubblica". Il modulo non ha un campo per il testo, e `looksLikeLyrics` rifiuta una riga di parole nel titolo.
 - **I messaggi tra giocatori passano da `lib/social/rules.ts`**: ogni rifiuto (contatti, link, insulti, limiti, blocco, muto) è una regola pura con un test, e il server la applica in `sendMessage`. Le schermate mostrano solo il motivo.
@@ -31,7 +31,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 | Cosa | Dove |
 |---|---|
 | Un accordo | `ChordId` e `SHAPES` in `src/lib/music/chords.ts`, un token colore in `globals.css`, il nome in `common.chord` |
-| Un brano | `SONGS` in `src/lib/music/songs.ts` e in una lezione di `src/lib/music/path.ts` (un test pretende che ogni brano stia in una lezione e non usi accordi non ancora insegnati) |
+| Un brano | `SONGS` in `src/lib/music/songs.ts` (se tradizionale, `sections: sung(id)` con testo e accordi in `lyrics.ts`) e in una lezione di `src/lib/music/path.ts` (un test pretende che ogni brano stia in una lezione e non usi accordi non ancora insegnati) |
 | Un ritmo | `StrumPattern` e `guitarEvents` in `src/lib/music/patterns.ts` |
 | Una tecnica | `TECHNIQUES` in `src/lib/music/techniques.ts` con cosa la dimostra, i testi in `techniques.<id>` |
 | Una schermata | `src/app/(app)/` sotto una delle cinque voci di `NAV` in `components/chrome/sidebar.tsx` (nel suo `also`, non una voce nuova), testi in `messages`; fuori dal gruppo, `requireUser()` in cima alla pagina |
