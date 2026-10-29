@@ -130,6 +130,6 @@ export async function reportCommunitySong(input: unknown): Promise<{ hidden: boo
   const song = await findCommunitySong(db, parsed.data.songId);
   if (!song || song.authorId === me.id) return null;
   const result = await reportSong(db, me.id, parsed.data.songId, parsed.data.reason, parsed.data.note ?? null);
-  revalidatePath("/community");
+  revalidatePath("/songs");
   return result;
 }

@@ -122,6 +122,20 @@ export function nextTask(progress: Progress): Task | null {
   return null;
 }
 
+/**
+ * The lesson a song belongs in by its chords: the first one by which every
+ * chord has been taught. Songs players publish land in the path this way,
+ * next to the catalogue's. -1 for a chord the path does not teach.
+ */
+export function lessonIndexFor(chords: readonly ChordId[]): number {
+  const taught = new Set<ChordId>();
+  for (const [i, lesson] of LESSONS.entries()) {
+    lesson.newChords.forEach((c) => taught.add(c));
+    if (chords.every((c) => taught.has(c))) return i;
+  }
+  return -1;
+}
+
 /** Chords learned so far, in path order. */
 export function learnedChords(progress: Progress): ChordId[] {
   return LESSONS.flatMap((l) => l.newChords).filter((c) => progress.learned[c]);

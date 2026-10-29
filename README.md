@@ -19,7 +19,7 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
 - **Registrazione della settimana**: mentre suoni un brano puoi registrarti; una a settimana, da riascoltare nei Progressi e confrontare con le settimane prima.
 - **Accordatore** e test dei cambi in un minuto.
 - **Insegnante**: una domanda alla volta a un modello Claude che conosce solo i tuoi risultati nell'app, 20 al giorno; nei Progressi scrive la settimana in due frasi. Serve una chiave API, altrimenti è spento.
-- **Community**: pubblichi un giro di accordi con una procedura guidata (di un brano protetto solo gli accordi, mai il testo). Resta una bozza finché non lo superi a tempo; poi gli altri lo suonano, e lo possono segnalare. I punti si leggono dai risultati: 10 per brano pubblicato, 5 per ogni giocatore che lo supera.
+- **Brani pubblicati da chi suona qui**: pubblichi un giro di accordi con una procedura guidata (di un brano protetto solo gli accordi, mai il testo). Resta una bozza finché non lo superi a tempo; poi sta tra i Brani e nella lezione giusta del Percorso come quelli del catalogo, e gli altri lo possono segnalare. I punti si leggono dai risultati: 10 per brano pubblicato, 5 per ogni giocatore che lo supera.
 - **Aiuto**: i problemi tipici (corde che ronzano, dita che fanno male, cambi lenti, plettro, tempo, dolore) con il perché e cosa fare. Quando il microfono segnala un problema, il link porta alla spiegazione.
 - **Mancino**: i diagrammi si specchiano.
 - **Gratis, con account**: l'account serve solo a tenere traccia dei progressi su ogni dispositivo. Email e password, oppure Google o Apple se configurati.

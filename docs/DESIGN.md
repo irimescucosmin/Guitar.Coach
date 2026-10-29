@@ -46,14 +46,13 @@ Due eccezioni note:
 | `/ear` | Orecchio: cinque livelli, giri di dieci domande; `?level=N` evidenzia il livello di oggi | `components/ear/ear-view.tsx` |
 | `/chords` | Gli otto accordi nell'ordine del percorso | `components/chords/chord-grid.tsx` |
 | `/chords/[chord]` | Impara un accordo: dita, tre pennate pulite, verso dove si va | `components/chords/learn-chord.tsx` |
-| `/songs` | Brani: filtri, ricerca, prossimo modo | `components/songs/songs-table.tsx` |
+| `/songs` (catalogo e brani pubblicati dai giocatori in una tabella; le proprie bozze sopra) | Brani: filtri, ricerca, prossimo modo | `components/songs/songs-table.tsx` |
 | `/play/[songId]?mode=` | Il brano a schermo pieno, senza barra laterale | `components/play/player.tsx` |
 | `/tools` | Accordatore e test dei cambi; `?a=G&b=D#changes` sceglie la coppia | `components/tools/*` |
 | `/start` | Questionario: una domanda per schermata, prova al microfono, riepilogo | `components/start/*` |
 | `/coach` | Insegnante: una domanda, una risposta, le domande precedenti; spento senza chiave | `components/coach/coach-view.tsx` |
 | `/help` | Aiuto: problemi comuni per gruppo, ricerca, `#p-<id>` apre un problema; linkato dalla fascia del microfono | `components/help/help-view.tsx` |
-| `/community` | I brani pubblicati dagli altri e i propri; bozze con bordo tratteggiato; segnalazione in riga | `components/community/community-list.tsx` |
-| `/community/new`, `/community/[id]/edit` | Procedura guidata in cinque passi, una domanda per schermata | `components/community/song-editor.tsx` |
+| `/songs/new`, `/songs/[id]/edit` | Pubblicare un brano: procedura guidata in cinque passi, una domanda per schermata | `components/community/song-editor.tsx` |
 | `/progress#recordings` | Le registrazioni della settimana, con il lettore audio del browser | `components/progress/recordings.tsx` |
 | `/techniques` | Tecniche: una sezione per tecnica, ancora `#id`; arpeggio col microfono, calcolatore del capotasto, tabella delle tonalità | `components/techniques/techniques-view.tsx` |
 | `/terms` | Regole della community, pubbliche, senza barra laterale | `app/terms/page.tsx` |

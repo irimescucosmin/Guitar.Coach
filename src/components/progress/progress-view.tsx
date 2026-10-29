@@ -14,10 +14,12 @@ import { PASS_SCORE } from "@/lib/music/path";
 import { localDate } from "@/lib/music/routine";
 import { findSong } from "@/lib/music/songs";
 import { Recordings, type RecordingItem } from "./recordings";
+import { POINTS_PASS, POINTS_PUBLISHED, type AuthorScore } from "@/lib/community/points";
 
 /** How things are going: the week in numbers, what to review, every result over time. */
-export function ProgressView({ history, coach, recordings }: { history: History; coach: boolean; recordings: RecordingItem[] }) {
+export function ProgressView({ history, coach, recordings, score }: { history: History; coach: boolean; recordings: RecordingItem[]; score: AuthorScore }) {
   const t = useTranslations("stats");
+  const tcm = useTranslations("community");
   const tc = useTranslations("common");
   const locale = useLocale();
   const { progress, today } = useProgress();
@@ -152,6 +154,20 @@ export function ProgressView({ history, coach, recordings }: { history: History;
           <p className="m-0 text-xs text-muted">{t("charts.ear.mark")}</p>
         </ChartCard>
       </div>
+      <section aria-label={tcm("points.label")} className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[var(--radius-card)] border border-line bg-surface px-5 py-4">
+        <span className="flex items-baseline gap-2">
+          <span className="font-mono text-3xl font-semibold">{score.points}</span>
+          <span className="text-sm font-bold">{tcm("points.label")}</span>
+        </span>
+        <span className="text-sm text-ink-2">{tcm("points.how", { published: POINTS_PUBLISHED, pass: POINTS_PASS })}</span>
+        {score.badges.length > 0 && (
+          <ul className="m-0 flex list-none flex-wrap gap-2 p-0" aria-label={tcm("points.badges")}>
+            {score.badges.map((b) => <li key={b} className="rounded-full bg-warn-soft px-3 py-1 text-xs font-bold text-brass-ink">{tcm(`points.badge.${b}`)}</li>)}
+          </ul>
+        )}
+        <Link href="/songs/new" className="text-sm font-bold underline underline-offset-2">{tcm("new")}</Link>
+      </section>
+
       <Recordings recordings={recordings} />
       <p className="m-0 text-sm text-muted">{tc("appName")} · {t("note")}</p>
     </>

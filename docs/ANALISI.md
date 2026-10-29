@@ -126,26 +126,18 @@ L'app è gratuita, ma si usa solo con un account: serve a tenere traccia dei pro
 
 Brani di pubblico dominio nel catalogo: 18 tradizionali (canti, spiritual, inni, Stephen Foster, canti marinareschi) più 4 giri di accordi di canzoni protette. Per un tradizionale sono liberi testo e melodia; restano protetti i singoli arrangiamenti e le registrazioni, per questo l'app genera da sé accompagnamento e diagrammi ([fonte](https://legalclarity.org/is-when-the-saints-go-marching-in-in-the-public-domain/)).
 
-## 9. Community: brani pubblicati dagli utenti
+## 9. Tutta l'app è la community
 
-L'idea: chi ha imparato un brano lo pubblica per gli altri, con una procedura guidata, e ci si aiuta a vicenda.
+Non c'è una sezione "community": i brani che i giocatori pubblicano stanno tra i **Brani**, nella stessa tabella del catalogo, e nel **Percorso**, nella lezione i cui accordi li coprono (`lessonIndexFor`). Chi li suona non deve sapere da dove vengono, solo che si possono suonare: lo garantisce la regola di pubblicazione.
 
-**Procedura guidata**, una domanda per schermata come il questionario:
-
-1. Titolo e provenienza: tradizionale (pubblico dominio) o canzone protetta. Per una canzone protetta si pubblica **solo il giro di accordi**, mai testo o melodia, come nel catalogo.
-2. Tempo (3 o 4) e ritmo, scelti tra quelli che l'app sa suonare.
-3. Le sezioni, battuta per battuta, scegliendo tra gli accordi che l'app conosce. L'anteprima suona subito con basso e batteria.
-4. Il controllo: l'autore lo suona una volta *A tempo* e deve passare. Così ogni brano pubblicato è suonabile davvero.
-5. Pubblicazione: il brano entra nella lezione giusta da solo, perché si sa quali accordi usa.
-
-**Fatto** (`/community`, `lib/community/*`):
+**Fatto** (`/songs`, `/songs/new`, `lib/community/*`):
 - La procedura guidata in cinque passi (`components/community/song-editor.tsx`): che brano è (tradizionale per intero, o solo il giro di un brano protetto), titolo e provenienza, battiti e pennata, le battute con gli accordi del percorso e l'ascolto, il riepilogo. Il modulo non ha un campo per il testo e rifiuta una riga di parole anche nel titolo (`looksLikeLyrics`).
-- Il brano nasce come **bozza**, visibile solo all'autore. Diventa pubblico quando l'autore lo supera *A tempo*: `publishIfPassed` guarda i risultati salvati dell'autore, non un bottone. Un brano pubblicato non si modifica più: è quello che gli altri hanno provato.
-- I brani della community si suonano con lo stesso player del catalogo (`/play/c-…`), i risultati finiscono in `practice_runs` con l'id del brano. "Superato da N persone" conta i giocatori diversi che l'hanno passato a tempo, autore escluso.
-- **Segnalazioni** (`song_reports`): testo protetto, accordi sbagliati, offensivo, altro. Al terzo giocatore diverso il brano si nasconde da solo (`REPORTS_TO_HIDE`); l'autore lo vede come nascosto.
-- **Regole pubbliche** su `/terms`: cosa si pubblica, la prova, le segnalazioni, diritto d'autore, rispetto, contatto (`NEXT_PUBLIC_CONTACT_EMAIL`).
+- Il brano nasce come **bozza**, visibile solo all'autore sopra la tabella dei Brani. Diventa pubblico quando l'autore lo supera *A tempo* con quel giro (`publishIfPassed`): nessun bottone. Un brano pubblicato non si modifica più.
+- Un brano pubblicato è una riga della tabella come le altre, con "pubblicato da" e i punti dell'autore, il filtro "Pubblicati da chi suona qui", e compare nella lezione del percorso che i suoi accordi permettono. Si suona con lo stesso player (`/play/c-…`), i risultati finiscono in `practice_runs`.
+- **Segnalazioni** in riga (`song_reports`): al terzo giocatore diverso il brano si nasconde (`REPORTS_TO_HIDE`); l'autore lo vede nascosto nella sua lista.
+- **Regole pubbliche** su `/terms`, con il contatto (`NEXT_PUBLIC_CONTACT_EMAIL`).
 
-Da fare: proporre una correzione a un accordo, domande sotto il brano, un modo per contestare una rimozione (per ora: scrivere al contatto). I brani della community non entrano nelle lezioni del percorso: restano nella loro pagina.
+Da fare: un feed dove chi pubblica racconta il brano e gli altri rispondono (non è lo scopo principale: viene dopo i messaggi); proporre una correzione a un accordo; i brani pubblicati nel brano del giorno della routine (`songOfTheDay` è puro e legge solo il catalogo).
 
 Dati: `community_songs` (autore, stato: bozza, pubblicato, nascosto; stessa forma di `Song`, validata col catalogo degli accordi), `song_reports` (un giocatore, un brano, una volta).
 
@@ -156,7 +148,7 @@ Punti per quello che serve agli altri, non per il volume. Niente punti per la so
 **Fatto** (`lib/community/points.ts`): i punti non si salvano, si leggono ogni volta dai brani, così nessuno li assegna a mano e un brano nascosto dopo le segnalazioni perde i suoi da solo.
 - 10 per ogni brano pubblicato, cioè superato a tempo dal suo autore.
 - 5 per ogni altro giocatore che lo supera a tempo, una volta per persona per brano.
-- Traguardi, non classifiche: primo brano, cinque brani, ha aiutato qualcuno, superato 10 e 50 volte dagli altri. Si vedono nella pagina Community, e il punteggio di ogni autore accanto al suo nome.
+- Traguardi, non classifiche: primo brano, cinque brani, ha aiutato qualcuno, superato 10 e 50 volte dagli altri. Si vedono nei Progressi, e il punteggio di ogni autore accanto al suo nome nei Brani.
 
 Da fare, con le funzioni che ancora mancano: punti per una correzione accettata dall'autore e per una risposta segnata come utile.
 
@@ -205,7 +197,7 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 5 | Ripasso mirato e grafico dei progressi | fatto |
 | 6 | Assistente AI: insegnante e riepilogo settimanale | fatto |
 | 7 | Lezione su postura e mani, e guide in PDF; figure generate con Recraft (`pnpm figures`) | fatto, figure da generare con la chiave |
-| 8 | Community: procedura guidata, bozza finché non la superi, segnalazioni, regole | fatto |
+| 8 | Brani pubblicati dai giocatori, tra i Brani e nel Percorso; bozza finché non la superi, segnalazioni, regole | fatto |
 | 9 | Punti per chi aiuta, letti dai risultati | fatto |
 | 10 | Registrazione settimanale, da riascoltare nei Progressi | fatto |
 | 11 | Tecniche e teoria: pennate, arpeggio, capotasto, tonalità | fatto |

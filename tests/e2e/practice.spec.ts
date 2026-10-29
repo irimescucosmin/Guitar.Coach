@@ -218,8 +218,10 @@ test("an ear round saves its score, a passed round opens the next level, a guess
   await expect(page.getByText("Si apre con 8 su 10 al livello 1.")).toBeVisible();
   // All right: level 2 opens, and stays open after a reload.
   await page.getByRole("button", { name: "Rifai il giro" }).click();
+  const saved = page.waitForResponse((r) => r.request().method() === "POST" && (r.request().postData() ?? "").includes('"ear-1"'));
   await answerEarRound(page, 1, 7, true, false);
   await expect(page.getByText("Superato: si apre il livello 2.")).toBeVisible();
+  await saved;
   await page.reload();
   await expect(page.getByText("Si apre con 8 su 10 al livello 1.")).toHaveCount(0);
 });
@@ -270,12 +272,11 @@ test("the basics page and the printable sheets are built from the player's own p
   await expect(page.getByText("Accorda la chitarra")).toHaveCount(7);
 });
 
-test("a community song is a draft until its author passes it in time, then others see it", { tag: "@own-browser" }, async ({ page }) => {
+test("a published song is a draft until its author passes it in time, then it is among the songs", { tag: "@own-browser" }, async ({ page }) => {
   await signUpQuickly(page);
   // A title of its own: the database may hold songs from earlier runs.
   const title = `Giro di Mi ${Date.now().toString(36)}`;
-  await page.goto("/community");
-  await expect(page.getByRole("heading", { level: 1, name: "I brani degli altri" })).toBeVisible();
+  await page.goto("/songs");
   await page.getByRole("link", { name: "Pubblica un brano" }).click();
   const next = page.getByRole("button", { name: "Avanti", exact: true });
   // Step 1: what it is. Step 2: title and source; a line of lyrics is refused.
@@ -295,19 +296,19 @@ test("a community song is a draft until its author passes it in time, then other
   await next.click();
   await expect(page.getByText("Accordi usati: Em (Mi minore), Am (La minore)")).toBeVisible();
   await page.getByRole("button", { name: "Salva la bozza" }).click();
-  // Saved as a draft: it opens in listen mode, and only its author sees it in the list.
+  // Saved as a draft: it opens in listen mode, and only its author sees it, above the table.
   await expect(page).toHaveURL(/\/play\/c-[a-z0-9]+\?mode=listen$/);
   const songId = page.url().match(/\/play\/(c-[a-z0-9]+)/)![1]!;
-  await page.goto("/community");
+  await page.goto("/songs");
   const mine = page.getByRole("listitem").filter({ hasText: title });
   await expect(mine.getByText("Bozza")).toBeVisible();
-  await expect(mine.getByText("nessuno l'ha ancora superato")).toBeVisible();
+  await expect(page.getByRole("row").filter({ hasText: title })).toHaveCount(0);
 
   const fresh = await page.context().browser()!.newContext();
   const other = await fresh.newPage();
   await signUpQuickly(other);
-  await other.goto("/community");
-  await expect(other.getByRole("listitem").filter({ hasText: title })).toHaveCount(0);
+  await other.goto("/songs");
+  await expect(other.getByRole("row").filter({ hasText: title })).toHaveCount(0);
   const hidden = await other.goto(`/play/${songId}?mode=listen`);
   expect(hidden?.status()).toBe(404);
 
@@ -320,13 +321,19 @@ test("a community song is a draft until its author passes it in time, then other
   await page.getByRole("button", { name: "Avvia" }).click();
   await expect(page.getByText(/% delle battute con l'accordo giusto/)).toBeVisible({ timeout: 90_000 });
   await saved;
-  await page.goto("/community");
-  await expect(mine.getByText("Bozza")).toHaveCount(0);
-  // Points are read off the same fact: one song published, the first milestone.
+  // Published: a row in the table like any other, with who published it; the draft list is gone.
+  await page.goto("/songs");
+  await expect(mine).toHaveCount(0);
+  await page.getByRole("button", { name: /^Tutti/ }).click();
+  await expect(page.getByRole("row").filter({ hasText: title })).toContainText("pubblicato da Prova");
+  // Points are read off the same fact: one song published, the first milestone, in Progress.
+  await page.goto("/progress");
   await expect(page.getByRole("region", { name: "punti" })).toContainText("10");
   await expect(page.getByRole("region", { name: "punti" })).toContainText("Primo brano");
-  await other.goto("/community");
-  const theirs = other.getByRole("listitem").filter({ hasText: title });
+  // The other player finds it among the songs, filtered by who published.
+  await other.goto("/songs");
+  await other.getByRole("button", { name: /Pubblicati da chi suona qui/ }).click();
+  const theirs = other.getByRole("row").filter({ hasText: title });
   await expect(theirs).toContainText("pubblicato da Prova");
   await theirs.getByRole("button", { name: "Segnala" }).click();
   await theirs.getByRole("button", { name: "Contiene un testo protetto" }).click();

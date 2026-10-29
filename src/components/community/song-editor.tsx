@@ -223,7 +223,7 @@ export function SongEditor({ id, initial }: { id?: string; initial?: CommunitySo
         {at > 0 ? (
           <button type="button" onClick={() => setAt((i) => i - 1)} className={`${button.outline} h-12`}><IconBack />{t("back")}</button>
         ) : (
-          <Link href="/community" className={`${button.outline} h-12`}><IconBack />{t("cancel")}</Link>
+          <Link href="/songs" className={`${button.outline} h-12`}><IconBack />{t("cancel")}</Link>
         )}
         {step === "review" ? (
           <button type="button" onClick={() => void save()} disabled={!canGoOn.review || saving} className={`${button.brass} ml-auto h-[52px] text-[17px] disabled:opacity-50`}>

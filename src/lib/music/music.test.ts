@@ -5,6 +5,7 @@ import {
   EMPTY_PROGRESS,
   LESSONS,
   PASS_SCORE,
+  lessonIndexFor,
   lessonStates,
   nextModeFor,
   nextTask,
@@ -144,5 +145,16 @@ describe("path", () => {
     // 100 bpm in 4/4: a bar lasts 2.4 s.
     expect(readyForTimed(2400, 100, 4)).toBe(true);
     expect(readyForTimed(2500, 100, 4)).toBe(false);
+  });
+});
+
+describe("where a published song lands", () => {
+  it("is the first lesson by which all its chords are taught", () => {
+    expect(lessonIndexFor(["Em", "Am"])).toBe(1);
+    expect(lessonIndexFor(["G", "D", "Em"])).toBe(2);
+    expect(lessonIndexFor(["C", "G"])).toBe(3);
+    expect(lessonIndexFor(["A", "D"])).toBe(5);
+    expect(lessonIndexFor(["Em", "Am", "C", "G", "D", "Dm", "E", "A"])).toBe(5);
+    expect(lessonIndexFor([])).toBe(0);
   });
 });

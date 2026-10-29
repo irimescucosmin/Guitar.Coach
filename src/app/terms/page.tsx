@@ -37,7 +37,7 @@ export default async function TermsPage() {
           )}
         </section>
       ))}
-      <Link href="/community" className={`${button.outline} h-12 self-start`}>{t("back")}</Link>
+      <Link href="/songs" className={`${button.outline} h-12 self-start`}>{t("back")}</Link>
     </main>
   );
 }

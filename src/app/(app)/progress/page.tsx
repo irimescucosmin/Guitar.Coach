@@ -3,7 +3,8 @@ import { ProgressView } from "@/components/progress/progress-view";
 import type { RecordingItem } from "@/components/progress/recordings";
 import { db } from "@/db/client";
 import { coachEnabled } from "@/lib/coach/model";
-import { findCommunitySong } from "@/lib/community/repository";
+import { findCommunitySong, listCommunitySongs } from "@/lib/community/repository";
+import { authorScore } from "@/lib/community/points";
 import { isCommunityId } from "@/lib/community/song";
 import { requireUser } from "@/lib/auth";
 import { findSong } from "@/lib/music/songs";
@@ -28,6 +29,6 @@ async function recordingsWithTitles(userId: string): Promise<RecordingItem[]> {
 
 export default async function ProgressPage() {
   const me = await requireUser();
-  const [history, recordings] = await Promise.all([pageHistory(), recordingsWithTitles(me.id)]);
-  return <ProgressView history={history} coach={coachEnabled()} recordings={recordings} />;
+  const [history, recordings, community] = await Promise.all([pageHistory(), recordingsWithTitles(me.id), listCommunitySongs(db, me.id)]);
+  return <ProgressView history={history} coach={coachEnabled()} recordings={recordings} score={authorScore(community, me.id)} />;
 }

@@ -9,7 +9,8 @@ import { ChordChip } from "@/components/ui/chord-chip";
 import { IconCheck, IconPlay, IconPrint } from "@/components/ui/icons";
 import { button, playHref, taskHref } from "@/components/ui/links";
 import { CHORD_IDS, type ChordId } from "@/lib/music/chords";
-import { LESSONS, PASS_SCORE, lessonStates, nextTask, type Lesson, type Task } from "@/lib/music/path";
+import { LESSONS, PASS_SCORE, lessonIndexFor, lessonStates, nextTask, type Lesson, type Task } from "@/lib/music/path";
+import type { CommunitySong } from "@/lib/community/song";
 import { patternSymbols } from "@/lib/music/patterns";
 import { needsRecheck } from "@/lib/music/profile";
 import { FirstRun, TodayStrip } from "@/components/today/today-view";
@@ -34,10 +35,12 @@ function bestChangeTest(): number | null {
 /** Low E to high E, as they are named in lesson 0. */
 const OPEN_STRING_PITCHES = [4, 9, 2, 7, 11, 4];
 
-export function PathView() {
+/** @param community songs players published; each lands in the lesson its chords fit, next to the catalogue's */
+export function PathView({ community = [] }: { community?: CommunitySong[] }) {
   const t = useTranslations("path");
   const tc = useTranslations("common");
   const tp = useTranslations("play");
+  const tcm = useTranslations("community");
   const { progress } = useProgress();
   const { settings } = useSettings();
   const [changes, setChanges] = useState<number | null>(null);
@@ -50,6 +53,8 @@ export function PathView() {
   const states = lessonStates(progress);
   const currentIndex = task ? LESSONS.findIndex((l) => l.id === task.lesson) : LESSONS.length - 1;
   const current = states[currentIndex]!;
+  // Songs players published whose chords are all taught by this lesson, and not before.
+  const lessonCommunity = community.filter((song) => song.status === "published" && lessonIndexFor(chordsOf(song)) === currentIndex);
   const score = Math.round(PASS_SCORE * 100);
   const learnedCount = CHORD_IDS.filter((c) => progress.learned[c]).length;
   const bestTimed = Object.values(progress.best).reduce((m, b) => Math.max(m, b?.timed ?? 0), 0);
@@ -193,7 +198,7 @@ export function PathView() {
         </ol>
       </section>
 
-      <div className={`grid grid-cols-1 gap-5 ${current.lesson.songs.length > 0 ? "lg:grid-cols-2" : ""}`}>
+      <div className={`grid grid-cols-1 gap-5 ${current.lesson.songs.length > 0 || lessonCommunity.length > 0 ? "lg:grid-cols-2" : ""}`}>
         <section className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-6">
           <h2 className="m-0 text-xl font-extrabold">{t("lessonLeft", { n: currentIndex })}</h2>
           <ol className="m-0 flex list-none flex-col gap-1 p-0">
@@ -217,21 +222,21 @@ export function PathView() {
           <p className="m-0 rounded-[12px] bg-subtle px-4 py-3.5 text-sm leading-relaxed text-ink-2">{t(`lessonTip.${current.lesson.id}`)}</p>
         </section>
 
-        {current.lesson.songs.length > 0 && (
+        {(current.lesson.songs.length > 0 || lessonCommunity.length > 0) && (
           <section className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-6">
             <h2 className="m-0 text-xl font-extrabold">{t("songsWith", { chords: current.lesson.newChords.join(t("and")) })}</h2>
             <ul className="m-0 flex list-none flex-col p-0">
-              {current.lesson.songs.slice(0, 5).map((id) => {
-                const song = findSong(id)!;
+              {[...current.lesson.songs.slice(0, 5).map((id) => findSong(id)!), ...lessonCommunity.slice(0, 5)].map((song) => {
+                const by = "authorName" in song ? (song as CommunitySong) : null;
                 return (
-                  <li key={id} className="flex min-h-14 items-center gap-3 border-b border-line last:border-b-0">
+                  <li key={song.id} className="flex min-h-14 items-center gap-3 border-b border-line last:border-b-0">
                     <div className="flex min-w-0 flex-1 flex-col">
                       <span className="font-bold">{song.title}</span>
                       <span className="text-[13px] text-muted">
-                        {tp(`origin.${song.origin}`)} · <span className="font-mono">{patternSymbols(song.pattern, song.beatsPerBar).join(" ")}</span>
+                        {by ? tcm("byLine", { origin: by.source, author: by.authorName }) : tp(`origin.${song.origin}`)} · <span className="font-mono">{patternSymbols(song.pattern, song.beatsPerBar).join(" ")}</span>
                       </span>
                     </div>
-                    <Link href={playHref(id, "listen")} className={`${button.outline} h-10 px-3.5 text-sm`}>{tp("mode.listen")}</Link>
+                    <Link href={playHref(song.id, "listen")} className={`${button.outline} h-10 px-3.5 text-sm`}>{tp("mode.listen")}</Link>
                   </li>
                 );
               })}
