@@ -30,8 +30,8 @@ export function NoteDrill() {
   const { record } = useProgress();
   const [index, setIndex] = useState(-1);
   const [verdict, setVerdict] = useState<{ v: NoteVerdict; heard: number } | null>(null);
-  const [result, setResult] = useState<{ averageMs: number; isRecord: boolean } | null>(null);
-  const run = useRef({ index: -1, startedAt: 0, durations: [] as number[], last: -1, stable: 0, ignoreUntil: 0 });
+  const [result, setResult] = useState<{ averageMs: number; isRecord: boolean; skipped: number } | null>(null);
+  const run = useRef({ index: -1, startedAt: 0, durations: [] as number[], skipped: 0, last: -1, stable: 0, ignoreUntil: 0 });
   const recordRef = useRef(record);
   useEffect(() => {
     recordRef.current = record;
@@ -65,20 +65,27 @@ export function NoteDrill() {
       r.ignoreUntil = now + 500;
       r.index += 1;
       setIndex(r.index);
-      if (r.index >= NOTE_DRILL.length) {
-        const averageMs = r.durations.reduce((a, b) => a + b, 0) / r.durations.length;
-        const isRecord = recordRef.current({ songId: NOTE_DRILL_ID, mode: "step", value: Math.round(averageMs) });
-        setResult({ averageMs, isRecord });
-      }
+      if (r.index >= NOTE_DRILL.length) finishRef.current(r);
     };
     id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);
   }, [index, mic]);
 
+  // Only a run with every note heard counts: a skipped note was not found.
+  const finishRun = (r: typeof run.current) => {
+    const averageMs = r.durations.length > 0 ? r.durations.reduce((a, b) => a + b, 0) / r.durations.length : 0;
+    const isRecord = r.skipped === 0 ? recordRef.current({ songId: NOTE_DRILL_ID, mode: "step", value: Math.round(averageMs) }) : false;
+    setResult({ averageMs, isRecord, skipped: r.skipped });
+  };
+  const finishRef = useRef(finishRun);
+  useEffect(() => {
+    finishRef.current = finishRun;
+  });
+
   const start = async () => {
     engine.audio();
     await engine.startMic();
-    run.current = { index: 0, startedAt: performance.now(), durations: [], last: -1, stable: 0, ignoreUntil: performance.now() + 300 };
+    run.current = { index: 0, startedAt: performance.now(), durations: [], skipped: 0, last: -1, stable: 0, ignoreUntil: performance.now() + 300 };
     setResult(null);
     setVerdict(null);
     setIndex(0);
@@ -87,9 +94,11 @@ export function NoteDrill() {
   const skip = () => {
     const r = run.current;
     r.index += 1;
+    r.skipped += 1;
     r.startedAt = performance.now();
     setVerdict(null);
     setIndex(r.index);
+    if (r.index >= NOTE_DRILL.length) finishRef.current(r);
   };
 
   const target = index >= 0 ? NOTE_DRILL[index] : undefined;
@@ -135,7 +144,7 @@ export function NoteDrill() {
       {result && (
         <p role="status" className="m-0 flex items-center gap-2 rounded-[14px] bg-navy-2 px-4 py-3.5 text-[15px]">
           <IconCheck />
-          {t("done", { seconds: (result.averageMs / 1000).toFixed(1) })}
+          {result.skipped > 0 ? t("skippedSome", { count: result.skipped }) : t("done", { seconds: (result.averageMs / 1000).toFixed(1) })}
           {result.isRecord && <span className="ml-auto rounded-[6px] bg-good px-2 py-0.5 text-sm font-bold">{t("record")}</span>}
         </p>
       )}

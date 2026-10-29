@@ -172,10 +172,7 @@ export function LearnChord({ chord }: { chord: ChordId }) {
                 <button type="button" onClick={() => void engine.startMic()} className={`${button.primary} h-12`}>
                   {tc("mic.off")}
                 </button>
-                <button type="button" onClick={() => learn(chord)} className={`${button.outline} h-12`}>
-                  {t("markLearned")}
-                </button>
-                <span className="text-sm text-muted">{t("markLearnedHelp")}</span>
+                <span className="text-sm text-muted">{t("micNeeded")}</span>
               </div>
             )}
             {done && (

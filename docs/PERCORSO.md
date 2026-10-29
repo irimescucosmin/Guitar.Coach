@@ -23,8 +23,8 @@ Ogni nuovo accordo condivide qualcosa con uno già imparato. Un test in `music.t
 
 Al primo avvio il percorso propone `/start`: nove domande (esperienza, corde a vuoto, accordi conosciuti, tablature, mano, chitarra, tempo al giorno, stile, obiettivo) e una prova al microfono sugli accordi dichiarati. Le risposte stanno in `Progress.profile`.
 
-- Un accordo dichiarato diventa imparato solo se il microfono lo sente pulito. Chi salta la prova si fida della propria dichiarazione (`placedChords`).
-- Chi sa le corde a vuoto salta la lezione 0.
+- Un accordo dichiarato diventa imparato solo se il microfono lo sente pulito (`placedChords`). Chi salta la prova non salta niente.
+- Chi dice di sapere le corde a vuoto le suona una per una: se il microfono le sente tutte e sei (`openStringsHeard`), salta la lezione 0.
 - Chi ha già suonato (non *Mai*) e ha tutti gli accordi di una lezione ne salta anche gli esercizi *Passo passo* e *A tempo* (`skipsDrillsFor`). Un principiante assoluto li fa sempre: i cambi si costruiscono lì.
 - Dopo 14 giorni il percorso propone di rispondere di nuovo (`needsRecheck`).
 
@@ -37,20 +37,25 @@ Il tempo al giorno decide la routine, lo stile quali brani arrivano prima.
 | Minuti | Accordatura | Riscaldamento | Prossimo passo | Cambi | Brano |
 |---|---|---|---|---|---|
 | 10 | 1 | 0 | 5 | 4 | 0 |
-| 20 | 1 | 3 | 7 | 4 | 5 |
-| 30 | 1 | 4 | 10 | 6 | 9 |
+| 20 | 1 | 2 | 5 | 4 | 5 |
+| 30 | 1 | 4 | 9 | 5 | 8 |
+
+Con 20 e 30 minuti, 3 minuti di orecchio dopo il riscaldamento, al primo livello non ancora superato.
 
 - **Prossimo passo**: lo stesso compito del percorso (`nextTask`).
 - **Cambi**: una coppia di accordi imparati che i brani usano davvero (`practisedPairs`). Prima le coppie mai provate, poi quella col record più basso nel test dei cambi (`weakPair`).
 - **Brano**: uno al giorno tra quelli con tutti gli accordi imparati, prima i ritmi dello stile scelto (`songOfTheDay`).
 - Un blocco senza niente da fare passa i minuti agli altri.
-- Fare la cosa segna l'attività (`blocksDoneBy`), ovunque nell'app; accordatura e riscaldamento si segnano a mano. I giorni di fila (`streak`) contano fino a ieri finché oggi non è finito.
+- Niente si spunta a mano. Le attività del percorso le segna il server quando salva il risultato che le dimostra (`recordPractice` in `lib/progress/practice.ts`, con `blocksDoneBy`), calcolando la routine com'era prima di quel risultato.
+- Accordatura e riscaldamento li verifica il microfono nel browser (`lib/music/checks.ts`): le sei corde ognuna intonata entro 5 cent per 5 letture di fila; almeno 18 delle 24 note del ragno durante il timer. Il browser manda solo la prova (`reportProof`), il server segna il blocco se oggi c'è.
+- L'esercizio delle note conta solo senza note saltate; *Passo passo* solo senza cambi saltati.
+- I giorni di fila (`streak`) contano fino a ieri finché oggi non è finito.
 
 ## 4. I compiti di una lezione
 
 Sempre questi, in quest'ordine, perché ognuno prepara il successivo:
 
-1. **Impara** ogni accordo nuovo: tre pennate pulite sentite dal microfono (o *Segna come imparato* senza microfono).
+1. **Impara** ogni accordo nuovo: tre pennate pulite sentite dal microfono. Senza microfono non si impara: non c'è un bottone per dichiararlo.
 2. **Passo passo** sull'esercizio: il brano aspetta l'accordo giusto. Fatto alla prima prova completa.
 3. **A tempo** sull'esercizio: fatto quando almeno il 70% delle battute ha l'accordo giusto (`PASS_SCORE`).
 

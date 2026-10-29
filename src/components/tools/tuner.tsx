@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { pitchFromSamples, readTuning, midiFromFrequency } from "@/lib/audio/detect";
 import { engine } from "@/lib/audio/engine";
-
-const IN_TUNE_CENTS = 5;
+import { useProgress } from "@/components/providers";
+import { IconCheck } from "@/components/ui/icons";
+import { EMPTY_TUNE, IN_TUNE_CENTS, allInTune, tuneStep } from "@/lib/music/checks";
 
 export function Tuner() {
   const t = useTranslations("tools.tuner");
   const tc = useTranslations("common");
   const [on, setOn] = useState(false);
   const [reading, setReading] = useState<{ string: number; cents: number; note: number } | null>(null);
+  // Each string proven in tune this session; all six tick today's tuning.
+  const [tune, setTune] = useState(EMPTY_TUNE);
+  const { prove } = useProgress();
+  const proved = useRef(false);
 
   useEffect(() => {
     if (!on) return;
@@ -27,10 +32,20 @@ export function Tuner() {
       if (hz === null) return;
       const r = readTuning(hz);
       setReading({ ...r, note: ((Math.round(midiFromFrequency(hz)) % 12) + 12) % 12 });
+      // Only readings close to a string count: a note two frets away is not that string tuned.
+      if (Math.abs(r.cents) < 100) setTune((state) => tuneStep(state, r));
     };
     id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);
   }, [on]);
+
+  const tuned = allInTune(tune);
+  useEffect(() => {
+    if (!tuned || proved.current) return;
+    proved.current = true;
+    engine.synth?.chime();
+    prove("tuned");
+  }, [tuned, prove]);
 
   const start = async () => setOn(await engine.startMic());
   const string = (n: number) => tc(`string.s${n as 0}`);
@@ -66,13 +81,20 @@ export function Tuner() {
         <div className="absolute inset-y-[-6px] w-1 -translate-x-1/2 rounded bg-ink transition-[left] duration-75" style={{ left: `${needle}%` }} />
       </div>
       <p className="text-sm text-muted" aria-live="polite">{hint}</p>
-      <div className="flex flex-wrap gap-1.5">
+      <ul aria-label={t("strings")} className="m-0 flex list-none flex-wrap gap-1.5 p-0">
         {[0, 1, 2, 3, 4, 5].map((s) => (
-          <span key={s} className={`rounded-[var(--radius-field)] border px-2 py-1 text-xs ${reading?.string === s ? "border-brass bg-brass font-bold text-on-brass" : "border-line text-muted"}`}>
+          <li
+            key={s}
+            className={`flex items-center gap-1 rounded-[var(--radius-field)] border px-2 py-1 text-xs ${
+              tune.done[s] ? "border-good bg-good-soft font-bold text-good-ink" : reading?.string === s ? "border-brass bg-brass font-bold text-on-brass" : "border-line text-muted"
+            }`}
+          >
+            {tune.done[s] && <IconCheck size={12} />}
             {string(s)}
-          </span>
+          </li>
         ))}
-      </div>
+      </ul>
+      <p className={`m-0 text-sm ${tuned ? "font-bold text-good" : "text-muted"}`}>{tuned ? t("allTuned") : t("proof")}</p>
     </section>
   );
 }

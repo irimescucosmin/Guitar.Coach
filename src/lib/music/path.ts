@@ -68,14 +68,14 @@ export function coreTasks(lesson: Lesson): Task[] {
 
 /**
  * A task is done when the player did it, or when the questionnaire placed them
- * past it: lesson 0 for whoever can name the open strings, a lesson's drills for
+ * past it: lesson 0 for whoever played the six open strings, a lesson's drills for
  * whoever has played before and already has its chords.
  */
 export function isDone(task: Task, progress: Progress): boolean {
   const profile = progress.profile;
   switch (task.kind) {
     case "notes":
-      return progress.best[NOTE_DRILL_ID]?.step !== undefined || profile?.knowsOpenStrings === true;
+      return progress.best[NOTE_DRILL_ID]?.step !== undefined || profile?.openStringsHeard === true;
     case "learn":
       return progress.learned[task.chord] === true;
     case "step":

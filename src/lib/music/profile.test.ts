@@ -5,6 +5,7 @@ import { needsRecheck, placedChords, retake, skipsDrillsFor, type Profile } from
 const base: Profile = {
   experience: "never",
   knowsOpenStrings: false,
+  openStringsHeard: false,
   knownChords: [],
   verifiedChords: [],
   checked: true,
@@ -29,9 +30,9 @@ describe("profile and placement", () => {
     expect(placedChords(p)).toEqual(["Em", "G"]);
   });
 
-  it("trusts the declaration when the check was skipped", () => {
+  it("places nothing when the check was skipped: a declaration is not proof", () => {
     const p = { ...base, checked: false, knownChords: ["Am", "Em"] as Profile["knownChords"] };
-    expect(placedChords(p)).toEqual(["Em", "Am"]);
+    expect(placedChords(p)).toEqual([]);
   });
 
   it("never places a chord that was heard but not declared", () => {
@@ -43,12 +44,13 @@ describe("profile and placement", () => {
     expect(nextTask(placed(base))).toEqual({ kind: "notes", lesson: "notes" });
   });
 
-  it("skips lesson 0 for whoever can name the open strings", () => {
-    expect(nextTask(placed({ ...base, knowsOpenStrings: true }))).toEqual({ kind: "learn", lesson: "emAm", chord: "Em" });
+  it("skips lesson 0 only when the microphone heard the open strings", () => {
+    expect(nextTask(placed({ ...base, knowsOpenStrings: true }))).toEqual({ kind: "notes", lesson: "notes" });
+    expect(nextTask(placed({ ...base, knowsOpenStrings: true, openStringsHeard: true }))).toEqual({ kind: "learn", lesson: "emAm", chord: "Em" });
   });
 
   it("still asks a beginner who knows Em and Am for the drills", () => {
-    const p = { ...base, knowsOpenStrings: true, knownChords: ["Em", "Am"] as Profile["knownChords"], verifiedChords: ["Em", "Am"] as Profile["verifiedChords"] };
+    const p = { ...base, knowsOpenStrings: true, openStringsHeard: true, knownChords: ["Em", "Am"] as Profile["knownChords"], verifiedChords: ["Em", "Am"] as Profile["verifiedChords"] };
     expect(skipsDrillsFor(p, ["Em", "Am"])).toBe(false);
     expect(nextTask(placed(p))).toEqual({ kind: "step", lesson: "emAm", song: "drill-em-am" });
   });
@@ -58,6 +60,7 @@ describe("profile and placement", () => {
       ...base,
       experience: "months",
       knowsOpenStrings: true,
+      openStringsHeard: true,
       knownChords: ["Em", "Am", "G", "D", "C"],
       verifiedChords: ["Em", "Am", "G", "D"],
     };
@@ -75,7 +78,7 @@ describe("profile and placement", () => {
     const first: Profile = { ...base, experience: "months", knownChords: ["G", "D"], verifiedChords: ["G", "D"] };
     const again: Profile = { ...base, experience: "months", knownChords: ["G", "C"], verifiedChords: ["C"] };
     expect(placedChords(retake(first, again))).toEqual(["C", "G", "D"]);
-    expect(placedChords(retake(first, { ...again, checked: false }))).toEqual(["C", "G", "D"]);
+    expect(placedChords(retake(first, { ...again, checked: false, verifiedChords: [] }))).toEqual(["G", "D"]);
     expect(retake(undefined, again)).toEqual(again);
   });
 });

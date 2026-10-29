@@ -24,9 +24,10 @@ import {
   type Profile,
 } from "@/lib/music/profile";
 import { ChordCheck } from "./chord-check";
+import { StringsCheck } from "./strings-check";
 
 type Draft = Partial<Omit<Profile, "verifiedChords" | "checked" | "takenAt">> & { leftHanded?: boolean };
-type Step = "experience" | "openStrings" | "chords" | "tab" | "hand" | "guitar" | "minutes" | "style" | "goal" | "check" | "summary";
+type Step = "experience" | "openStrings" | "chords" | "tab" | "hand" | "guitar" | "minutes" | "style" | "goal" | "strings" | "check" | "summary";
 
 /** Path order: the chords as the lessons teach them, so the grid reads like the path. */
 const PATH_CHORDS = LESSONS.flatMap((l) => l.newChords);
@@ -49,19 +50,22 @@ export function Questionnaire() {
     leftHanded: progress.profile ? settings.leftHanded : undefined,
   }));
   const [result, setResult] = useState<{ verified: ChordId[]; checked: boolean } | null>(null);
+  const [stringsHeard, setStringsHeard] = useState<boolean | null>(null);
   const [at, setAt] = useState(0);
 
   const steps: Step[] = [
     "experience", "openStrings", "chords", "tab", "hand", "guitar", "minutes", "style", "goal",
+    ...(draft.knowsOpenStrings ? (["strings"] as const) : []),
     ...((draft.knownChords?.length ?? 0) > 0 ? (["check"] as const) : []),
     "summary",
   ];
   const step = steps[Math.min(at, steps.length - 1)]!;
-  const questions = steps.filter((s) => s !== "summary" && s !== "check").length;
+  const questions = steps.filter((s) => s !== "summary" && s !== "check" && s !== "strings").length;
   const set = (patch: Draft) => setDraft((d) => ({ ...d, ...patch }));
   const next = () => setAt((i) => Math.min(i + 1, steps.length - 1));
   const back = () => {
     setResult(null);
+    setStringsHeard(null);
     setAt((i) => Math.max(i - 1, 0));
   };
 
@@ -70,6 +74,7 @@ export function Questionnaire() {
       ? {
           experience: draft.experience,
           knowsOpenStrings: draft.knowsOpenStrings,
+          openStringsHeard: stringsHeard === true,
           knownChords: draft.knownChords ?? [],
           verifiedChords: result?.verified ?? [],
           checked: result?.checked ?? true,
@@ -102,6 +107,7 @@ export function Questionnaire() {
     minutes: !!draft.minutes,
     style: !!draft.style,
     goal: !!draft.goal,
+    strings: stringsHeard !== null,
     check: result !== null,
     summary: true,
   };
@@ -158,6 +164,16 @@ export function Questionnaire() {
     case "goal":
       body = <Choice name="goal" options={GOALS} value={draft.goal} onPick={(v) => set({ goal: v })} label={(v) => t(`goal.${v}.title`)} detail={(v) => t(`goal.${v}.body`)} />;
       break;
+    case "strings":
+      body = (
+        <StringsCheck
+          onDone={(heard) => {
+            setStringsHeard(heard);
+            next();
+          }}
+        />
+      );
+      break;
     case "check":
       body = (
         <ChordCheck
@@ -176,8 +192,9 @@ export function Questionnaire() {
   }
 
   const qIndex = steps.indexOf(step) + 1;
-  const title = step === "summary" ? t("summary.title") : step === "check" ? t("check.title") : t(`${step}.question`);
-  const help = step === "summary" ? null : step === "check" ? t("check.intro") : t(`${step}.help`);
+  const title =
+    step === "summary" ? t("summary.title") : step === "check" ? t("check.title") : step === "strings" ? t("strings.title") : t(`${step}.question`);
+  const help = step === "summary" ? null : step === "check" ? t("check.intro") : step === "strings" ? t("strings.intro") : t(`${step}.help`);
 
   return (
     <div className="flex min-h-dvh flex-col bg-page">
@@ -196,7 +213,7 @@ export function Questionnaire() {
         <div className="flex w-full max-w-[760px] flex-col gap-6">
           <div className="flex flex-col gap-2">
             <span className="eyebrow text-brass-ink">
-              {step === "summary" ? t("summary.eyebrow") : step === "check" ? t("check.eyebrow") : t("progress", { n: qIndex, total: questions })}
+              {step === "summary" ? t("summary.eyebrow") : step === "check" ? t("check.eyebrow") : step === "strings" ? t("strings.eyebrow") : t("progress", { n: qIndex, total: questions })}
             </span>
             <h1 className="display m-0 text-[34px] font-extrabold leading-tight">{title}</h1>
             {help && <p className="m-0 max-w-[60ch] text-base leading-relaxed text-ink-2">{help}</p>}
@@ -204,7 +221,7 @@ export function Questionnaire() {
 
           {body}
 
-          {step !== "check" && (
+          {step !== "check" && step !== "strings" && (
             <div className="flex flex-wrap items-center gap-3 pt-2">
               {at > 0 && (
                 <button type="button" onClick={back} className={`${button.outline} h-12`}>
@@ -290,7 +307,7 @@ function Summary({ profile, progress }: { profile: Profile; progress: Progress }
             {t("missed")} {missed.map(chip)}
           </p>
         )}
-        {!profile.checked && profile.knownChords.length > 0 && <p className="m-0 text-sm text-muted">{t("trusted")}</p>}
+        {!profile.checked && profile.knownChords.length > 0 && <p className="m-0 text-sm text-muted">{t("skipped")}</p>}
       </section>
 
       <section className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-6">

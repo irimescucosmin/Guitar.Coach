@@ -6,10 +6,12 @@ import { user } from "@/db/schema";
 import type { Profile } from "@/lib/music/profile";
 import { importGuestProgress, loadProgress, loadRoutine, markLearned, markRoutine, saveChangeTest, saveProfile, saveRun, type Database } from "./repository";
 import { guestProgress, profileInput, runInput } from "./validation";
+import { recordPractice } from "./practice";
 
 const answers: Profile = {
   experience: "months",
   knowsOpenStrings: true,
+  openStringsHeard: true,
   knownChords: ["G", "D", "C"],
   verifiedChords: ["G", "D"],
   checked: true,
@@ -93,6 +95,35 @@ describe.skipIf(!url)("progress in Postgres", () => {
     await saveProfile(db, userId, { ...answers, minutes: 30 });
     await importGuestProgress(db, userId, { learned: {}, best: {}, profile: { ...answers, minutes: 10 } });
     expect((await loadProgress(db, userId)).profile?.minutes).toBe(30);
+  });
+});
+
+describe.skipIf(!url)("routine ticked by the server", () => {
+  let sql: ReturnType<typeof postgres>;
+  let db: Database;
+  const userId = `test-${crypto.randomUUID()}`;
+
+  beforeAll(async () => {
+    sql = postgres(url!, { max: 1 });
+    db = drizzle(sql, { schema });
+    await db.insert(user).values({ id: userId, name: "Test", email: `${userId}@example.test` });
+  });
+
+  afterAll(async () => {
+    await sql`delete from "user" where id = ${userId}`;
+    await sql.end();
+  });
+
+  it("ticks today's next step when the result that proves it is saved, and nothing for an unrelated one", async () => {
+    // A new player's next step is lesson 0: the note drill.
+    const other = await recordPractice(db, userId, "2026-10-29", { kind: "run", song: "drill-g-d", mode: "step" }, () =>
+      saveRun(db, userId, { songId: "drill-g-d", mode: "step", value: 3000 }),
+    );
+    expect(other.today?.done).toEqual([]);
+    const notes = await recordPractice(db, userId, "2026-10-29", { kind: "run", song: "notes", mode: "notes" }, () =>
+      saveRun(db, userId, { songId: "notes", mode: "step", value: 2500 }),
+    );
+    expect(notes.today).toEqual({ done: ["new"], streak: 1 });
   });
 });
 

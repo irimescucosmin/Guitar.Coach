@@ -19,6 +19,15 @@ export function IconToday({ size = 20 }: { size?: number }) {
   );
 }
 
+export function IconEar({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M7 9a5 5 0 0 1 10 0c0 3.5-3.5 4.5-3.5 8a3 3 0 0 1-5.5 1.5" />
+      <path d="M10 9.5a2 2 0 0 1 4 0c0 1.2-1 1.6-1.5 2.5" />
+    </svg>
+  );
+}
+
 export function IconPath({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base}>

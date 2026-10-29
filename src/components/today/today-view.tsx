@@ -7,7 +7,15 @@ import { TransitionHint } from "@/components/play/transition-hint";
 import { useProgress } from "@/components/providers";
 import { IconCheck, IconPlay } from "@/components/ui/icons";
 import { TODAY_HREF, button, changesHref, playHref, taskHref } from "@/components/ui/links";
-import { engine } from "@/lib/audio/engine";
+import { useMicState } from "@/components/chrome/mic-button";
+import { midiFromFrequency, pitchFromSamples } from "@/lib/audio/detect";
+import { engine, SILENCE } from "@/lib/audio/engine";
+import { SPIDER_NEEDED, SPIDER_NOTES, isSpiderNote } from "@/lib/music/checks";
+
+/** Up to G#4 on the high E string, with room. */
+const SPIDER_MAX_HZ = 1000;
+/** Same note this many frames before it counts. */
+const STABLE_FRAMES = 4;
 import { PASS_SCORE, type Task } from "@/lib/music/path";
 import { dailyRoutine, localDate, type Block } from "@/lib/music/routine";
 import { findSong } from "@/lib/music/songs";
@@ -16,7 +24,7 @@ import { findSong } from "@/lib/music/songs";
 export function TodayView() {
   const t = useTranslations("today");
   const locale = useLocale();
-  const { progress, today, markDone } = useProgress();
+  const { progress, today } = useProgress();
   // The date is the browser's: read after mount, the server's clock may be on another day.
   const [date, setDate] = useState<string | null>(null);
   useEffect(() => setDate(localDate(new Date())), []);
@@ -58,7 +66,7 @@ export function TodayView() {
 
       <ol className="m-0 flex list-none flex-col gap-4 p-0">
         {routine.map((block, i) => (
-          <BlockCard key={block.id} n={i + 1} block={block} done={done.includes(block.id)} onDone={() => markDone([block.id])} />
+          <BlockCard key={block.id} n={i + 1} block={block} done={done.includes(block.id)} />
         ))}
       </ol>
       <p className="m-0 text-sm text-muted">{t("auto")}</p>
@@ -108,10 +116,11 @@ function Stat({ value, label, brass = false }: { value: string; label: string; b
   );
 }
 
-function BlockCard({ n, block, done, onDone }: { n: number; block: Block; done: boolean; onDone: () => void }) {
+function BlockCard({ n, block, done }: { n: number; block: Block; done: boolean }) {
   const t = useTranslations("today");
   const tp = useTranslations("path");
   const tpl = useTranslations("play");
+  const te = useTranslations("ear");
   const score = Math.round(PASS_SCORE * 100);
   const songTitle = (id: string) => findSong(id)?.title ?? id;
   const taskTitle = (task: Task) => {
@@ -151,6 +160,11 @@ function BlockCard({ n, block, done, onDone }: { n: number; block: Block; done: 
       );
       timer = true;
       break;
+    case "ear":
+      title = t("ear.title", { level: block.level });
+      body = t("ear.body", { what: te(`levels.l${block.level}.title`) });
+      action = { href: `/ear?level=${block.level}`, label: t("ear.go") };
+      break;
     case "new":
       title = taskTitle(block.task);
       body = taskBody(block.task);
@@ -186,7 +200,8 @@ function BlockCard({ n, block, done, onDone }: { n: number; block: Block; done: 
           <span className="eyebrow text-brass-ink">{t(`kind.${block.id}`)} · {t("minutes", { count: block.minutes })}</span>
         </div>
         <p className="m-0 flex flex-col gap-1 text-[15px] leading-relaxed text-ink-2">{body}</p>
-        {timer && !done && <Countdown minutes={block.minutes} onEnd={onDone} />}
+        {timer && !done && <Warmup minutes={block.minutes} />}
+        {!done && <span className="text-sm text-muted">{t(`proof.${block.id}`)}</span>}
       </div>
       <div className="flex flex-wrap items-center gap-2.5">
         {action && !done && (
@@ -195,66 +210,103 @@ function BlockCard({ n, block, done, onDone }: { n: number; block: Block; done: 
             {action.label}
           </Link>
         )}
-        {!done && (
-          <button type="button" onClick={onDone} className={`${button.outline} h-12`}>
-            {t("markDone")}
-          </button>
-        )}
         {done && <span className="flex items-center gap-2 text-sm font-bold text-good"><IconCheck size={16} />{t("isDone")}</span>}
       </div>
     </li>
   );
 }
 
-/** A plain countdown for the blocks the microphone cannot judge; a chime at the end. */
-function Countdown({ minutes, onEnd }: { minutes: number; onEnd: () => void }) {
-  const t = useTranslations("today");
+/**
+ * The warm-up, timed and heard: the microphone collects the spider's notes
+ * while the clock runs. At the end, with most of them heard, the server ticks
+ * the block; with too few, it says so.
+ */
+function Warmup({ minutes }: { minutes: number }) {
+  const t = useTranslations("today.warmup");
+  const { prove } = useProgress();
+  const mic = useMicState();
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
-  const onEndRef = useRef(onEnd);
-  useEffect(() => {
-    onEndRef.current = onEnd;
-  });
+  const [heard, setHeard] = useState<number[]>([]);
+  const [outcome, setOutcome] = useState<"ok" | "few" | null>(null);
+  const heardRef = useRef<number[]>([]);
+  const listen = useRef({ last: -1, stable: 0 });
 
+  // Listening: a spider note held a few frames counts once.
+  useEffect(() => {
+    if (endsAt === null || mic !== "on") return;
+    let id = 0;
+    const r = listen.current;
+    const tick = () => {
+      id = requestAnimationFrame(tick);
+      const frame = engine.read();
+      if (!frame || !engine.ctx || frame.level < SILENCE) {
+        r.stable = 0;
+        return;
+      }
+      const hz = pitchFromSamples(frame.samples, engine.ctx.sampleRate, SPIDER_MAX_HZ);
+      if (hz === null) return;
+      const midi = Math.round(midiFromFrequency(hz));
+      r.stable = midi === r.last ? r.stable + 1 : 1;
+      r.last = midi;
+      if (r.stable === STABLE_FRAMES && isSpiderNote(midi) && !heardRef.current.includes(midi)) {
+        heardRef.current = [...heardRef.current, midi];
+        setHeard(heardRef.current);
+      }
+    };
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, [endsAt, mic]);
+
+  // The clock: at the end, judge what was heard.
   useEffect(() => {
     if (endsAt === null) return;
     const id = window.setInterval(() => {
       const current = Date.now();
       setNow(current);
-      if (current >= endsAt) {
-        window.clearInterval(id);
-        setEndsAt(null);
-        engine.synth?.chime();
-        onEndRef.current();
-      }
+      if (current < endsAt) return;
+      window.clearInterval(id);
+      setEndsAt(null);
+      engine.synth?.chime();
+      if (heardRef.current.length >= SPIDER_NEEDED) {
+        setOutcome("ok");
+        prove("warmup");
+      } else setOutcome("few");
     }, 250);
     return () => window.clearInterval(id);
-  }, [endsAt]);
+  }, [endsAt, prove]);
+
+  const start = async () => {
+    if (!(await engine.startMic())) return;
+    heardRef.current = [];
+    setHeard([]);
+    setOutcome(null);
+    const begin = Date.now();
+    setNow(begin);
+    setEndsAt(begin + minutes * 60_000);
+  };
 
   if (endsAt === null) {
     return (
-      <button
-        type="button"
-        onClick={() => {
-          engine.audio(); // so the chime can sound at the end
-          const start = Date.now();
-          setNow(start);
-          setEndsAt(start + minutes * 60_000);
-        }}
-        className="mt-1 self-start text-sm font-bold text-brass-ink underline underline-offset-2"
-      >
-        {t("timer.start", { count: minutes })}
-      </button>
+      <span className="mt-1 flex flex-col gap-1.5">
+        {outcome === "few" && <span role="status" className="font-bold text-bad-ink">{t("few", { heard: heard.length, needed: SPIDER_NEEDED })}</span>}
+        {outcome === "ok" && <span role="status" className="font-bold text-good">{t("ok", { heard: heard.length })}</span>}
+        <button type="button" onClick={() => void start()} className="self-start text-sm font-bold text-brass-ink underline underline-offset-2">
+          {outcome === "few" ? t("again") : t("start", { count: minutes })}
+        </button>
+      </span>
     );
   }
   const left = Math.max(0, Math.ceil((endsAt - now) / 1000));
   return (
-    <span role="timer" className="mt-1 flex items-center gap-3 font-mono text-2xl font-semibold tabular-nums">
-      {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}
-      <button type="button" onClick={() => setEndsAt(null)} className="font-sans text-sm font-bold text-muted underline underline-offset-2">
-        {t("timer.stop")}
+    <span role="timer" className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+      <span className="font-mono text-2xl font-semibold tabular-nums">
+        {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}
+      </span>
+      <span className="text-sm font-semibold">{t("heard", { heard: heard.length, total: SPIDER_NOTES.length })}</span>
+      <button type="button" onClick={() => setEndsAt(null)} className="text-sm font-bold text-muted underline underline-offset-2">
+        {t("stop")}
       </button>
     </span>
   );
 }
-

@@ -20,6 +20,7 @@ In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`
 - **Ciò che arriva dal browser si confronta con il catalogo** (`src/lib/progress/validation.ts`), mai creduto.
 - **Colori e raggi solo dai token** in `src/app/globals.css` (`--color-ink`, `--color-chord-Em`, `--radius-field`). Il blocco `@theme` è `static`: il canvas della corsia legge i token per nome e Tailwind toglierebbe quelli non usati da una classe.
 - **Mai un brano con testo o melodia** di un'opera protetta: per quelle solo il giro di accordi, gruppo `progression`.
+- **Niente si spunta a mano.** Un progresso conta solo se il microfono l'ha sentito o se c'è un risultato salvato che lo dimostra. Le attività della routine le segna il server (`recordPractice`); dal browser arrivano solo le prove del microfono (`reportProof`). Niente bottoni "fatto".
 
 ## Dove aggiungere cosa
 

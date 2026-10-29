@@ -3,10 +3,10 @@ import { fileURLToPath } from "node:url";
 
 const fixtures = fileURLToPath(new URL("./tests/e2e/fixtures/", import.meta.url));
 
-const fakeMic = [
+const fakeMic = (wav: string) => [
   "--use-fake-ui-for-media-stream",
   "--use-fake-device-for-media-stream",
-  `--use-file-for-fake-audio-capture=${fixtures}em-am.wav`,
+  `--use-file-for-fake-audio-capture=${fixtures}${wav}`,
   "--autoplay-policy=no-user-gesture-required",
 ];
 
@@ -25,12 +25,12 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
     permissions: ["microphone"],
   },
-  // Chromium's fake microphone keeps playing from wherever earlier tests left
-  // it. The timed test scores bars against the clock, so it gets a browser of
-  // its own and runs first, before anything else has moved the recording on.
+  // The timed test scores bars against the clock. It gets a browser of its own
+  // with a microphone that only ever plays Em: the score does not depend on
+  // where the recording happens to be when the run starts.
   projects: [
-    { name: "em-am-timed", grep: /@own-browser/, use: { launchOptions: { args: fakeMic } } },
-    { name: "em-am", grepInvert: /@own-browser/, dependencies: ["em-am-timed"], use: { launchOptions: { args: fakeMic } } },
+    { name: "em-am-timed", grep: /@own-browser/, use: { launchOptions: { args: fakeMic("em-only.wav") } } },
+    { name: "em-am", grepInvert: /@own-browser/, use: { launchOptions: { args: fakeMic("em-am.wav") } } },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined

@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { CHORD_IDS, isChordId } from "@/lib/music/chords";
 import type { Progress } from "@/lib/music/path";
+import { EAR_IDS } from "@/lib/music/ear";
 import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { EXPERIENCE, GOALS, GUITARS, MINUTES, STYLES, TAB_READING, type Profile } from "@/lib/music/profile";
-import { BLOCK_IDS, PAIR_KEYS, isNearToday } from "@/lib/music/routine";
+import { PAIR_KEYS, isNearToday } from "@/lib/music/routine";
 import { SONGS } from "@/lib/music/songs";
 
 /**
@@ -11,8 +12,11 @@ import { SONGS } from "@/lib/music/songs";
  * a song id the app does not know would become a row nobody can read.
  */
 
-/** Songs, plus the exercises that record results the same way (lesson 0). */
-const PRACTICE_IDS = [...SONGS.map((s) => s.id), NOTE_DRILL_ID];
+/**
+ * Songs, plus the exercises that record results the same way: lesson 0 (step:
+ * ms per note) and the ear levels (timed: share of right answers).
+ */
+const PRACTICE_IDS = [...SONGS.map((s) => s.id), NOTE_DRILL_ID, ...EAR_IDS];
 const songId = z.enum(PRACTICE_IDS as [string, ...string[]]);
 const chordId = z.enum(CHORD_IDS as [string, ...string[]]);
 
@@ -37,6 +41,8 @@ const chordList = z
 export const profileInput = z.object({
   experience: z.enum(EXPERIENCE),
   knowsOpenStrings: z.boolean(),
+  // Answers saved before the open-string check existed: not heard.
+  openStringsHeard: z.boolean().default(false),
   knownChords: chordList,
   verifiedChords: chordList,
   checked: z.boolean(),
@@ -81,7 +87,8 @@ export type ChangeTestInput = z.infer<typeof changeTestInput>;
 /** The player's local day, close to the server's. */
 export const dayInput = z.string().refine((d) => isNearToday(d, new Date()), "not today");
 
-export const routineInput = z.object({
-  day: dayInput,
-  blocks: z.array(z.enum(BLOCK_IDS)).min(1).max(BLOCK_IDS.length),
-});
+/** What the browser can report on its own: only what its microphone proved. */
+export const proofInput = z.object({ day: dayInput, proof: z.enum(["tuned", "warmup"]) });
+
+/** Today's date travels with every result, so the server can tick the routine. */
+export const optionalDay = dayInput.nullable().catch(null);

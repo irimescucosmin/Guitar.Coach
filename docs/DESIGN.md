@@ -40,6 +40,7 @@ Due eccezioni note:
 | `/today` | Oggi: la routine del giorno, blocchi numerati con minuti e azione, giorni di fila. La pagina dopo l'accesso | `components/today/today-view.tsx` |
 | `/path` | Percorso: prossimo passo, numeri, lezioni, compiti, brani della lezione | `components/path/path-view.tsx` |
 | `/fretboard` | Lezione 0: regole, mappa delle note, esercizio col microfono, nomi | `components/fretboard/*` |
+| `/ear` | Orecchio: cinque livelli, giri di dieci domande; `?level=N` evidenzia il livello di oggi | `components/ear/ear-view.tsx` |
 | `/chords` | Gli otto accordi nell'ordine del percorso | `components/chords/chord-grid.tsx` |
 | `/chords/[chord]` | Impara un accordo: dita, tre pennate pulite, verso dove si va | `components/chords/learn-chord.tsx` |
 | `/songs` | Brani: filtri, ricerca, prossimo modo | `components/songs/songs-table.tsx` |

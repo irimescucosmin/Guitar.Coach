@@ -1,4 +1,5 @@
 import type { ChordId } from "./chords";
+import { earId, earLevelToPractise, type EarLevel } from "./ear";
 import { LESSONS, nextModeFor, nextTask, type PracticeMode, type Progress, type Task } from "./path";
 import type { DailyMinutes, Style } from "./profile";
 import { SONGS, chordsOf, type Song } from "./songs";
@@ -11,21 +12,22 @@ import { SONGS, chordsOf, type Song } from "./songs";
  * Pure: the day comes in as a date string, so the same day gives the same plan.
  */
 
-export const BLOCK_IDS = ["tune", "warmup", "new", "changes", "song"] as const;
+export const BLOCK_IDS = ["tune", "warmup", "ear", "new", "changes", "song"] as const;
 export type BlockId = (typeof BLOCK_IDS)[number];
 
 export type Block =
   | { id: "tune"; minutes: number }
   | { id: "warmup"; minutes: number }
+  | { id: "ear"; minutes: number; level: EarLevel }
   | { id: "new"; minutes: number; task: Task }
   | { id: "changes"; minutes: number; pair: [ChordId, ChordId]; best: number | null }
   | { id: "song"; minutes: number; song: string; mode: PracticeMode };
 
 /** Minutes per block for each daily length. Ten minutes keeps only the essentials. */
 export const SPLITS: Record<DailyMinutes, Record<BlockId, number>> = {
-  10: { tune: 1, warmup: 0, new: 5, changes: 4, song: 0 },
-  20: { tune: 1, warmup: 3, new: 7, changes: 4, song: 5 },
-  30: { tune: 1, warmup: 4, new: 10, changes: 6, song: 9 },
+  10: { tune: 1, warmup: 0, ear: 0, new: 5, changes: 4, song: 0 },
+  20: { tune: 1, warmup: 2, ear: 3, new: 5, changes: 4, song: 5 },
+  30: { tune: 1, warmup: 4, ear: 3, new: 9, changes: 5, song: 8 },
 };
 
 const PATH_CHORDS = LESSONS.flatMap((l) => l.newChords);
@@ -130,6 +132,7 @@ export function dailyRoutine(progress: Progress, date: string): Block[] {
 
   const blocks: Block[] = [{ id: "tune", minutes: split.tune }];
   if (split.warmup > 0) blocks.push({ id: "warmup", minutes: split.warmup });
+  if (split.ear > 0) blocks.push({ id: "ear", minutes: split.ear, level: earLevelToPractise(progress) });
   if (task && split.new > 0) blocks.push({ id: "new", minutes: split.new, task });
   if (weak && split.changes > 0) blocks.push({ id: "changes", minutes: split.changes, ...weak });
   if (song && split.song > 0) blocks.push({ id: "song", minutes: split.song, ...song });
@@ -172,28 +175,38 @@ export function isNearToday(date: string, now: Date): boolean {
   return Number.isFinite(day) && Math.abs(day - today) <= 1;
 }
 
-/** Something the player just did, as the routine sees it. */
+/**
+ * Something the player just did, as the routine sees it. "tuned" and "warmup"
+ * come from the microphone in the browser: all six strings held in tune, most
+ * of the spider's notes heard. The others come with a saved result.
+ */
 export type PracticeEvent =
   | { kind: "run"; song: string; mode: PracticeMode | "notes" }
   | { kind: "learn"; chord: ChordId }
-  | { kind: "changes"; pair: string };
+  | { kind: "changes"; pair: string }
+  | { kind: "tuned" }
+  | { kind: "warmup" };
 
-/** Which of today's blocks an event completes: doing the thing marks it, no button needed. */
+/** Which of today's blocks an event completes: doing the thing marks it, there is no button. */
 export function blocksDoneBy(routine: readonly Block[], event: PracticeEvent): BlockId[] {
   return routine.flatMap((block): BlockId[] => {
     switch (block.id) {
+      case "tune":
+        return event.kind === "tuned" ? ["tune"] : [];
+      case "warmup":
+        return event.kind === "warmup" ? ["warmup"] : [];
       case "new": {
         const t = block.task;
         if (t.kind === "learn") return event.kind === "learn" && event.chord === t.chord ? ["new"] : [];
         if (t.kind === "notes") return event.kind === "run" && event.mode === "notes" ? ["new"] : [];
         return event.kind === "run" && event.song === t.song && event.mode === t.kind ? ["new"] : [];
       }
+      case "ear":
+        return event.kind === "run" && event.song === earId(block.level) ? ["ear"] : [];
       case "changes":
         return event.kind === "changes" && event.pair === pairKey(...block.pair) ? ["changes"] : [];
       case "song":
         return event.kind === "run" && event.song === block.song && event.mode !== "listen" ? ["song"] : [];
-      default:
-        return [];
     }
   });
 }

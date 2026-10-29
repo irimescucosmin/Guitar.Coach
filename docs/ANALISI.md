@@ -38,7 +38,8 @@ Poi una **prova al microfono**: ogni accordo dichiarato si suona una volta. Le r
 Da qui l'app sceglie la lezione di partenza, saltando quelle già padroneggiate, la durata della routine e i brani. Il livello si **ricalibra** ogni due settimane sui risultati reali, e la persona può sempre rifare il questionario.
 
 **Fatto** (`/start`, `lib/music/profile.ts`):
-- un accordo dichiarato conta come imparato solo se il microfono lo sente pulito; chi salta la prova decide da sé, come con *Segna come imparato*;
+- un accordo dichiarato conta come imparato solo se il microfono lo sente pulito; chi salta la prova non salta niente;
+- "so le corde a vuoto" va dimostrato suonandole: solo se il microfono sente tutte e sei si salta la lezione 0;
 - chi sa le corde a vuoto salta la lezione 0;
 - chi ha già suonato e ha tutti gli accordi di una lezione ne salta anche gli esercizi; un principiante assoluto li fa sempre;
 - dopo 14 giorni il percorso propone di rispondere di nuovo;
@@ -64,11 +65,11 @@ Con 10 minuti si tengono accordatura, accordo nuovo e cambi; con 30 si allungano
 - il cambio da ripassare è una coppia di accordi già imparati che i brani usano davvero: prima quelle mai provate (l'accordo più recente, il cambio più frequente), poi quella con meno cambi puliti al minuto;
 - il brano del giorno ruota ogni giorno tra quelli che si sanno già suonare, prima quelli dello stile scelto, nel modo che serve (*Passo passo* o *A tempo*);
 - un blocco senza niente da fare passa i suoi minuti agli altri, il totale resta quello dichiarato;
-- le attività si segnano da sole quando si fa la cosa (accordo imparato, esercizio completato, test dei cambi, brano suonato); accordatura e riscaldamento si segnano a mano;
+- niente si spunta a mano: le attività del percorso le segna il server dai risultati che salva (accordo imparato, esercizio completato senza saltare, test dei cambi, brano finito, giro dell'orecchio); l'accordatura quando l'accordatore sente le sei corde intonate; il riscaldamento quando il microfono ha sentito almeno 18 delle 24 note del ragno durante il timer;
 - giorni di fila, che non si interrompono finché il giorno non è finito;
 - il test dei cambi ora si salva nell'account (`change_tests`), i giorni in `routine_log`.
 
-Manca: l'orecchio musicale dentro la routine (quando ci saranno gli esercizi).
+Con 20 e 30 minuti c'è anche un blocco di 3 minuti per l'orecchio.
 
 ## 4. Migliorare con la costanza
 
@@ -92,7 +93,14 @@ Esercizi brevi, a livelli, ognuno sbloccato dal precedente:
 7. **Cantare la nota**: il microfono dice se si è intonati.
 8. **Intervalli** semplici, più avanti.
 
-Punteggi per esercizio, nel grafico dei progressi. Il sintetizzatore e il riconoscimento dell'altezza (`pitchFromSamples`) ci sono già: servono gli esercizi.
+Punteggi per esercizio, nel grafico dei progressi.
+
+**Fatto** (`/ear`, `lib/music/ear.ts`), livelli 1-5:
+- giri di dieci domande suonati dal sintetizzatore, generati da un seme (stesso seme, stesso giro: si possono provare);
+- livello 1 da un'ottava a mezzo tono dentro lo stesso giro; livello 2 sempre col Mi grave come riferimento, perché riconoscere una nota senza riferimento è orecchio assoluto, non un esercizio da principianti; livello 3 prima note poi accordi gemelli (E ed Em); livello 4 maggiore o minore sulle tre coppie E/Em, A/Am, D/Dm; livello 5 tra gli accordi imparati, al massimo quattro scelte;
+- 8 su 10 apre il livello dopo; il risultato si salva come le altre prove (`ear-1`... `ear-5`).
+
+Da fare: livelli 6-8 (cambio nel brano, cantare la nota con il microfono, intervalli).
 
 ## 6. Teoria minima, quando serve
 
@@ -159,7 +167,7 @@ Per chi non ha mai preso in mano una chitarra, guide brevi da stampare e tenere 
 - **Prima di iniziare**: le parti della chitarra, come si tiene da seduti, mano sinistra e mano destra, il plettro, come si legge un diagramma.
 - **Accordare**: le corde a vuoto, l'accordatore, quando cambiare le corde.
 - **La scheda della lezione**: i diagrammi degli accordi della lezione in corso, i consigli sul cambio, il ritmo e i brani che si sbloccano.
-- **Il foglio della settimana**: la routine dei prossimi sette giorni, da spuntare a mano.
+- **Il foglio della settimana**: la routine dei prossimi sette giorni, da tenere sul leggio (l'app segna da sola cosa è fatto).
 
 Generate dall'app con i dati dell'account (lezione, accordi, routine), non file fissi: la scheda di chi è alla lezione 2 non è quella di chi è alla 4. Le prime due sono uguali per tutti, con la mano specchiata per i mancini.
 
@@ -170,7 +178,7 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 1 | Questionario e test di livello | fatto |
 | 2 | Account obbligatorio, presentazione, accesso con Google e Apple | fatto |
 | 3 | Routine giornaliera, giorni di fila, test dei cambi nell'account | fatto |
-| 4 | Orecchio musicale, livelli 1-5 | da fare |
+| 4 | Orecchio musicale, livelli 1-5; niente più spunte a mano, tutto verificato | fatto |
 | 5 | Ripasso mirato e grafico dei progressi | da fare |
 | 6 | Assistente AI: insegnante e riepilogo settimanale | da fare |
 | 7 | Lezione su postura e mani, e guide in PDF | da fare |

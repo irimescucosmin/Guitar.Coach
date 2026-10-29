@@ -4,9 +4,9 @@ import { CHORD_IDS, type ChordId } from "./chords";
  * Who is playing, from the first-run questionnaire. It decides where the path
  * starts and, later, how long the daily routine is and which songs come first.
  *
- * Nothing here is taken on faith when the microphone can check it: chords the
- * player says they know count only once heard, unless they skipped the check
- * (then they decide, as with "mark as learned").
+ * Nothing here is taken on faith: chords the player says they know count only
+ * once the microphone heard them, and lesson 0 is skipped only if it heard the
+ * six open strings. Skipping the check places nothing.
  */
 
 export const EXPERIENCE = ["never", "months", "years"] as const;
@@ -25,8 +25,10 @@ export type Goal = (typeof GOALS)[number];
 
 export interface Profile {
   experience: Experience;
-  /** Can name the six open strings: lesson 0 is not needed. */
+  /** Says they can name the six open strings. */
   knowsOpenStrings: boolean;
+  /** The microphone heard the six open strings, one by one: lesson 0 is not needed. */
+  openStringsHeard: boolean;
   /** What the player says they can play. */
   knownChords: ChordId[];
   /** What the microphone heard clean during the check. */
@@ -42,11 +44,10 @@ export interface Profile {
   takenAt: string;
 }
 
-/** Chords the path treats as already learned: heard ones, or declared ones when the check was skipped. */
+/** Chords the path treats as already learned: declared and then heard clean. Nothing without the check. */
 export function placedChords(profile: Profile): ChordId[] {
-  const known = new Set(profile.checked ? profile.verifiedChords : profile.knownChords);
-  // Only what was declared can be placed: the check never adds chords on its own.
-  return CHORD_IDS.filter((c) => known.has(c) && profile.knownChords.includes(c));
+  if (!profile.checked) return [];
+  return CHORD_IDS.filter((c) => profile.verifiedChords.includes(c) && profile.knownChords.includes(c));
 }
 
 /**
@@ -84,6 +85,9 @@ export function retake(previous: Profile | undefined, next: Profile): Profile {
   return {
     ...next,
     knownChords: union(next.knownChords, kept),
-    verifiedChords: next.checked ? union(next.verifiedChords, kept) : next.verifiedChords,
+    verifiedChords: union(next.verifiedChords, kept),
+    // Once proven, kept: a skipped check later does not undo it.
+    checked: next.checked || kept.length > 0,
+    openStringsHeard: next.openStringsHeard || previous.openStringsHeard,
   };
 }

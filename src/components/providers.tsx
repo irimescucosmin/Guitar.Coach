@@ -1,12 +1,11 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { importGuest, loadToday, markToday, saveAnswers, saveChanges, saveLearnedChord, savePracticeRun, type Today } from "@/app/actions";
+import { importGuest, loadToday, reportProof, saveAnswers, saveChanges, saveLearnedChord, savePracticeRun, type Today } from "@/app/actions";
 import type { ChordId } from "@/lib/music/chords";
 import { EMPTY_PROGRESS, recordResult, type Progress } from "@/lib/music/path";
-import { NOTE_DRILL_ID } from "@/lib/music/fretboard";
 import { placedChords, type Profile } from "@/lib/music/profile";
-import { blocksDoneBy, dailyRoutine, localDate, pairKey, type BlockId, type PracticeEvent } from "@/lib/music/routine";
+import { localDate, pairKey } from "@/lib/music/routine";
 import { guestProgress, type RunInput } from "@/lib/progress/validation";
 
 /* ---------- local storage, always behind try/catch: private windows refuse it ---------- */
@@ -67,8 +66,8 @@ interface ProgressApi {
   recordChanges: (a: ChordId, b: ChordId, count: number) => boolean;
   /** Today's routine as far as it is done, on the player's own date; null until loaded. */
   today: (Today & { date: string }) | null;
-  /** Marks routine blocks done by hand, for the ones the app cannot see (tuning, warm-up). */
-  markDone: (blocks: BlockId[]) => void;
+  /** The microphone proved tuning or the warm-up: the server ticks today's block. */
+  prove: (proof: "tuned" | "warmup") => void;
 }
 
 const ProgressContext = createContext<ProgressApi>({
@@ -79,7 +78,7 @@ const ProgressContext = createContext<ProgressApi>({
   answer: async () => {},
   recordChanges: () => false,
   today: null,
-  markDone: () => {},
+  prove: () => {},
 });
 
 export function useProgress() {
@@ -141,23 +140,20 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
     void loadToday(date).then((t) => t && setToday({ ...t, date }));
   }, [signedIn]);
 
-  const markDone = useCallback(
-    (blocks: BlockId[]) => {
+  /** Results carry today's date; the server answers with today's ticks. */
+  const landed = useCallback((r: Awaited<ReturnType<typeof savePracticeRun>>, date: string) => {
+    if (!r.saved) return;
+    setProgress(r.progress);
+    if (r.today) setToday({ ...r.today, date });
+  }, []);
+
+  const prove = useCallback(
+    (proof: "tuned" | "warmup") => {
       if (!signedIn) return;
       const date = localDate(new Date());
-      const done = todayRef.current?.date === date ? todayRef.current.done : [];
-      const fresh = blocks.filter((b) => !done.includes(b));
-      if (fresh.length === 0) return;
-      setToday((t) => ({ date, streak: t?.streak ?? 0, done: [...(t?.date === date ? t.done : []), ...fresh] }));
-      void markToday({ day: date, blocks: fresh }).then((t) => t && setToday({ ...t, date }));
+      void reportProof({ day: date, proof }).then((t) => t && setToday({ ...t, date }));
     },
     [signedIn],
-  );
-
-  /** Whatever the player does anywhere in the app ticks today's block it belongs to. */
-  const noticed = useCallback(
-    (event: PracticeEvent) => markDone(blocksDoneBy(dailyRoutine(progressRef.current, localDate(new Date())), event)),
-    [markDone],
   );
 
   const update = useCallback((patch: Partial<Settings>) => {
@@ -173,21 +169,21 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
       setProgress((p) => {
         return { ...p, learned: { ...p.learned, [chord]: true as const } };
       });
-      noticed({ kind: "learn", chord });
-      void saveLearnedChord(chord).then((r) => r.saved && setProgress(r.progress));
+      const date = localDate(new Date());
+      void saveLearnedChord(chord, date).then((r) => landed(r, date));
     },
-    [noticed],
+    [landed],
   );
 
   const record = useCallback(
     (run: RunInput) => {
       const { progress: next, isRecord } = recordResult(progress, run.songId, run.mode, run.value);
       setProgress(next);
-      noticed({ kind: "run", song: run.songId, mode: run.songId === NOTE_DRILL_ID ? "notes" : run.mode });
-      void savePracticeRun(run).then((r) => r.saved && setProgress(r.progress));
+      const date = localDate(new Date());
+      void savePracticeRun(run, date).then((r) => landed(r, date));
       return isRecord;
     },
-    [progress, noticed],
+    [progress, landed],
   );
 
   const recordChanges = useCallback(
@@ -196,11 +192,11 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
       const previous = progress.changes?.[pair];
       const isRecord = previous === undefined || count > previous;
       if (isRecord) setProgress({ ...progress, changes: { ...progress.changes, [pair]: count } });
-      noticed({ kind: "changes", pair });
-      void saveChanges({ pair, count }).then((r) => r.saved && setProgress(r.progress));
+      const date = localDate(new Date());
+      void saveChanges({ pair, count }, date).then((r) => landed(r, date));
       return isRecord;
     },
-    [progress, noticed],
+    [progress, landed],
   );
 
   const answer = useCallback(
@@ -218,8 +214,8 @@ export function Providers({ initialProgress, children }: { initialProgress: Prog
   );
 
   const progressApi = useMemo(
-    () => ({ progress, signedIn, learn, record, answer, recordChanges, today, markDone }),
-    [progress, signedIn, learn, record, answer, recordChanges, today, markDone],
+    () => ({ progress, signedIn, learn, record, answer, recordChanges, today, prove }),
+    [progress, signedIn, learn, record, answer, recordChanges, today, prove],
   );
   const settingsApi = useMemo(() => ({ settings, update }), [settings, update]);
 

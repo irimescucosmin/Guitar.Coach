@@ -20,7 +20,8 @@ export class Synth {
   private readonly bandBus: GainNode;
   private readonly clickBus: GainNode;
   private readonly buffers = new Map<number, AudioBuffer>();
-  private readonly ringing: ({ gain: GainNode; at: number } | null)[] = [null, null, null, null, null, null];
+  /** Six strings, plus a seventh voice for single notes in the ear exercises. */
+  private readonly ringing: ({ gain: GainNode; at: number } | null)[] = [null, null, null, null, null, null, null];
   private noise: AudioBuffer | null = null;
   /** Every source still scheduled or sounding, so Stop can cut them all. */
   private readonly live = new Set<AudioScheduledSourceNode>();
@@ -97,6 +98,11 @@ export class Synth {
     this.ringing[string] = { gain: g, at };
     src.start(at);
     src.stop(at + PLUCK_SECONDS);
+  }
+
+  /** One plucked note, for the ear exercises: it cuts the previous single note, not the strings. */
+  single(midi: number, at: number): void {
+    this.note(midi, at, 0.3, 6);
   }
 
   strum(chordId: ChordId, at: number, direction: "down" | "up" = "down", strings: "all" | "treble" = "all"): void {

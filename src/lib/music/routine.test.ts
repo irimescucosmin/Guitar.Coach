@@ -6,7 +6,7 @@ import { PAIR_KEYS, blocksDoneBy, dailyRoutine, isNearToday, pairKey, playableSo
 
 const learned = (...chords: ChordId[]) => Object.fromEntries(chords.map((c) => [c, true as const]));
 const profile = (minutes: 10 | 20 | 30, style: Profile["style"] = "folkCountry"): Profile => ({
-  experience: "never", knowsOpenStrings: false, knownChords: [], verifiedChords: [], checked: true,
+  experience: "never", knowsOpenStrings: false, openStringsHeard: false, knownChords: [], verifiedChords: [], checked: true,
   readsTab: "no", guitar: "acoustic", minutes, style, goal: "fun", takenAt: "2026-10-01T00:00:00.000Z",
 });
 const total = (p: Progress) => dailyRoutine(p, "2026-10-29").reduce((sum, b) => sum + b.minutes, 0);
@@ -23,10 +23,11 @@ describe("daily routine", () => {
     }
   });
 
-  it("starts with tuning and gives a beginner with no chords only tuning, warm-up and the next step", () => {
+  it("starts with tuning and gives a beginner with no chords tuning, warm-up, ear and the next step", () => {
     const blocks = dailyRoutine({ ...EMPTY_PROGRESS, profile: profile(20) }, "2026-10-29");
-    expect(blocks.map((b) => b.id)).toEqual(["tune", "warmup", "new"]);
-    expect(blocks[2]).toMatchObject({ id: "new", minutes: 16, task: { kind: "notes" } });
+    expect(blocks.map((b) => b.id)).toEqual(["tune", "warmup", "ear", "new"]);
+    expect(blocks[2]).toMatchObject({ id: "ear", minutes: 3, level: 1 });
+    expect(blocks[3]).toMatchObject({ id: "new", minutes: 14, task: { kind: "notes" } });
   });
 
   it("keeps ten minutes to tuning, the new step and one change", () => {
@@ -81,12 +82,14 @@ describe("streak", () => {
 
 describe("routine bookkeeping", () => {
   it("marks a block when the player does its thing, wherever they do it", () => {
-    const p: Progress = { ...EMPTY_PROGRESS, learned: learned("Em", "Am", "G"), profile: { ...profile(20), knowsOpenStrings: true } };
+    const p: Progress = { ...EMPTY_PROGRESS, learned: learned("Em", "Am", "G"), profile: { ...profile(20), knowsOpenStrings: true, openStringsHeard: true } };
     const routine = dailyRoutine(p, "2026-10-29");
     expect(routine.find((b) => b.id === "new")).toMatchObject({ task: { kind: "step", song: "drill-em-am" } });
     expect(blocksDoneBy(routine, { kind: "run", song: "drill-em-am", mode: "step" })).toEqual(["new"]);
     expect(blocksDoneBy(routine, { kind: "run", song: "drill-em-am", mode: "listen" })).toEqual([]);
     expect(blocksDoneBy(routine, { kind: "learn", chord: "D" })).toEqual([]);
+    expect(blocksDoneBy(routine, { kind: "run", song: "ear-1", mode: "timed" })).toEqual(["ear"]);
+    expect(blocksDoneBy(routine, { kind: "run", song: "ear-3", mode: "timed" })).toEqual([]);
   });
 
   it("knows every pair once, in path order", () => {
