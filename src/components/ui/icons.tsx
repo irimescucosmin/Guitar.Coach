@@ -236,3 +236,11 @@ export function IconMail({ size = 20 }: { size?: number }) {
     </svg>
   );
 }
+
+export function IconChevron({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}

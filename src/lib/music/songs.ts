@@ -81,7 +81,7 @@ export const SONGS: readonly Song[] = [
     sections: [twice("verse", ["G", "D", "G", "C", "G", "Em", "D", "G"]), twice("chorus", ["G", "D", "G", "C", "G", "Em", "D", "G"])] },
   { id: "scarborough-fair", title: "Scarborough Fair", origin: "traditional", group: "traditional", beatsPerBar: 3, pattern: "waltz",
     sections: [{ name: "verse", bars: ["Am", "Am", "G", "Am", "C", "Am", "D", "Am", "Am", "C", "G", "Am", "G", "Am", "G", "Am"], repeat: 3 }] },
-  { id: "tom-dooley-in-a", title: "Tom Dooley (La)", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
+  { id: "tom-dooley-in-a", title: "Tom Dooley, in La", origin: "traditional", group: "traditional", beatsPerBar: 4, pattern: "boomChick",
     sections: [twice("chorus", ["A", "A", "E", "E", "E", "E", "A", "A"]), twice("verse", ["A", "A", "E", "E", "E", "E", "A", "A"])] },
 
   // Chord progressions of well-known songs. No lyrics, no melody.

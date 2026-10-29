@@ -1,9 +1,41 @@
 {
-  "style": "Clean flat vector illustration for a beginner guitar manual, thin dark navy outlines, a few flat fills (warm brass, off-white, navy), no text, no labels, no numbers, plain white background, generous margins, centered subject.",
+  "style": "Clean flat vector illustration for a beginner guitar manual, thin dark navy outlines, a few flat fills (warm brass, off-white, navy), no text, no labels, no numbers, plain white background, generous margins, subject filling most of the frame.",
   "figures": {
-    "parts": "A single acoustic dreadnought guitar seen strictly from the front, perfectly vertical and symmetrical, centered, filling the frame from top to bottom. Every part clearly separated and readable: headstock with three tuning machines on each side, nut, frets along the neck, the body with its waist, the round soundhole, the bridge, six strings running from the tuners to the bridge. No hands, no background scene, no shadow.",
-    "sit": "A person sitting on the edge of a chair playing an acoustic guitar, correct posture: back straight, both feet flat on the floor, guitar body resting on the right thigh, neck rising slightly to the left, right forearm resting on the edge of the guitar body. Seen from the front, three-quarter view.",
-    "left": "Close-up of a left hand fretting chords on an acoustic guitar neck, seen from the player's side: thumb behind the neck roughly opposite the middle finger, fingers arched, pressing the strings with the fingertips just behind the metal frets, wrist relaxed and straight.",
-    "pick": "Close-up of a right hand holding a guitar pick between the pad of the thumb and the side of the index finger, only a few millimetres of the pick tip showing, other fingers relaxed and slightly curled, above the soundhole of an acoustic guitar."
+    "parts": {
+      "prompt": "A single acoustic dreadnought guitar seen strictly from the front, perfectly vertical and symmetrical, centered, filling the frame from top to bottom. Every part clearly separated and readable: headstock with three tuning machines on each side, nut, frets along the neck, the body with its waist, the round soundhole, the bridge, six strings running from the tuners to the bridge. No hands, no background scene, no shadow.",
+      "mustShow": [
+        "six tuning machines on the headstock",
+        "frets along the whole neck",
+        "soundhole and bridge",
+        "six strings"
+      ]
+    },
+    "sit": {
+      "prompt": "A person sitting on the front edge of a chair with a backrest, not leaning on it, playing an acoustic guitar: back straight, both feet flat on the floor, guitar body resting on the right thigh, guitar upright against the chest, neck rising clearly to the left so the headstock is at shoulder height, right forearm resting on the edge of the guitar body. Three-quarter front view, whole body in frame.",
+      "mustShow": [
+        "a chair with a backrest, person on its front edge",
+        "both feet flat on the floor",
+        "headstock at shoulder height, neck tilted up",
+        "right forearm on the edge of the body"
+      ]
+    },
+    "left": {
+      "prompt": "Close-up of a left hand fretting a chord on an acoustic guitar neck, seen from the front of the guitar with the neck tilted up to the left as a player holds it: the thumb visible behind the neck, resting roughly opposite the middle finger, the four fingers arched like holding a ball, only the fingertips pressing the strings just behind the metal frets, knuckles up and away from the strings, wrist straight and relaxed. The hand must not wrap around the neck.",
+      "mustShow": [
+        "thumb behind the neck, visible above the edge",
+        "fingers arched, fingertips on the strings",
+        "knuckles away from the strings, no fist grip",
+        "neck tilted, not vertical"
+      ]
+    },
+    "pick": {
+      "prompt": "Close-up of a right hand holding a guitar pick over the soundhole of an acoustic guitar: the pick pinched between the pad of the thumb and the side of the curled index finger, with only two or three millimetres of the pick tip showing below the fingers, the other fingers relaxed and slightly curled. The pick is mostly hidden by the fingers.",
+      "mustShow": [
+        "pick between thumb pad and side of the index finger",
+        "only the tip of the pick visible, a few millimetres",
+        "other fingers relaxed",
+        "soundhole below the hand"
+      ]
+    }
   }
 }

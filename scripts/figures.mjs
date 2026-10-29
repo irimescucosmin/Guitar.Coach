@@ -1,6 +1,8 @@
 // Draws the figures of the Basics page with Recraft and saves them in
 // public/figures/<id>.svg. The prompts are in scripts/figures.json; the style
-// sentence is prepended to each so the four look like one set.
+// sentence is prepended to each so the four look like one set, and each
+// figure's "mustShow" list is what to check by eye before committing it: a
+// generated figure that contradicts the text teaches the wrong thing.
 //
 // Usage: pnpm figures [id ...], with RECRAFT_API_TOKEN in .env.local.
 // Model: FIGURES_MODEL (default recraftv4_1, raster, about $0.035 a figure).
@@ -31,7 +33,7 @@ const colors = [
 ];
 
 for (const id of ids) {
-  const prompt = spec.figures[id];
+  const prompt = spec.figures[id]?.prompt;
   if (!prompt) {
     console.error(`unknown figure: ${id}`);
     process.exit(1);

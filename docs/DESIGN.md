@@ -36,10 +36,10 @@ Due eccezioni note:
 
 | Rotta | Schermata | Componente principale |
 |---|---|---|
-| `/` | Presentazione: perché esiste, come funziona, cosa c'è, i brani liberi, gratis. Chi ha fatto l'accesso va su `/today` | `components/landing/landing.tsx` |
+| `/` | Presentazione (modo Persuade): la hero mostra con i pezzi veri dell'app una corda che non suona segnata in rosso e l'accordo dopo; poi perché esiste, come funziona, tre cose dentro, i quattro brani della lezione 2 con il catalogo ripiegato sotto, gratis. Niente eyebrow sopra l'h1. Chi ha fatto l'accesso va su `/today` | `components/landing/landing.tsx` |
 | `/today` | Oggi: la routine del giorno, blocchi numerati con minuti e azione, giorni di fila. La pagina dopo l'accesso | `components/today/today-view.tsx` |
 | `/progress` | Progressi: numeri, da ripassare, calendario, grafici con tooltip e tabella | `components/progress/progress-view.tsx`, `components/charts/line-chart.tsx` |
-| `/basics` | Le basi: otto argomenti con disegni al tratto (`components/basics/figures.tsx`) | `components/basics/basics-view.tsx` |
+| `/basics` | Le basi: otto argomenti; quattro figure generate (`public/figures`, da `pnpm figures`, con la lista `mustShow` da controllare a occhio) in colonna da 280 px, più il diagramma spiegato (`components/basics/figures.tsx`) | `components/basics/basics-view.tsx` |
 | `/print/basics`, `/print/lesson`, `/print/week` | Guide da stampare, una colonna, bottone di stampa in alto; `@media print` in `globals.css` | `app/print/*`, `components/print/*` |
 | `/path` | Percorso: prossimo passo, numeri, lezioni, compiti, brani della lezione | `components/path/path-view.tsx` |
 | `/fretboard` | Lezione 0: regole, mappa delle note, esercizio col microfono, nomi | `components/fretboard/*` |

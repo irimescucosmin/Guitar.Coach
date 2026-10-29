@@ -9,7 +9,7 @@ const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLin
 /** The guitar, named parts with leader lines. Labels come from the caller. */
 export function ReadBox({ labels }: { labels: { nut: string; strings: string; frets: string; dot: string; open: string; muted: string } }) {
   return (
-    <svg viewBox="0 0 300 220" className="h-auto w-full max-w-[320px]" role="img" aria-label={Object.values(labels).join(", ")}>
+    <svg viewBox="0 0 340 220" className="h-auto w-full max-w-[340px]" role="img" aria-label={Object.values(labels).join(", ")}>
       <g {...stroke}>
         <path d="M100 40h100" strokeWidth={5} />
         {[70, 100, 130, 160].map((y) => <path key={y} d={`M100 ${y}H200`} strokeWidth={1} />)}

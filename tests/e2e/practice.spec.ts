@@ -53,6 +53,9 @@ test("a visitor sees the presentation, and the app asks for an account", async (
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("un accordo alla volta");
   await expect(page.getByRole("heading", { name: /brani liberi da suonare/ })).toBeVisible();
+  // The first four songs are in view; the whole catalogue opens on request.
+  await expect(page.getByRole("list", { name: "Con due accordi" }).getByRole("listitem")).toHaveCount(4);
+  await page.getByText(/^Tutti i \d+ brani/).click();
   await expect(page.getByRole("cell", { name: /When the Saints Go Marching In/ })).toBeVisible();
   await page.goto("/path");
   await expect(page).toHaveURL(/\/account$/);
