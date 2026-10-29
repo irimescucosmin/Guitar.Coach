@@ -57,6 +57,11 @@ Fonti: [Better Auth, Google](https://better-auth.com/docs/authentication/google)
 
 `NEXT_PUBLIC_CONTACT_EMAIL` è l'indirizzo mostrato in `/terms` per segnalazioni e richieste di rimozione; senza, la pagina non mostra nessun contatto. Da impostare prima di aprire la community a qualcuno.
 
+## Le figure delle basi
+
+Le illustrazioni di `/basics` (parti della chitarra, postura, mano sinistra, plettro) non si disegnano a mano: le genera `pnpm figures` con l'API di Recraft (`RECRAFT_API_TOKEN`, modello `recraftv4_1`, stile `vector_illustration`, palette dell'app, circa 0,04 $ a figura) e le salva in `public/figures/<id>.png`, da committare. I prompt stanno in `scripts/figures.json`, con una frase di stile comune in testa a tutti. `pnpm figures sit` ne rifà una sola. Finché il file manca, la pagina mostra un riquadro che lo dice, mai un disegno di ripiego. Il diagramma dell'accordo (`ReadBox`) resta un SVG: è uno schema, non un'illustrazione.
+
+
 
 ## 3. Il microfono
 

@@ -445,8 +445,10 @@ export const it = {
       body: "cassa", neck: "manico", headstock: "paletta", tuners: "meccaniche", nut: "capotasto", frets: "tasti", soundhole: "buca", bridge: "ponte", strings: "corde",
       boxNut: "capotasto (linea spessa)", boxStrings: "corde: Mi grave a sinistra, Mi cantino a destra", boxFrets: "tasti, dall'alto", boxDot: "dito, con il numero", boxOpen: "○ corda a vuoto", boxMuted: "× non si suona",
       thumb: "pollice", index: "indice", tip: "punta: pochi mm",
+      missing: "Figura non ancora disegnata: si genera con `pnpm figures`.",
     },
     parts: {
+      figureAlt: "Una chitarra acustica vista di fronte, con tutte le parti in vista.",
       title: "Le parti della chitarra",
       body: "I nomi che trovi nell'app e in qualsiasi lezione.",
       steps: "4",
@@ -456,6 +458,7 @@ export const it = {
       s4: "La mano sinistra preme le corde sui tasti, la destra le fa suonare sopra la buca.",
     },
     sit: {
+      figureAlt: "Una persona seduta sul bordo della sedia con la chitarra sulla gamba destra.",
       title: "Come si tiene, da seduti",
       body: "Seduto sul bordo della sedia, schiena dritta, tutti e due i piedi a terra.",
       steps: "4",
@@ -465,6 +468,7 @@ export const it = {
       s4: "Mancino con chitarra per mancini: tutto specchiato. Il resto delle indicazioni vale uguale.",
     },
     left: {
+      figureAlt: "La mano sinistra sul manico, dita arcuate e pollice dietro.",
       title: "La mano sinistra",
       body: "È la mano che decide se un accordo suona o no. Il segreto è la posizione, non la forza.",
       steps: "4",
@@ -482,6 +486,7 @@ export const it = {
       s3: "Parti dalla corda più grave dell'accordo e lascia stare quelle con la ×.",
     },
     pick: {
+      figureAlt: "Il plettro tra il pollice e il lato dell'indice, con pochi millimetri di punta fuori.",
       title: "Il plettro",
       body: "Medio-sottile per cominciare (0,5-0,7 mm): perdona di più e non si incastra.",
       steps: "3",

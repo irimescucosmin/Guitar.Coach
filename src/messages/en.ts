@@ -444,8 +444,10 @@ export const en: typeof it = {
       body: "body", neck: "neck", headstock: "headstock", tuners: "tuners", nut: "nut", frets: "frets", soundhole: "sound hole", bridge: "bridge", strings: "strings",
       boxNut: "nut (thick line)", boxStrings: "strings: low E on the left, high E on the right", boxFrets: "frets, from the top", boxDot: "finger, with its number", boxOpen: "○ open string", boxMuted: "× not played",
       thumb: "thumb", index: "index", tip: "tip: a few mm",
+      missing: "Figure not drawn yet: it is generated with `pnpm figures`.",
     },
     parts: {
+      figureAlt: "An acoustic guitar seen from the front, every part in view.",
       title: "The parts of the guitar",
       body: "The names you find in the app and in any lesson.",
       steps: "4",
@@ -455,6 +457,7 @@ export const en: typeof it = {
       s4: "The left hand presses the strings on the frets, the right hand makes them ring over the sound hole.",
     },
     sit: {
+      figureAlt: "A person sitting on the edge of a chair with the guitar on the right thigh.",
       title: "How to hold it, seated",
       body: "Sit on the edge of the chair, back straight, both feet on the floor.",
       steps: "4",
@@ -464,6 +467,7 @@ export const en: typeof it = {
       s4: "Left-handed with a left-handed guitar: everything mirrored. The rest applies the same.",
     },
     left: {
+      figureAlt: "The left hand on the neck, fingers arched and thumb behind.",
       title: "The fretting hand",
       body: "The hand that decides whether a chord rings. The secret is position, not force.",
       steps: "4",
@@ -481,6 +485,7 @@ export const en: typeof it = {
       s3: "Start from the chord's lowest string and leave out the ones marked ×.",
     },
     pick: {
+      figureAlt: "The pick between the thumb and the side of the index finger, a few millimetres of tip showing.",
       title: "The pick",
       body: "Medium-thin to start (0.5-0.7 mm): more forgiving, and it does not catch.",
       steps: "3",

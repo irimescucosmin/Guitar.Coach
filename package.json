@@ -18,7 +18,8 @@
     "dev:https": "pnpm dev:cert && next dev --turbopack -H 0.0.0.0 --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem",
     "shots": "node scripts/screenshots.mjs",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm smoke:dev",
-    "smoke:dev": "node scripts/dev-smoke.mjs"
+    "smoke:dev": "node scripts/dev-smoke.mjs",
+    "figures": "node scripts/figures.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

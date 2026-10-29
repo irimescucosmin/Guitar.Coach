@@ -204,7 +204,7 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 4 | Orecchio musicale, livelli 1-5; niente più spunte a mano, tutto verificato | fatto |
 | 5 | Ripasso mirato e grafico dei progressi | fatto |
 | 6 | Assistente AI: insegnante e riepilogo settimanale | fatto |
-| 7 | Lezione su postura e mani, e guide in PDF | fatto |
+| 7 | Lezione su postura e mani, e guide in PDF; figure generate con Recraft (`pnpm figures`) | fatto, figure da generare con la chiave |
 | 8 | Community: procedura guidata, bozza finché non la superi, segnalazioni, regole | fatto |
 | 9 | Punti per chi aiuta, letti dai risultati | fatto |
 | 10 | Registrazione settimanale, da riascoltare nei Progressi | fatto |
