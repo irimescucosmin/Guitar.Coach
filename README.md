@@ -15,6 +15,7 @@ Allenatore di chitarra acustica: impari le note e gli accordi uno alla volta, li
   - *Passo passo*: il brano aspetta l'accordo giusto;
   - *A tempo*: ogni battuta viene giudicata, il risultato si salva.
 - **Accordatore** e test dei cambi in un minuto.
+- **Aiuto**: i problemi tipici (corde che ronzano, dita che fanno male, cambi lenti, plettro, tempo, dolore) con il perché e cosa fare. Quando il microfono segnala un problema, il link porta alla spiegazione.
 - **Mancino**: i diagrammi si specchiano.
 - **Gratis, con account**: l'account serve solo a tenere traccia dei progressi su ogni dispositivo. Email e password, oppure Google o Apple se configurati.
 - **Presentazione** pubblica su `/`, con l'elenco dei brani liberi da suonare.
@@ -64,3 +65,4 @@ Apri Claude Code nella cartella del progetto: legge `CLAUDE.md` da solo. In `.cl
 - [`docs/PERCORSO.md`](docs/PERCORSO.md): cosa insegna l'app e quando un compito è fatto.
 - [`docs/DESIGN.md`](docs/DESIGN.md): token, schermate, pezzi riusabili.
 - [`docs/ANALISI.md`](docs/ANALISI.md): cosa deve avere l'app, cosa c'è, cosa viene dopo.
+- [`docs/PROBLEMI.md`](docs/PROBLEMI.md): i problemi tipici di chi inizia e cosa fare, con le fonti.

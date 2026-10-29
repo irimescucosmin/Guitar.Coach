@@ -223,3 +223,13 @@ test("an ear round saves its score, a passed round opens the next level, a guess
   await page.reload();
   await expect(page.getByText("Si apre con 8 su 10 al livello 1.")).toHaveCount(0);
 });
+
+test("the help page explains common problems, opens one from a link and finds them by word", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/help#p-pain");
+  await expect(page.getByRole("heading", { level: 1, name: "Aiuto" })).toBeVisible();
+  await expect(page.getByText("Se senti formicolio, intorpidimento o un dolore che resta: fermati e senti un medico.")).toBeVisible();
+  await page.getByLabel("Cerca: ronza, dita, cambi, plettro…").fill("plettro");
+  await expect(page.getByText("Il plettro scivola o si incastra")).toBeVisible();
+  await expect(page.getByText("Le corde ronzano")).toHaveCount(0);
+});

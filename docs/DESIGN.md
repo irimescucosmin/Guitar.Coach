@@ -47,6 +47,7 @@ Due eccezioni note:
 | `/play/[songId]?mode=` | Il brano a schermo pieno, senza barra laterale | `components/play/player.tsx` |
 | `/tools` | Accordatore e test dei cambi; `?a=G&b=D#changes` sceglie la coppia | `components/tools/*` |
 | `/start` | Questionario: una domanda per schermata, prova al microfono, riepilogo | `components/start/*` |
+| `/help` | Aiuto: problemi comuni per gruppo, ricerca, `#p-<id>` apre un problema; linkato dalla fascia del microfono | `components/help/help-view.tsx` |
 | `/account` | Accesso a due colonne, fuori dalla barra laterale; `?mode=signup` apre la registrazione | `components/account/account-form.tsx` |
 
 Le schermate con la barra laterale stanno nel gruppo `src/app/(app)/`, il cui `layout.tsx` mette barra e contenuto (largo al massimo 1120 px).

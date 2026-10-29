@@ -7,6 +7,7 @@ Per chi scrive codice qui, persone e agenti.
 - `docs/PERCORSO.md`: cosa insegna l'app, in che ordine, quando un compito è fatto.
 - `docs/DESIGN.md`: token, schermate, pezzi riusabili.
 - `docs/ANALISI.md`: cosa deve avere l'app per un principiante, cosa c'è e in che ordine fare il resto.
+- `docs/PROBLEMI.md`: i problemi tipici di chi inizia, perché succedono e cosa fare, con le fonti. Gli stessi testi sono nella pagina Aiuto.
 
 In Claude Code ci sono i comandi `/verifica`, `/brano`, `/accordo`, `/schermata`, `/revisione`, `/rilascio` (in `.claude/commands/`) e l'agente `revisore`.
 

@@ -20,6 +20,8 @@ Ogni sezione dice cosa c'è già nell'app e cosa manca. L'ordine in cui farlo è
 C'è già: accordatore, diagrammi da mancino, consigli su pressione, polpastrelli e polso nella pagina di ogni accordo, nota sui polpastrelli nel riepilogo del questionario.
 Manca: la lezione su postura e mani, il controllo prima della sessione, la pennata a vuoto col metronomo come esercizio a sé.
 
+**Fatto in parte**: la pagina Aiuto (`/help`, ricerca in `docs/PROBLEMI.md`) spiega i problemi tipici: corde che ronzano o mute, dita e polso, cambi lenti, mano destra, tempo, regolazione della chitarra, come esercitarsi. La fascia del microfono porta alla spiegazione giusta.
+
 ## 2. Questionario iniziale e livello
 
 Al primo avvio, poche domande per costruire il percorso:

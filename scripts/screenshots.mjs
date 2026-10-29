@@ -40,6 +40,7 @@ for (const chord of ["Em", "Am"]) {
 const screens = [
   ["today", "/today"],
   ["ear", "/ear"],
+  ["help", "/help#p-muted"],
   ["path", "/path"],
   ["fretboard", "/fretboard"],
   ["songs", "/songs"],

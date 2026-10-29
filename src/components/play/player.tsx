@@ -299,20 +299,23 @@ export function FeedbackBanner({ feedback, countIn }: { feedback: Feedback | nul
   let text = "";
   let detail = "";
   let tone: keyof typeof TONES = "info";
+  // The help page explains the problems the microphone points at.
+  let help: string | null = null;
   if (countIn !== null) text = t("startsIn", { beats: countIn });
   else if (feedback) {
     switch (feedback.kind) {
       case "play": text = t("feedback.play", { chord: feedback.chord }); break;
       case "right": text = t("feedback.right", { chord: feedback.chord }); detail = t("feedback.rightDetail"); tone = "good"; break;
-      case "heard": text = t("feedback.heard", { chord: feedback.chord, heard: feedback.heard }); tone = "bad"; break;
+      case "heard": text = t("feedback.heard", { chord: feedback.chord, heard: feedback.heard }); tone = "bad"; help = "soundsWrong"; break;
       case "pressFinger":
         text = t("feedback.missing", { note: tc(`pitch.p${feedback.note as 0}`) });
         detail = t("feedback.pressFinger", {
           finger: feedback.finger, fingerName: tc(`finger.f${feedback.finger as 1}`), string: string(feedback.string), fret: feedback.fret,
         });
         tone = "warn";
+        help = "buzz";
         break;
-      case "freeOpenString": text = t("feedback.openSilent", { string: string(feedback.string) }); detail = t("feedback.freeOpenString"); tone = "warn"; break;
+      case "freeOpenString": text = t("feedback.openSilent", { string: string(feedback.string) }); detail = t("feedback.freeOpenString"); tone = "warn"; help = "muted"; break;
       case "micOff": text = t("feedback.micOff"); break;
       case "slowDown": text = t("feedback.slowDown"); break;
     }
@@ -322,6 +325,11 @@ export function FeedbackBanner({ feedback, countIn }: { feedback: Feedback | nul
       {tone === "good" ? <IconCheck size={22} /> : tone === "info" ? null : <IconAlert />}
       <span className="text-[19px] font-extrabold">{text}</span>
       {detail && <span className="text-[15px]">{detail}</span>}
+      {help && (
+        <Link href={`/help#p-${help}`} target="_blank" className="text-sm font-bold underline underline-offset-2">
+          {t("feedback.why")}
+        </Link>
+      )}
       <span className="ml-auto flex items-center gap-2 text-[13px] opacity-80">
         <span aria-hidden className={`size-2 rounded-full ${mic === "on" ? "bg-good" : "bg-line-strong"}`} />
         {tc(`mic.${mic === "on" ? "on" : "off"}`)}
