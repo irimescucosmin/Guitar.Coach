@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { ChordDiagram } from "@/components/chord-diagram";
 import { useProgress, useSettings } from "@/components/providers";
 import { ChordChip } from "@/components/ui/chord-chip";
-import { IconCheck, IconPlay } from "@/components/ui/icons";
+import { IconCheck, IconPlay, IconPrint } from "@/components/ui/icons";
 import { button, playHref, taskHref } from "@/components/ui/links";
 import { CHORD_IDS, type ChordId } from "@/lib/music/chords";
 import { LESSONS, PASS_SCORE, lessonStates, nextTask, type Lesson, type Task } from "@/lib/music/path";
@@ -92,7 +92,10 @@ export function PathView() {
           </span>
           <h1 className="display m-0 text-[40px] font-extrabold leading-tight">{t("title")}</h1>
         </div>
-        <Link href="/songs" className={`${button.outline} h-11`}>{t("allSongs")}</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/print/lesson" target="_blank" className={`${button.outline} h-11`}><IconPrint />{t("printLesson")}</Link>
+          <Link href="/songs" className={`${button.outline} h-11`}>{t("allSongs")}</Link>
+        </div>
       </header>
 
 

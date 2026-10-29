@@ -56,6 +56,24 @@ export function IconTeacher({ size = 20 }: { size?: number }) {
   );
 }
 
+export function IconBook({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z" />
+      <path d="M4 21V5M8 7h7M8 11h5" />
+    </svg>
+  );
+}
+
+export function IconPrint({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+      <path d="M7 9V4h10v5M7 17H4v-6h16v6h-3" />
+      <rect x="7" y="14" width="10" height="6" />
+    </svg>
+  );
+}
+
 export function IconPath({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...base}>

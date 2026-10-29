@@ -254,3 +254,18 @@ test("the teacher page says plainly when the model is not configured", async ({ 
   await page.getByRole("link", { name: "Vai all'Aiuto" }).click();
   await expect(page).toHaveURL(/\/help$/);
 });
+
+test("the basics page and the printable sheets are built from the player's own path", async ({ page }) => {
+  await signUp(page);
+  await page.goto("/basics");
+  await expect(page.getByRole("heading", { level: 1, name: "Le basi" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Come si legge un diagramma" })).toBeVisible();
+  // Lesson 0 on the sheet: the open strings, no chords yet.
+  await page.goto("/print/lesson");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Lezione 0");
+  await expect(page.getByText("Le sei corde a vuoto, dalla più grossa")).toBeVisible();
+  await page.goto("/print/week?from=2026-10-29");
+  await expect(page.getByRole("heading", { level: 1, name: "La settimana" })).toBeVisible();
+  await expect(page.getByText("giovedì 29 ottobre")).toBeVisible();
+  await expect(page.getByText("Accorda la chitarra")).toHaveCount(7);
+});

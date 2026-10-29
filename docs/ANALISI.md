@@ -17,8 +17,8 @@ Ogni sezione dice cosa c'è già nell'app e cosa manca. L'ordine in cui farlo è
 - **Ritmo separato dagli accordi**: prima la pennata a vuoto col metronomo contando ad alta voce, poi con gli accordi.
 - **Mancini**: chitarra per mancini o destrorsa, con diagrammi specchiati di conseguenza.
 
-C'è già: accordatore, diagrammi da mancino, consigli su pressione, polpastrelli e polso nella pagina di ogni accordo, nota sui polpastrelli nel riepilogo del questionario.
-Manca: la lezione su postura e mani, il controllo prima della sessione, la pennata a vuoto col metronomo come esercizio a sé.
+**Fatto**: la pagina *Le basi* (`/basics`): parti della chitarra, come si tiene, mano sinistra, mano destra, plettro, come si legge un diagramma, accordare sempre, cosa fa male e cosa no, con i disegni. Accordatore, diagrammi da mancino, consigli nella pagina di ogni accordo.
+Manca: la pennata a vuoto col metronomo come esercizio a sé.
 
 **Fatto in parte**: la pagina Aiuto (`/help`, ricerca in `docs/PROBLEMI.md`) spiega i problemi tipici: corde che ronzano o mute, dita e polso, cambi lenti, mano destra, tempo, regolazione della chitarra, come esercitarsi. La fascia del microfono porta alla spiegazione giusta.
 
@@ -181,7 +181,9 @@ Per chi non ha mai preso in mano una chitarra, guide brevi da stampare e tenere 
 - **La scheda della lezione**: i diagrammi degli accordi della lezione in corso, i consigli sul cambio, il ritmo e i brani che si sbloccano.
 - **Il foglio della settimana**: la routine dei prossimi sette giorni, da tenere sul leggio (l'app segna da sola cosa è fatto).
 
-Generate dall'app con i dati dell'account (lezione, accordi, routine), non file fissi: la scheda di chi è alla lezione 2 non è quella di chi è alla 4. Le prime due sono uguali per tutti, con la mano specchiata per i mancini.
+Generate dall'app con i dati dell'account (lezione, accordi, routine), non file fissi: la scheda di chi è alla lezione 2 non è quella di chi è alla 4.
+
+**Fatto**: tre pagine di stampa (`/print/basics`, `/print/lesson`, `/print/week`), senza barra laterale, con il bottone *Stampa o salva in PDF* che apre la finestra di stampa del browser: il PDF lo fa il browser, l'app non ha un servizio a parte e le guide restano sempre aggiornate. *Prima di iniziare* e *Accordare* sono dentro *Le basi*. La scheda della lezione mostra gli accordi con le dita, i cambi, i compiti e i brani; per la lezione 0 le corde a vuoto. Il foglio della settimana ha sette giorni di routine con le caselle. Manca: i diagrammi specchiati per i mancini sulle schede stampate.
 
 ## 13. Ordine di sviluppo
 
@@ -193,7 +195,7 @@ Generate dall'app con i dati dell'account (lezione, accordi, routine), non file 
 | 4 | Orecchio musicale, livelli 1-5; niente più spunte a mano, tutto verificato | fatto |
 | 5 | Ripasso mirato e grafico dei progressi | fatto |
 | 6 | Assistente AI: insegnante e riepilogo settimanale | fatto |
-| 7 | Lezione su postura e mani, e guide in PDF | da fare |
+| 7 | Lezione su postura e mani, e guide in PDF | fatto |
 | 8 | Community: procedura guidata, segnalazioni, termini | da fare |
 | 9 | Punti per chi aiuta | da fare, dopo la community |
 | 10 | Registrazione settimanale | da fare |

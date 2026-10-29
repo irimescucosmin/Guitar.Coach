@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { TransitionHint } from "@/components/play/transition-hint";
 import { useProgress } from "@/components/providers";
-import { IconCheck, IconPlay } from "@/components/ui/icons";
+import { IconCheck, IconPlay, IconPrint } from "@/components/ui/icons";
 import { TODAY_HREF, button, changesHref, playHref, taskHref } from "@/components/ui/links";
 import { useMicState } from "@/components/chrome/mic-button";
 import { midiFromFrequency, pitchFromSamples } from "@/lib/audio/detect";
@@ -44,7 +44,8 @@ export function TodayView() {
           <h1 className="display m-0 text-[40px] font-extrabold leading-tight">{t("title")}</h1>
           <p className="m-0 text-base text-ink-2">{t("summary", { minutes, count: routine.length })}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href={`/print/week?from=${date}`} target="_blank" className={`${button.outline} h-11`}><IconPrint />{t("printWeek")}</Link>
           <Stat value={`${finished}/${routine.length}`} label={t("done")} />
           <Stat value={String(today?.streak ?? 0)} label={t("streak", { count: today?.streak ?? 0 })} brass />
         </div>

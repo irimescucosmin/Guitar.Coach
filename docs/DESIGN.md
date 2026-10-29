@@ -39,6 +39,8 @@ Due eccezioni note:
 | `/` | Presentazione: perché esiste, come funziona, cosa c'è, i brani liberi, gratis. Chi ha fatto l'accesso va su `/today` | `components/landing/landing.tsx` |
 | `/today` | Oggi: la routine del giorno, blocchi numerati con minuti e azione, giorni di fila. La pagina dopo l'accesso | `components/today/today-view.tsx` |
 | `/progress` | Progressi: numeri, da ripassare, calendario, grafici con tooltip e tabella | `components/progress/progress-view.tsx`, `components/charts/line-chart.tsx` |
+| `/basics` | Le basi: otto argomenti con disegni al tratto (`components/basics/figures.tsx`) | `components/basics/basics-view.tsx` |
+| `/print/basics`, `/print/lesson`, `/print/week` | Guide da stampare, una colonna, bottone di stampa in alto; `@media print` in `globals.css` | `app/print/*`, `components/print/*` |
 | `/path` | Percorso: prossimo passo, numeri, lezioni, compiti, brani della lezione | `components/path/path-view.tsx` |
 | `/fretboard` | Lezione 0: regole, mappa delle note, esercizio col microfono, nomi | `components/fretboard/*` |
 | `/ear` | Orecchio: cinque livelli, giri di dieci domande; `?level=N` evidenzia il livello di oggi | `components/ear/ear-view.tsx` |
